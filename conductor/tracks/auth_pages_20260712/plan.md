@@ -9,9 +9,9 @@
 - [x] Task: Profile read/update endpoint (e8d1a93)
     - [x] Write failing tests for `GET /auth/me` (returns name) and `PATCH /auth/me` (updates name, auth-guarded)
     - [x] Implement controller/service/route for `GET`/`PATCH /auth/me` handling `name`
-- [ ] Task: Change-password endpoint
-    - [ ] Write failing tests for `POST /auth/change-password` (verifies current password, rejects wrong, sets new)
-    - [ ] Implement change-password service, controller, and route (auth-guarded)
+- [x] Task: Change-password endpoint (3a0405a)
+    - [x] Write failing tests for `POST /auth/change-password` (verifies current password, rejects wrong, sets new)
+    - [x] Implement change-password service, controller, and route (auth-guarded)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1 — Backend: Extend Auth API (Name & Profile)' (Protocol in workflow.md)
 
 ## Phase 2 — Frontend Foundation: Session, API Client, Routing & Guards
