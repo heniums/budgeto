@@ -1,0 +1,9 @@
+node_modules/
+dist/
+client/dist/
+coverage/
+*.log
+.env
+.pgdata/
+.embedded-postgres/
+.DS_Store
