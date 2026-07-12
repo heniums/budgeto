@@ -9,7 +9,7 @@
 - [x] Task: Write tests for schema shape and constraints 59ec02f
     - [x] Verify table columns, types, and foreign key relationships
 - [x] Task: Implement schema in `server/src/db/schema.ts` 59ec02f
-- [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Backend API – Wallet CRUD
 
