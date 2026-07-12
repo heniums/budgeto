@@ -99,6 +99,7 @@ export function SignUp(): JSX.Element {
             id={ids.name}
             type="text"
             autoComplete="name"
+            autoFocus
             value={name}
             onChange={(event) => setName(event.target.value)}
             aria-invalid={errors.name ? true : undefined}

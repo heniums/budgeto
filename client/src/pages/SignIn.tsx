@@ -86,6 +86,7 @@ export function SignIn(): JSX.Element {
             id={ids.email}
             type="email"
             autoComplete="email"
+            autoFocus
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             aria-invalid={errors.email ? true : undefined}
