@@ -72,23 +72,23 @@
 - [x] Task: Add wallet routes to client router 9cf3a33
 - [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md) ff80493
 
-## Phase 5: Frontend – Dashboard & Wallet Integration
+## Phase 5: Frontend – Dashboard & Wallet Integration [checkpoint: 2e69582]
 
-- [ ] Task: Write tests for Dashboard page
-    - [ ] Renders wallet summary cards with balances
-    - [ ] Shows total balance across all wallets
-    - [ ] Quick-add transaction from dashboard
-- [ ] Task: Write tests for Sidebar/Navigation component
-    - [ ] Lists wallets with current balances
-    - [ ] Active wallet highlight
-    - [ ] Link to wallet management page
-- [ ] Task: Write tests for TransactionForm component
-    - [ ] Form fields: wallet selector, amount, description
-    - [ ] Validation (wallet required, amount required)
-    - [ ] Submit creates transaction
-- [ ] Task: Implement Dashboard page
-- [ ] Task: Implement Sidebar/Navigation component with wallet list
-- [ ] Task: Implement TransactionForm component
-- [ ] Task: Implement TransferForm component
-- [ ] Task: Integrate sidebar, dashboard, and wallet routes into App layout
-- [ ] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md)
+- [x] Task: Write tests for Dashboard page ede8abb
+    - [x] Renders wallet summary cards with balances
+    - [x] Shows total balance across all wallets
+    - [x] Quick-add transaction from dashboard
+- [x] Task: Write tests for Sidebar/Navigation component ede8abb
+    - [x] Lists wallets with current balances
+    - [x] Active wallet highlight
+    - [x] Link to wallet management page
+- [x] Task: Write tests for TransactionForm component ede8abb
+    - [x] Form fields: wallet selector, amount, description
+    - [x] Validation (wallet required, amount required)
+    - [x] Submit creates transaction
+- [x] Task: Implement Dashboard page ede8abb
+- [x] Task: Implement Sidebar/Navigation component with wallet list ede8abb
+- [x] Task: Implement TransactionForm component ede8abb
+- [x] Task: Implement TransferForm component ede8abb
+- [x] Task: Integrate sidebar, dashboard, and wallet routes into App layout ede8abb
+- [x] Task: Conductor - User Manual Verification 'Phase 5' (Protocol in workflow.md) 2e69582
