@@ -6,9 +6,9 @@
 - [x] Task: Add `name` to the user model (11867d2)
     - [x] Write failing tests for schema/repository storing and returning `name`
     - [x] Implement `name` column in `db/schema.ts`, migration, and `createUser`/`register` to accept & persist `name`; register returns `name`
-- [ ] Task: Profile read/update endpoint
-    - [ ] Write failing tests for `GET /auth/me` (returns name) and `PATCH /auth/me` (updates name, auth-guarded)
-    - [ ] Implement controller/service/route for `GET`/`PATCH /auth/me` handling `name`
+- [x] Task: Profile read/update endpoint (e8d1a93)
+    - [x] Write failing tests for `GET /auth/me` (returns name) and `PATCH /auth/me` (updates name, auth-guarded)
+    - [x] Implement controller/service/route for `GET`/`PATCH /auth/me` handling `name`
 - [ ] Task: Change-password endpoint
     - [ ] Write failing tests for `POST /auth/change-password` (verifies current password, rejects wrong, sets new)
     - [ ] Implement change-password service, controller, and route (auth-guarded)
