@@ -49,28 +49,28 @@
 - [x] Task: Register transaction routes in app.ts b76ff08
 - [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 1eced3f
 
-## Phase 4: Frontend – Wallet Management Pages
+## Phase 4: Frontend – Wallet Management Pages [checkpoint: ff80493]
 
-- [ ] Task: Write frontend API client module for wallets
-    - [ ] createWallet, getWallets, getWallet, updateWallet, deleteWallet
-    - [ ] createTransaction, getTransactions, transferFunds
-- [ ] Task: Write tests for WalletList page
-    - [ ] Renders list of wallets with balances
-    - [ ] Navigate to create wallet form
-    - [ ] Delete empty wallet with confirmation
-- [ ] Task: Write tests for WalletCreate/Edit form
-    - [ ] Form fields: name, description, color
-    - [ ] Validation (name required)
-    - [ ] Submit creates/updates wallet
-- [ ] Task: Write tests for WalletDetail page
-    - [ ] Shows wallet info and current balance
-    - [ ] Lists transaction history sorted by date
-    - [ ] Link to add new transaction
-- [ ] Task: Implement WalletList page
-- [ ] Task: Implement WalletCreate/Edit form component
-- [ ] Task: Implement WalletDetail page
-- [ ] Task: Add wallet routes to client router
-- [ ] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md)
+- [x] Task: Write frontend API client module for wallets 9cf3a33
+    - [x] createWallet, getWallets, getWallet, updateWallet, deleteWallet
+    - [x] createTransaction, getTransactions, transferFunds
+- [x] Task: Write tests for WalletList page 9cf3a33
+    - [x] Renders list of wallets with balances
+    - [x] Navigate to create wallet form
+    - [x] Delete empty wallet with confirmation
+- [x] Task: Write tests for WalletCreate/Edit form 9cf3a33
+    - [x] Form fields: name, description, color
+    - [x] Validation (name required)
+    - [x] Submit creates/updates wallet
+- [x] Task: Write tests for WalletDetail page 9cf3a33
+    - [x] Shows wallet info and current balance
+    - [x] Lists transaction history sorted by date
+    - [x] Link to add new transaction
+- [x] Task: Implement WalletList page 9cf3a33
+- [x] Task: Implement WalletCreate/Edit form component 9cf3a33
+- [x] Task: Implement WalletDetail page 9cf3a33
+- [x] Task: Add wallet routes to client router 9cf3a33
+- [x] Task: Conductor - User Manual Verification 'Phase 4' (Protocol in workflow.md) ff80493
 
 ## Phase 5: Frontend – Dashboard & Wallet Integration
 
