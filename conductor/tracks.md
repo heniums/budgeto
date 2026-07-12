@@ -15,4 +15,9 @@ This file tracks all major tracks for the project. Each track has its own detail
 ---
 
 - [x] **Track: balances/wallets management** (archived)
-  *Link: [./archive/wallets_management_20260712/](./archive/wallets_management_20260712/)*
+  *Link: [./archive/wallets_management_20260712/](./archive/wallets_management_20260712/)
+
+---
+
+- [ ] **Track: Abstract client-side token management and HTTP request into centralized axios service**
+  *Link: [./tracks/axios_client_20260712/](./tracks/axios_client_20260712/)**
