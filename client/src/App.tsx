@@ -1,12 +1,8 @@
-import { useState } from 'react';
+import { RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { routes } from './router';
+
+const router = createBrowserRouter(routes);
 
 export function App(): JSX.Element {
-  const [taps] = useState(0);
-  return (
-    <main>
-      <h1>Budgeto</h1>
-      <p>Your personal finance companion.</p>
-      <p>Taps: {taps}</p>
-    </main>
-  );
+  return <RouterProvider router={router} />;
 }
