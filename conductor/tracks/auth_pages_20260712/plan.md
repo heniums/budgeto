@@ -38,7 +38,7 @@
     - [x] Implement SignIn page: email/password, inline validation, submit -> API -> redirect `/account/profile`
 - [x] Task: Conductor - User Manual Verification 'Phase 4 — Sign In Page' (Protocol in workflow.md)
 
-## Phase 5 — Profile Management Page
+## Phase 5 — Profile Management Page [checkpoint: 6598323]
 - [x] Task: Display & edit display name (53e0385)
     - [x] Write failing tests for name display + inline edit/save with validation
     - [x] Implement profile view + inline name editing calling `PATCH /auth/me`
