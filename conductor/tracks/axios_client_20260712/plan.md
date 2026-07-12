@@ -18,7 +18,7 @@
     - [x] Test that the response interceptor normalizes errors into `ApiError`
     - [x] Test that the response interceptor handles 401 by clearing the token
     - [x] Test that the response interceptor re-throws errors so callers can catch them
-- [ ] Task: Conductor - User Manual Verification 'Phase 1: Create Axios Client Module' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Phase 1: Create Axios Client Module' (Protocol in workflow.md)
 
 ## Phase 2: Refactor API Functions
 
