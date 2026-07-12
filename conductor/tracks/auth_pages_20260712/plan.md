@@ -39,15 +39,15 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 4 — Sign In Page' (Protocol in workflow.md)
 
 ## Phase 5 — Profile Management Page
-- [ ] Task: Display & edit display name
-    - [ ] Write failing tests for name display + inline edit/save with validation
-    - [ ] Implement profile view + inline name editing calling `PATCH /auth/me`
-- [ ] Task: Change-password form
-    - [ ] Write failing tests for change-password validation (current, new >=8, confirm) + inline errors
-    - [ ] Implement change-password form calling `POST /auth/change-password`
-- [ ] Task: Sign-out action
-    - [ ] Write failing tests for sign-out clearing session and navigating to `/login`
-    - [ ] Implement sign-out button (clear token, redirect)
+- [x] Task: Display & edit display name (53e0385)
+    - [x] Write failing tests for name display + inline edit/save with validation
+    - [x] Implement profile view + inline name editing calling `PATCH /auth/me`
+- [x] Task: Change-password form (53e0385)
+    - [x] Write failing tests for change-password validation (current, new >=8, confirm) + inline errors
+    - [x] Implement change-password form calling `POST /auth/change-password`
+- [x] Task: Sign-out action (53e0385)
+    - [x] Write failing tests for sign-out clearing session and navigating to `/login`
+    - [x] Implement sign-out button (clear token, redirect)
 - [ ] Task: Conductor - User Manual Verification 'Phase 5 — Profile Management Page' (Protocol in workflow.md)
 
 ## Phase 6 — Shared UX & Accessibility Polish
