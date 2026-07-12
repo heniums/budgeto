@@ -13,20 +13,20 @@
 
 ## Phase 2: Backend API – Wallet CRUD
 
-- [ ] Task: Write tests for wallet API endpoints
-    - [ ] POST /wallets – create wallet with name, returns 201
-    - [ ] GET /wallets – list user's wallets, returns 200
-    - [ ] GET /wallets/:id – get single wallet with computed balance
-    - [ ] PUT /wallets/:id – update wallet name/description/color
-    - [ ] DELETE /wallets/:id – delete wallet (404 if not found, 409 if has transactions)
-- [ ] Task: Implement wallet repository (Drizzle data-access layer)
-    - [ ] createWallet, findWalletById, findWalletsByUserId, updateWallet, deleteWallet
-- [ ] Task: Implement wallet service (validation + business logic)
-    - [ ] zod schema for create/update wallet input
-    - [ ] Ownership check (user can only access own wallets)
-- [ ] Task: Implement wallet controller (HTTP handlers)
-    - [ ] createHandler, listHandler, getHandler, updateHandler, deleteHandler
-- [ ] Task: Register wallet routes in app.ts (all under `/wallets` prefix, auth-protected)
+- [x] Task: Write tests for wallet API endpoints eadcdbe
+    - [x] POST /wallets – create wallet with name, returns 201
+    - [x] GET /wallets – list user's wallets, returns 200
+    - [x] GET /wallets/:id – get single wallet with computed balance
+    - [x] PUT /wallets/:id – update wallet name/description/color
+    - [x] DELETE /wallets/:id – delete wallet (404 if not found, 409 if has transactions)
+- [x] Task: Implement wallet repository (Drizzle data-access layer) eadcdbe
+    - [x] createWallet, findWalletById, findWalletsByUserId, updateWallet, deleteWallet
+- [x] Task: Implement wallet service (validation + business logic) eadcdbe
+    - [x] zod schema for create/update wallet input
+    - [x] Ownership check (user can only access own wallets)
+- [x] Task: Implement wallet controller (HTTP handlers) eadcdbe
+    - [x] createHandler, listHandler, getHandler, updateHandler, deleteHandler
+- [x] Task: Register wallet routes in app.ts (all under `/wallets` prefix, auth-protected) eadcdbe
 - [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
 
 ## Phase 3: Backend API – Transactions & Balance
