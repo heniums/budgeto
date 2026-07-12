@@ -27,9 +27,9 @@
 - [ ] Task: Conductor - User Manual Verification 'Phase 2 — Frontend Foundation' (Protocol in workflow.md)
 
 ## Phase 3 — Sign Up Page
-- [ ] Task: SignUp form component
-    - [ ] Write failing tests for validation (required, email format, password >=8, match) + inline error display
-    - [ ] Implement SignUp page: name, email, password, confirm; inline validation; submit -> API -> redirect `/account/profile`
+- [x] Task: SignUp form component (2916e96)
+    - [x] Write failing tests for validation (required, email format, password >=8, match) + inline error display
+    - [x] Implement SignUp page: name, email, password, confirm; inline validation; submit -> API -> redirect `/account/profile`
 - [ ] Task: Conductor - User Manual Verification 'Phase 3 — Sign Up Page' (Protocol in workflow.md)
 
 ## Phase 4 — Sign In Page
