@@ -50,11 +50,11 @@
     - [x] Implement sign-out button (clear token, redirect)
 - [ ] Task: Conductor - User Manual Verification 'Phase 5 — Profile Management Page' (Protocol in workflow.md)
 
-## Phase 6 — Shared UX & Accessibility Polish
-- [ ] Task: Conversational microcopy & branding
-    - [ ] Write failing tests / lint for microcopy presence and palette tokens
-    - [ ] Implement friendly copy ("Welcome back!", "Nice, you're all set.") and calm green/blue theme
-- [ ] Task: Accessibility & responsive/PWA
-    - [ ] Write failing tests for labeled inputs, keyboard nav, focus management
-    - [ ] Implement WCAG AA (contrast, labels, keyboard) + responsive layouts; verify PWA installability/offline
+## Phase 6 — Shared UX & Accessibility Polish [checkpoint: d6dd8af]
+- [x] Task: Conversational microcopy & branding (d6dd8af)
+    - [x] Write failing tests / lint for microcopy presence and palette tokens
+    - [x] Implement friendly copy ("Welcome back!", "Nice, you're all set.") and calm green/blue theme
+- [x] Task: Accessibility & responsive/PWA (d6dd8af)
+    - [x] Write failing tests for labeled inputs, keyboard nav, focus management
+    - [x] Implement WCAG AA (contrast, labels, keyboard) + responsive layouts; verify PWA installability/offline
 - [ ] Task: Conductor - User Manual Verification 'Phase 6 — Shared UX & Accessibility Polish' (Protocol in workflow.md)
