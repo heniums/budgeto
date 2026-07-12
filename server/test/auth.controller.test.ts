@@ -14,9 +14,14 @@ describe('POST /auth/register', () => {
   it('creates a user with valid input (201)', async () => {
     const response = await request(app)
       .post('/auth/register')
-      .send({ email: 'heidi@example.com', password: 'password123' });
+      .send({
+        name: 'Heidi',
+        email: 'heidi@example.com',
+        password: 'password123',
+      });
     expect(response.status).toBe(201);
     expect(response.body.email).toBe('heidi@example.com');
+    expect(response.body.name).toBe('Heidi');
     expect(response.body.id).toBeDefined();
   });
 
@@ -30,12 +35,17 @@ describe('POST /auth/register', () => {
 
   it('rejects a duplicate email (409)', async () => {
     await register({
+      name: 'Ivan',
       email: 'ivan@example.com',
       password: 'password123',
     });
     const response = await request(app)
       .post('/auth/register')
-      .send({ email: 'ivan@example.com', password: 'password123' });
+      .send({
+        name: 'Ivan',
+        email: 'ivan@example.com',
+        password: 'password123',
+      });
     expect(response.status).toBe(409);
     expect(response.body.code).toBe('CONFLICT');
   });
@@ -45,6 +55,7 @@ describe('POST /auth/login', () => {
   beforeEach(async () => {
     await deleteAllUsers();
     await register({
+      name: 'Judy',
       email: 'judy@example.com',
       password: 'password123',
     });

@@ -9,20 +9,24 @@ describe('register', () => {
 
   it('registers a new user', async () => {
     const result = await register({
+      name: 'Dave',
       email: 'dave@example.com',
       password: 'password123',
     });
     expect(result.id).toBeDefined();
     expect(result.email).toBe('dave@example.com');
+    expect(result.name).toBe('Dave');
   });
 
   it('rejects a duplicate email', async () => {
     await register({
+      name: 'Erin',
       email: 'erin@example.com',
       password: 'password123',
     });
     await expect(
       register({
+        name: 'Erin',
         email: 'erin@example.com',
         password: 'password123',
       }),
@@ -37,6 +41,7 @@ describe('login', () => {
 
   it('logs in with valid credentials and returns a token', async () => {
     await register({
+      name: 'Frank',
       email: 'frank@example.com',
       password: 'password123',
     });
@@ -46,6 +51,7 @@ describe('login', () => {
     });
     expect(result.token).toBeTypeOf('string');
     expect(result.user.email).toBe('frank@example.com');
+    expect(result.user.name).toBe('Frank');
   });
 
   it('rejects an unknown user', async () => {
@@ -56,6 +62,7 @@ describe('login', () => {
 
   it('rejects a wrong password', async () => {
     await register({
+      name: 'Grace',
       email: 'grace@example.com',
       password: 'password123',
     });

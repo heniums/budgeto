@@ -1,7 +1,13 @@
 import express, { type Express, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { healthCheck } from './health';
-import { registerHandler, loginHandler } from './auth/controller';
+import {
+  registerHandler,
+  loginHandler,
+  meHandler,
+  updateMeHandler,
+  changePasswordHandler,
+} from './auth/controller';
 import { authenticate } from './auth/middleware';
 import { isAppError } from './errors';
 
@@ -17,9 +23,9 @@ export function createApp(): Express {
   app.post('/auth/register', registerHandler);
   app.post('/auth/login', loginHandler);
 
-  app.get('/auth/me', authenticate, (req: Request, res: Response) => {
-    res.status(200).json({ user: req.user });
-  });
+  app.get('/auth/me', authenticate, meHandler);
+  app.patch('/auth/me', authenticate, updateMeHandler);
+  app.post('/auth/change-password', authenticate, changePasswordHandler);
 
   app.use(
     (

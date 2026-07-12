@@ -9,7 +9,7 @@ export default defineConfig({
     globalSetup: ['./server/test/setup.ts'],
     coverage: {
       provider: 'v8',
-      reportsDirectory: 'coverage',
+      reportsDirectory: 'coverage/server',
       include: ['server/src/**/*.ts'],
       exclude: ['server/src/index.ts'],
       thresholds: {

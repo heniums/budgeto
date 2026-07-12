@@ -18,6 +18,7 @@ describe('Protected routes', () => {
   beforeEach(async () => {
     await deleteAllUsers();
     await register({
+      name: 'Mallory',
       email: 'mallory@example.com',
       password: 'password123',
     });
