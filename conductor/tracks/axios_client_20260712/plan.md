@@ -23,21 +23,21 @@
 
 ## Phase 2: Refactor API Functions
 
-- [ ] Task: Refactor `client/src/api/auth.ts` to use the axios client
-    - [ ] Import the axios client from `./client`
-    - [ ] Remove the local `request()` and `authHeader()` helper functions
-    - [ ] Refactor each exported function (`register`, `login`, `getMe`, `updateName`, `changePassword`) to use the axios client
-    - [ ] Remove the `token` parameter from all function signatures
-    - [ ] Keep the `ApiError` export (it will be imported from `./client` or kept locally)
-- [ ] Task: Refactor `client/src/api/wallets.ts` to use the axios client
-    - [ ] Import the axios client from `./client`
-    - [ ] Remove the local `request()` and `authHeader()` helper functions
-    - [ ] Refactor each exported function (`createWallet`, `getWallets`, `getWallet`, `updateWallet`, `deleteWallet`, `createTransaction`, `getTransactions`, `transferFunds`) to use the axios client
-    - [ ] Remove the `token` parameter from all function signatures
-- [ ] Task: Write/update tests for refactored API functions
-    - [ ] Update existing tests that mock `fetch` to mock axios instead
-    - [ ] Verify all existing test scenarios still pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 2: Refactor API Functions' (Protocol in workflow.md)
+- [x] Task: Refactor `client/src/api/auth.ts` to use the axios client
+    - [x] Import the axios client from `./client`
+    - [x] Remove the local `request()` and `authHeader()` helper functions
+    - [x] Refactor each exported function (`register`, `login`, `getMe`, `updateName`, `changePassword`) to use the axios client
+    - [x] Remove the `token` parameter from all function signatures
+    - [x] Keep the `ApiError` export (it will be imported from `./client` or kept locally)
+- [x] Task: Refactor `client/src/api/wallets.ts` to use the axios client
+    - [x] Import the axios client from `./client`
+    - [x] Remove the local `request()` and `authHeader()` helper functions
+    - [x] Refactor each exported function (`createWallet`, `getWallets`, `getWallet`, `updateWallet`, `deleteWallet`, `createTransaction`, `getTransactions`, `transferFunds`) to use the axios client
+    - [x] Remove the `token` parameter from all function signatures
+- [x] Task: Write/update tests for refactored API functions
+    - [x] Update existing tests that mock `fetch` to mock axios instead
+    - [x] Verify all existing test scenarios still pass
+- [x] Task: Conductor - User Manual Verification 'Phase 2: Refactor API Functions' (Protocol in workflow.md) `4817eed`
 
 ## Phase 3: Update Consumer Components
 
