@@ -41,20 +41,20 @@
 
 ## Phase 3: Update Consumer Components
 
-- [ ] Task: Update consumer components to remove manual token passing
-    - [ ] `AuthContext.tsx` — remove `token` arg from `getMe()` calls
-    - [ ] `Dashboard.tsx` — remove `token` arg from `getWallets()` call
-    - [ ] `WalletList.tsx` — remove `token` arg from `getWallets()` and `deleteWallet()` calls
-    - [ ] `WalletDetail.tsx` — remove `token` arg from `getWallet()` and `getTransactions()` calls
-    - [ ] `WalletForm.tsx` — remove `token` arg from `getWallet()`, `createWallet()`, and `updateWallet()` calls
-    - [ ] `Profile.tsx` — remove `token` arg from `updateName()` and `changePassword()` calls
-    - [ ] `TransactionForm.tsx` — remove `token` prop and arg from `createTransaction()` call
-    - [ ] `TransferForm.tsx` — remove `token` prop and arg from `transferFunds()` call
-    - [ ] `Sidebar.tsx` — remove `token` arg from `getWallets()` call
-- [ ] Task: Update test files for consumer components
-    - [ ] Update mocks in component test files to mock axios instead of the old API helpers
-    - [ ] Verify all component tests still pass
-- [ ] Task: Conductor - User Manual Verification 'Phase 3: Update Consumer Components' (Protocol in workflow.md)
+- [x] Task: Update consumer components to remove manual token passing
+    - [x] `AuthContext.tsx` — remove `token` arg from `getMe()` calls
+    - [x] `Dashboard.tsx` — remove `token` arg from `getWallets()` call
+    - [x] `WalletList.tsx` — remove `token` arg from `getWallets()` and `deleteWallet()` calls
+    - [x] `WalletDetail.tsx` — remove `token` arg from `getWallet()` and `getTransactions()` calls
+    - [x] `WalletForm.tsx` — remove `token` arg from `getWallet()`, `createWallet()`, and `updateWallet()` calls
+    - [x] `Profile.tsx` — remove `token` arg from `updateName()` and `changePassword()` calls
+    - [x] `TransactionForm.tsx` — remove `token` prop and arg from `createTransaction()` call
+    - [x] `TransferForm.tsx` — remove `token` prop and arg from `transferFunds()` call
+    - [x] `Sidebar.tsx` — remove `token` arg from `getWallets()` call
+- [x] Task: Update test files for consumer components
+    - [x] Update mocks and assertions in component test files to match new signatures (no token args)
+    - [x] Verify all component tests still pass
+- [x] Task: Conductor - User Manual Verification 'Phase 3: Update Consumer Components' (Protocol in workflow.md) `5549471`
 
 ## Phase 4: Final Verification & Cleanup
 
