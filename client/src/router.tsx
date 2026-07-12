@@ -3,6 +3,9 @@ import { ProtectedRoute } from './auth/ProtectedRoute';
 import { SignUp } from './pages/SignUp';
 import { SignIn } from './pages/SignIn';
 import { Profile } from './pages/Profile';
+import { WalletList } from './pages/WalletList';
+import { WalletForm } from './pages/WalletForm';
+import { WalletDetail } from './pages/WalletDetail';
 
 /**
  * Application route table. Public pages are `/signup` and `/login`; the
@@ -16,6 +19,38 @@ export const routes: RouteObject[] = [
     element: (
       <ProtectedRoute>
         <Profile />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/account/wallets',
+    element: (
+      <ProtectedRoute>
+        <WalletList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/account/wallets/new',
+    element: (
+      <ProtectedRoute>
+        <WalletForm />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/account/wallets/:id/edit',
+    element: (
+      <ProtectedRoute>
+        <WalletForm />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: '/account/wallets/:id',
+    element: (
+      <ProtectedRoute>
+        <WalletDetail />
       </ProtectedRoute>
     ),
   },
