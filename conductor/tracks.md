@@ -9,5 +9,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: User Sign-Up, Sign-In & Profile Management pages**
+- [~] **Track: User Sign-Up, Sign-In & Profile Management pages**
   *Link: [./tracks/auth_pages_20260712/](./tracks/auth_pages_20260712/)*

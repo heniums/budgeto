@@ -2,7 +2,7 @@
 
 > **Backend note:** The existing "Scaffold + Auth" backend supports `/auth/register` (email+password only, no name), `/auth/login`, and `/auth/me` (returns id/email only). To fulfill this spec, this plan *extends* (not replaces) that API: adds a `name` column, profile read/update, and change-password endpoints. Frontend builds UI on these.
 
-## Phase 1 — Backend: Extend Auth API (Name & Profile)
+## Phase 1 — Backend: Extend Auth API (Name & Profile) [checkpoint: f4fea57]
 - [x] Task: Add `name` to the user model (11867d2)
     - [x] Write failing tests for schema/repository storing and returning `name`
     - [x] Implement `name` column in `db/schema.ts`, migration, and `createUser`/`register` to accept & persist `name`; register returns `name`
