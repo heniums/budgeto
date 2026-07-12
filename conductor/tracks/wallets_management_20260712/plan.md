@@ -1,6 +1,6 @@
 # Implementation Plan: Balances/Wallets Management
 
-## Phase 1: Database Schema – Wallets & Transactions
+## Phase 1: Database Schema – Wallets & Transactions [checkpoint: e999d16]
 
 - [x] Task: Define `wallets` table in Drizzle schema 59ec02f
     - [x] Add `wallet` table (id uuid PK, user_id FK, name text, description text, color text, created_at, updated_at)
@@ -9,7 +9,7 @@
 - [x] Task: Write tests for schema shape and constraints 59ec02f
     - [x] Verify table columns, types, and foreign key relationships
 - [x] Task: Implement schema in `server/src/db/schema.ts` 59ec02f
-- [~] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) e999d16
 
 ## Phase 2: Backend API – Wallet CRUD
 
