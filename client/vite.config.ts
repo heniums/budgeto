@@ -38,6 +38,7 @@ export default defineConfig({
     proxy: {
       '/auth': 'http://localhost:3000',
       '/health': 'http://localhost:3000',
+      '/wallets': 'http://localhost:3000',
     },
   },
   build: {

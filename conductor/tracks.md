@@ -11,3 +11,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: User Sign-Up, Sign-In & Profile Management pages**
   *Link: [./tracks/auth_pages_20260712/](./tracks/auth_pages_20260712/)*
+
+---
+
+- [x] **Track: balances/wallets management** (archived)
+  *Link: [./archive/wallets_management_20260712/](./archive/wallets_management_20260712/)*
