@@ -5,10 +5,9 @@ import {
   findWalletsByUserIdWithBalance,
   updateWallet,
   deleteWallet,
-  walletHasTransactions,
   getWalletWithBalance,
 } from './repository';
-import { notFoundError, conflictError } from '../errors';
+import { notFoundError } from '../errors';
 
 export const createWalletSchema = z.object({
   name: z.string().min(1).max(128),
@@ -121,12 +120,6 @@ export async function remove(
   }
   if (wallet.userId !== userId) {
     throw notFoundError('Wallet not found');
-  }
-  const hasTransactions = await walletHasTransactions(id);
-  if (hasTransactions) {
-    throw conflictError(
-      'Wallet has associated transactions. Reassign or delete transactions first.',
-    );
   }
   await deleteWallet(id);
 }

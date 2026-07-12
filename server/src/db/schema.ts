@@ -33,7 +33,7 @@ export const transactions = pgTable('transaction', {
   id: uuid('id').primaryKey().defaultRandom(),
   walletId: uuid('wallet_id')
     .notNull()
-    .references(() => wallets.id),
+    .references(() => wallets.id, { onDelete: 'cascade' }),
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
   description: text('description').default(''),
   createdAt: timestamp('created_at', { withTimezone: true })

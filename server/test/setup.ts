@@ -50,7 +50,7 @@ export async function setup(): Promise<void> {
   await pool.query(`
     CREATE TABLE IF NOT EXISTS "transaction" (
       "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      "wallet_id" uuid NOT NULL REFERENCES "wallet"("id"),
+      "wallet_id" uuid NOT NULL REFERENCES "wallet"("id") ON DELETE CASCADE,
       "amount" numeric(12,2) NOT NULL,
       "description" text DEFAULT '',
       "created_at" timestamptz NOT NULL DEFAULT now()
