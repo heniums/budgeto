@@ -53,7 +53,14 @@ describe('auth API client', () => {
     vi.stubGlobal('fetch', fetchMock);
     const user = await getMe('tkn');
     expect(user.name).toBe('A');
-    expect(fetchMock.mock.calls[0][1].headers.Authorization).toBe('Bearer tkn');
+    expect(
+      (
+        fetchMock.mock.calls[0] as unknown as [
+          string,
+          { headers?: Record<string, string> },
+        ]
+      )[1].headers?.Authorization,
+    ).toBe('Bearer tkn');
   });
 
   it('updateName sends a PATCH with the new name', async () => {
@@ -66,7 +73,10 @@ describe('auth API client', () => {
     vi.stubGlobal('fetch', fetchMock);
     const user = await updateName('tkn', 'New');
     expect(user.name).toBe('New');
-    expect(fetchMock.mock.calls[0][1].method).toBe('PATCH');
+    expect(
+      (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1]
+        .method,
+    ).toBe('PATCH');
   });
 
   it('changePassword sends a POST and resolves on 204', async () => {
@@ -80,7 +90,10 @@ describe('auth API client', () => {
     await expect(
       changePassword('tkn', { currentPassword: 'a', newPassword: 'b' }),
     ).resolves.toBeUndefined();
-    expect(fetchMock.mock.calls[0][1].method).toBe('POST');
+    expect(
+      (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1]
+        .method,
+    ).toBe('POST');
   });
 
   it('throws an ApiError on failure status', async () => {
