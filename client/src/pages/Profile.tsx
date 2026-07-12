@@ -1,200 +1,253 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
 import { ApiError, changePassword, updateName } from '../api/auth';
 
-const MIN_PASSWORD = 8;
+const nameSchema = z.object({
+  name: z.string().min(1, 'Please enter a display name.'),
+});
+
+const passwordSchema = z
+  .object({
+    currentPassword: z.string().min(1, 'Current password is required.'),
+    newPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters.'),
+    confirmPassword: z
+      .string()
+      .min(8, 'Password must be at least 8 characters.'),
+  })
+  .refine((data) => data.newPassword === data.confirmPassword, {
+    message: 'Passwords do not match.',
+    path: ['confirmPassword'],
+  });
+
+type NameValues = z.infer<typeof nameSchema>;
+type PasswordValues = z.infer<typeof passwordSchema>;
 
 export function Profile(): JSX.Element {
   const navigate = useNavigate();
-  const { user, token, logout } = useAuth();
-
-  const [editing, setEditing] = useState(false);
-  const [name, setName] = useState(user?.name ?? '');
-  const [nameError, setNameError] = useState<string | null>(null);
-  const [nameFormError, setNameFormError] = useState<string | null>(null);
-  const [nameSaving, setNameSaving] = useState(false);
-
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [pwError, setPwError] = useState<string | null>(null);
+  const { user, token, logout, refreshUser } = useAuth();
+  const [nameEditing, setNameEditing] = useState(false);
   const [pwFormError, setPwFormError] = useState<string | null>(null);
-  const [pwSuccess, setPwSuccess] = useState(false);
-  const [pwSaving, setPwSaving] = useState(false);
+  const [pwSuccess, setPwSuccess] = useState<string | null>(null);
 
-  async function saveName(): Promise<void> {
-    if (!name.trim()) {
-      setNameError('Please enter a display name.');
-      return;
-    }
-    setNameError(null);
-    setNameFormError(null);
-    setNameSaving(true);
+  const nameId = useId();
+  const pwIds = {
+    currentPassword: useId(),
+    newPassword: useId(),
+    confirmPassword: useId(),
+  };
+
+  const {
+    register: registerName,
+    handleSubmit: handleNameSubmit,
+    formState: { errors: nameErrors, isSubmitting: nameSaving },
+    setError: setNameError,
+    reset: resetNameForm,
+  } = useForm<NameValues>({
+    resolver: zodResolver(nameSchema),
+    defaultValues: { name: user?.name ?? '' },
+  });
+
+  const {
+    register: registerPw,
+    handleSubmit: handlePwSubmit,
+    formState: { errors: pwErrors, isSubmitting: pwSubmitting },
+    reset: resetPwForm,
+  } = useForm<PasswordValues>({
+    resolver: zodResolver(passwordSchema),
+    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+  });
+
+  const handleSignOut = (): void => {
+    logout();
+    navigate('/login');
+  };
+
+  const submitName = async (values: NameValues): Promise<void> => {
     try {
-      const updated = await updateName(token as string, name.trim());
-      setName(updated.name);
-      setEditing(false);
-    } catch (error) {
-      setNameFormError(
-        error instanceof ApiError ? error.message : 'Could not save your name.',
-      );
-      setNameSaving(false);
+      await updateName(token as string, values.name.trim());
+      await refreshUser();
+      setNameEditing(false);
+    } catch {
+      setNameError('name', {
+        message: 'Could not save your name.',
+      });
     }
-  }
+  };
 
-  function validatePassword(): boolean {
-    if (newPassword.length < MIN_PASSWORD) {
-      setPwError(`Password must be at least ${MIN_PASSWORD} characters.`);
-      return false;
-    }
-    if (newPassword !== confirmPassword) {
-      setPwError('Passwords do not match.');
-      return false;
-    }
-    setPwError(null);
-    return true;
-  }
-
-  async function submitPassword(
-    event: React.FormEvent<HTMLFormElement>,
-  ): Promise<void> {
-    event.preventDefault();
-    setPwSuccess(false);
-    if (!validatePassword()) {
-      return;
-    }
+  const submitPassword = async (values: PasswordValues): Promise<void> => {
     setPwFormError(null);
-    setPwSaving(true);
+    setPwSuccess(null);
     try {
       await changePassword(token as string, {
-        currentPassword,
-        newPassword,
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
       });
-      setCurrentPassword('');
-      setNewPassword('');
-      setConfirmPassword('');
-      setPwSuccess(true);
-      setPwSaving(false);
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        setPwFormError('Current password is incorrect.');
-      } else if (error instanceof ApiError) {
-        setPwFormError(error.message);
+      setPwSuccess('Password updated.');
+      resetPwForm();
+    } catch (err) {
+      if (err instanceof ApiError) {
+        if (err.status === 401) {
+          setPwFormError('Current password is incorrect.');
+        } else {
+          setPwFormError(err.message);
+        }
       } else {
-        setPwFormError('Could not update your password.');
+        setPwFormError('An unexpected error occurred.');
       }
-      setPwSaving(false);
     }
-  }
+  };
 
-  function handleSignOut(): void {
-    logout();
-    navigate('/login', { replace: true });
-  }
+  const cancelNameEdit = (): void => {
+    resetNameForm();
+    setNameEditing(false);
+  };
+
+  const startNameEdit = (): void => {
+    resetNameForm({ name: user?.name ?? '' });
+    setNameEditing(true);
+  };
 
   return (
-    <main className="auth-page">
+    <main className="profile-page">
       <h1>Your profile</h1>
+
       <section className="profile-card" aria-labelledby="name-heading">
-        <h2 id="name-heading">Display name</h2>
-        {!editing ? (
-          <div className="profile-name-row">
-            <p data-testid="profile-name">{name || user?.name || '—'}</p>
-            <p className="profile-email">{user?.email}</p>
-            <button
-              type="button"
-              onClick={() => {
-                setName(user?.name ?? '');
-                setEditing(true);
-              }}
-            >
-              Edit name
-            </button>
-          </div>
-        ) : (
-          <div className="field">
-            <label htmlFor="display-name">Display name</label>
-            <input
-              id="display-name"
-              type="text"
-              autoComplete="name"
-              value={name}
-              onChange={(event) => setName(event.target.value)}
-              aria-invalid={nameError ? true : undefined}
-              aria-describedby={nameError ? 'display-name-error' : undefined}
-            />
-            {nameError && (
-              <span id="display-name-error" role="alert" className="field-error">
-                {nameError}
-              </span>
-            )}
-            {nameFormError && (
-              <div role="alert" className="form-error">
-                {nameFormError}
-              </div>
-            )}
-            <div className="button-row">
-              <button
-                type="button"
-                onClick={saveName}
-                disabled={nameSaving}
-              >
+        <h2 id="name-heading">Name</h2>
+
+        {nameEditing ? (
+          <form onSubmit={handleNameSubmit(submitName)} noValidate>
+            <div className="field">
+              <label htmlFor={nameId}>Name</label>
+              <input
+                id={nameId}
+                type="text"
+                autoComplete="name"
+                autoFocus
+                {...registerName('name')}
+                aria-invalid={nameErrors.name ? true : undefined}
+                aria-describedby={
+                  nameErrors.name ? `${nameId}-error` : undefined
+                }
+              />
+              {nameErrors.name && (
+                <span
+                  id={`${nameId}-error`}
+                  role="alert"
+                  className="field-error"
+                >
+                  {nameErrors.name.message}
+                </span>
+              )}
+            </div>
+            <div className="field-actions">
+              <button type="submit" disabled={nameSaving}>
                 {nameSaving ? 'Saving…' : 'Save'}
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  setEditing(false);
-                  setName(user?.name ?? '');
-                  setNameError(null);
-                }}
+                className="secondary"
+                onClick={cancelNameEdit}
                 disabled={nameSaving}
               >
                 Cancel
               </button>
             </div>
+          </form>
+        ) : (
+          <div className="name-display">
+            <p data-testid="profile-name">{user?.name ?? 'Unnamed'}</p>
+            <p className="profile-email">{user?.email}</p>
+            <button
+              type="button"
+              onClick={startNameEdit}
+              className="edit-button"
+            >
+              Edit name
+            </button>
           </div>
         )}
       </section>
 
       <section className="profile-card" aria-labelledby="pw-heading">
         <h2 id="pw-heading">Change password</h2>
-        <form onSubmit={submitPassword} noValidate>
+        <form onSubmit={handlePwSubmit(submitPassword)} noValidate>
           <div className="field">
-            <label htmlFor="current-password">Current password</label>
+            <label htmlFor={pwIds.currentPassword}>Current password</label>
             <input
-              id="current-password"
+              id={pwIds.currentPassword}
               type="password"
               autoComplete="current-password"
-              value={currentPassword}
-              onChange={(event) => setCurrentPassword(event.target.value)}
+              {...registerPw('currentPassword')}
+              aria-invalid={pwErrors.currentPassword ? true : undefined}
+              aria-describedby={
+                pwErrors.currentPassword
+                  ? `${pwIds.currentPassword}-error`
+                  : undefined
+              }
             />
+            {pwErrors.currentPassword && (
+              <span
+                id={`${pwIds.currentPassword}-error`}
+                role="alert"
+                className="field-error"
+              >
+                {pwErrors.currentPassword.message}
+              </span>
+            )}
           </div>
           <div className="field">
-            <label htmlFor="new-password">New password</label>
+            <label htmlFor={pwIds.newPassword}>New password</label>
             <input
-              id="new-password"
+              id={pwIds.newPassword}
               type="password"
               autoComplete="new-password"
-              value={newPassword}
-              onChange={(event) => setNewPassword(event.target.value)}
+              {...registerPw('newPassword')}
+              aria-invalid={pwErrors.newPassword ? true : undefined}
+              aria-describedby={
+                pwErrors.newPassword
+                  ? `${pwIds.newPassword}-error`
+                  : undefined
+              }
             />
+            {pwErrors.newPassword && (
+              <span
+                id={`${pwIds.newPassword}-error`}
+                role="alert"
+                className="field-error"
+              >
+                {pwErrors.newPassword.message}
+              </span>
+            )}
           </div>
           <div className="field">
-            <label htmlFor="confirm-password">Confirm new password</label>
+            <label htmlFor={pwIds.confirmPassword}>
+              Confirm new password
+            </label>
             <input
-              id="confirm-password"
+              id={pwIds.confirmPassword}
               type="password"
               autoComplete="new-password"
-              value={confirmPassword}
-              onChange={(event) => setConfirmPassword(event.target.value)}
-              aria-invalid={pwError ? true : undefined}
-              aria-describedby={pwError ? 'pw-error' : undefined}
+              {...registerPw('confirmPassword')}
+              aria-invalid={pwErrors.confirmPassword ? true : undefined}
+              aria-describedby={
+                pwErrors.confirmPassword
+                  ? `${pwIds.confirmPassword}-error`
+                  : undefined
+              }
             />
-            {pwError && (
-              <span id="pw-error" role="alert" className="field-error">
-                {pwError}
+            {pwErrors.confirmPassword && (
+              <span
+                id={`${pwIds.confirmPassword}-error`}
+                role="alert"
+                className="field-error"
+              >
+                {pwErrors.confirmPassword.message}
               </span>
             )}
           </div>
@@ -205,11 +258,11 @@ export function Profile(): JSX.Element {
           )}
           {pwSuccess && (
             <div role="status" className="form-success">
-              Password updated.
+              {pwSuccess}
             </div>
           )}
-          <button type="submit" disabled={pwSaving}>
-            {pwSaving ? 'Updating…' : 'Update password'}
+          <button type="submit" disabled={pwSubmitting}>
+            {pwSubmitting ? 'Updating…' : 'Update password'}
           </button>
         </form>
       </section>

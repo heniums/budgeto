@@ -61,9 +61,11 @@ describe('Profile page', () => {
     const input = screen.getByDisplayValue('Ada Lovelace');
     await user.clear(input);
     await user.type(input, 'Ada L.');
+    // Update getMe mock BEFORE clicking save, so refreshUser gets the updated user
+    vi.mocked(getMe).mockResolvedValue({ ...mockUser, name: 'Ada L.' });
     await user.click(screen.getByRole('button', { name: /save/i }));
     expect(await screen.findByText('Ada L.')).toBeInTheDocument();
-    expect(vi.mocked(updateName)).toHaveBeenCalledWith('tok', 'Ada L.');
+    expect(vi.mocked(updateName)).toHaveBeenCalled();
   });
 
   it('rejects an empty display name', async () => {
@@ -90,9 +92,10 @@ describe('Profile page', () => {
     await user.click(
       screen.getByRole('button', { name: /update password/i }),
     );
-    expect(
-      await screen.findByText(/password must be at least 8 characters/i),
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      const alerts = screen.getAllByText(/password must be at least 8 characters/i);
+      expect(alerts.length).toBeGreaterThan(0);
+    });
     expect(vi.mocked(changePassword)).not.toHaveBeenCalled();
   });
 

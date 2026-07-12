@@ -6,8 +6,10 @@ import { SignUp } from './SignUp';
 import { SignIn } from './SignIn';
 import { Profile } from './Profile';
 
+import type * as AuthModule from '../api/auth';
+
 vi.mock('../api/auth', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../api/auth')>();
+  const actual = await importOriginal<typeof AuthModule>();
   return { ...actual, getMe: vi.fn(), login: vi.fn(), register: vi.fn() };
 });
 

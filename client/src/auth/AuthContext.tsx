@@ -24,6 +24,8 @@ export interface AuthContextValue {
   login: (token: string, user: AuthUser) => void;
   /** Clears the session and returns to the unauthenticated state. */
   logout: () => void;
+  /** Refreshes the current user from the server. */
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -93,9 +95,22 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     setStatus('unauthenticated');
   }, []);
 
+  const refreshUser = useCallback(async () => {
+    if (!token) return;
+    try {
+      const user = await getMe(token);
+      setUser(user);
+    } catch {
+      writeToken(null);
+      setToken(null);
+      setUser(null);
+      setStatus('unauthenticated');
+    }
+  }, [token]);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, token, status, login, logout }),
-    [user, token, status, login, logout],
+    () => ({ user, token, status, login, logout, refreshUser }),
+    [user, token, status, login, logout, refreshUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

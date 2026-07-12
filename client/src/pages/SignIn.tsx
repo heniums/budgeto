@@ -1,85 +1,69 @@
-import { useId, useState } from 'react';
-import type { FormEvent } from 'react';
-import type { Location } from 'react-router-dom';
+import { useId } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
 import { ApiError, login } from '../api/auth';
 
-interface FormErrors {
-  email?: string;
-  password?: string;
-}
+const signInSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required.')
+    .email('Enter a valid email address.'),
+  password: z.string().min(1, 'Password is required.'),
+});
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validate(values: { email: string; password: string }): FormErrors {
-  const errors: FormErrors = {};
-  if (!values.email.trim()) {
-    errors.email = 'Email is required.';
-  } else if (!EMAIL_RE.test(values.email.trim())) {
-    errors.email = 'Enter a valid email address.';
-  }
-  if (!values.password) {
-    errors.password = 'Password is required.';
-  }
-  return errors;
-}
+type SignInValues = z.infer<typeof signInSchema>;
 
 export function SignIn(): JSX.Element {
   const navigate = useNavigate();
   const location = useLocation();
   const { login: signIn } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const from =
+    (location.state as { from?: { pathname: string } })?.from?.pathname ??
+    '/account/profile';
   const ids = {
     email: useId(),
     password: useId(),
   };
 
-  const from = (location.state as { from?: Location } | null)?.from;
-  const redirectTo = from?.pathname ?? '/account/profile';
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<SignInValues>({
+    resolver: zodResolver(signInSchema),
+    defaultValues: { email: '', password: '' },
+  });
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    setFormError(null);
-    const found = validate({ email, password });
-    setErrors(found);
-    if (Object.keys(found).length > 0) {
-      return;
-    }
-    setSubmitting(true);
+  const onSubmit = async (data: SignInValues): Promise<void> => {
     try {
       const { token, user } = await login({
-        email: email.trim(),
-        password,
+        email: data.email.trim(),
+        password: data.password,
       });
       signIn(token, user);
-      navigate(redirectTo, { replace: true });
-    } catch (error) {
-      if (error instanceof ApiError && error.status === 401) {
-        setFormError('Invalid email or password.');
-      } else if (error instanceof ApiError) {
-        setFormError(error.message);
+      navigate(from, { replace: true });
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 401) {
+        setError('root', { message: 'Invalid email or password.' });
       } else {
-        setFormError('Something went wrong. Please try again.');
+        setError('root', {
+          message:
+            err instanceof Error ? err.message : 'Something went wrong.',
+        });
       }
-      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <main className="auth-page">
       <h1>Welcome back</h1>
-      <p className="auth-lead">Sign in to pick up where you left off.</p>
-      {formError && (
-        <div role="alert" className="form-error">
-          {formError}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} noValidate>
+      <p className="auth-lead">Sign in to continue to Budgeto.</p>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="field">
           <label htmlFor={ids.email}>Email address</label>
           <input
@@ -87,25 +71,24 @@ export function SignIn(): JSX.Element {
             type="email"
             autoComplete="email"
             autoFocus
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            {...register('email')}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
           />
           {errors.email && (
             <span id={`${ids.email}-error`} role="alert" className="field-error">
-              {errors.email}
+              {errors.email.message}
             </span>
           )}
         </div>
+
         <div className="field">
           <label htmlFor={ids.password}>Password</label>
           <input
             id={ids.password}
             type="password"
             autoComplete="current-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            {...register('password')}
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={
               errors.password ? `${ids.password}-error` : undefined
@@ -117,16 +100,24 @@ export function SignIn(): JSX.Element {
               role="alert"
               className="field-error"
             >
-              {errors.password}
+              {errors.password.message}
             </span>
           )}
         </div>
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Signing in…' : 'Sign in'}
+
+        {errors.root && (
+          <div role="alert" className="form-error">
+            {errors.root.message}
+          </div>
+        )}
+
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
-      <p className="auth-switch">
-        New here? <Link to="/signup">Create an account</Link>
+
+      <p className="auth-link">
+        Don&rsquo;t have an account? <Link to="/signup">Create one</Link>
       </p>
     </main>
   );

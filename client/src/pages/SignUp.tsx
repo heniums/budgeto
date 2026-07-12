@@ -1,55 +1,40 @@
-import { useId, useState } from 'react';
-import type { FormEvent } from 'react';
+import { useId } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
-import { ApiError, login, register } from '../api/auth';
+import { login as apiLogin, register as apiRegister } from '../api/auth';
 
-interface FormErrors {
-  name?: string;
-  email?: string;
-  password?: string;
-  confirm?: string;
-}
+const signUpSchema = z
+  .object({
+    name: z.string().min(1, 'Please tell us your name.'),
+    email: z
+      .string()
+      .min(1, 'Email is required.')
+      .email('Enter a valid email address.'),
+    password: z.string().min(8, 'Password must be at least 8 characters.'),
+    confirm: z.string().min(1, 'Please confirm your password.'),
+  })
+  .refine((data) => data.password === data.confirm, {
+    message: 'Passwords do not match.',
+    path: ['confirm'],
+  });
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const MIN_PASSWORD = 8;
-
-function validate(values: {
-  name: string;
-  email: string;
-  password: string;
-  confirm: string;
-}): FormErrors {
-  const errors: FormErrors = {};
-  if (!values.name.trim()) {
-    errors.name = 'Please tell us your name.';
-  }
-  if (!values.email.trim()) {
-    errors.email = 'Email is required.';
-  } else if (!EMAIL_RE.test(values.email.trim())) {
-    errors.email = 'Enter a valid email address.';
-  }
-  if (!values.password) {
-    errors.password = `Password must be at least ${MIN_PASSWORD} characters.`;
-  } else if (values.password.length < MIN_PASSWORD) {
-    errors.password = `Password must be at least ${MIN_PASSWORD} characters.`;
-  }
-  if (values.confirm !== values.password) {
-    errors.confirm = 'Passwords do not match.';
-  }
-  return errors;
-}
+type SignUpValues = z.infer<typeof signUpSchema>;
 
 export function SignUp(): JSX.Element {
   const navigate = useNavigate();
   const { login: signIn } = useAuth();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
-  const [errors, setErrors] = useState<FormErrors>({});
-  const [formError, setFormError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    setError,
+  } = useForm<SignUpValues>({
+    resolver: zodResolver(signUpSchema),
+    defaultValues: { name: '', email: '', password: '', confirm: '' },
+  });
   const ids = {
     name: useId(),
     email: useId(),
@@ -57,87 +42,80 @@ export function SignUp(): JSX.Element {
     confirm: useId(),
   };
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>): Promise<void> {
-    event.preventDefault();
-    setFormError(null);
-    const found = validate({ name, email, password, confirm });
-    setErrors(found);
-    if (Object.keys(found).length > 0) {
-      return;
-    }
-    setSubmitting(true);
+  const onSubmit = async (data: SignUpValues): Promise<void> => {
     try {
-      const user = await register({ name: name.trim(), email: email.trim(), password });
-      const { token } = await login({ email: email.trim(), password });
+      const user = await apiRegister({
+        name: data.name.trim(),
+        email: data.email.trim(),
+        password: data.password,
+      });
+      const { token } = await apiLogin({
+        email: data.email.trim(),
+        password: data.password,
+      });
       signIn(token, user);
       navigate('/account/profile');
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setFormError(error.message);
-      } else {
-        setFormError('Something went wrong. Please try again.');
-      }
-      setSubmitting(false);
+    } catch (err) {
+      setError('root', {
+        message:
+          err instanceof Error ? err.message : 'Something went wrong.',
+      });
     }
-  }
+  };
 
   return (
     <main className="auth-page">
       <h1>Create your account</h1>
       <p className="auth-lead">
-        A few details and you&rsquo;re ready to take control of your budget.
+        Ready to take control of your budget? A few details and you&rsquo;re set.
       </p>
-      {formError && (
-        <div role="alert" className="form-error">
-          {formError}
-        </div>
-      )}
-      <form onSubmit={handleSubmit} noValidate>
+
+      <form onSubmit={handleSubmit(onSubmit)} noValidate>
         <div className="field">
           <label htmlFor={ids.name}>Full name</label>
           <input
             id={ids.name}
             type="text"
             autoComplete="name"
-            autoFocus
-            value={name}
-            onChange={(event) => setName(event.target.value)}
+            {...register('name')}
             aria-invalid={errors.name ? true : undefined}
             aria-describedby={errors.name ? `${ids.name}-error` : undefined}
           />
           {errors.name && (
             <span id={`${ids.name}-error`} role="alert" className="field-error">
-              {errors.name}
+              {errors.name.message}
             </span>
           )}
         </div>
+
         <div className="field">
           <label htmlFor={ids.email}>Email address</label>
           <input
             id={ids.email}
             type="email"
             autoComplete="email"
-            value={email}
-            onChange={(event) => setEmail(event.target.value)}
+            {...register('email')}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
           />
           {errors.email && (
             <span id={`${ids.email}-error`} role="alert" className="field-error">
-              {errors.email}
+              {errors.email.message}
             </span>
           )}
         </div>
+
         <div className="field">
           <label htmlFor={ids.password}>Password</label>
           <input
             id={ids.password}
             type="password"
             autoComplete="new-password"
-            value={password}
-            onChange={(event) => setPassword(event.target.value)}
+            {...register('password')}
             aria-invalid={errors.password ? true : undefined}
-            aria-describedby={errors.password ? `${ids.password}-error` : undefined}
+            aria-describedby={
+              errors.password ? `${ids.password}-error` : undefined
+            }
           />
           {errors.password && (
             <span
@@ -145,20 +123,22 @@ export function SignUp(): JSX.Element {
               role="alert"
               className="field-error"
             >
-              {errors.password}
+              {errors.password.message}
             </span>
           )}
         </div>
+
         <div className="field">
           <label htmlFor={ids.confirm}>Confirm password</label>
           <input
             id={ids.confirm}
             type="password"
             autoComplete="new-password"
-            value={confirm}
-            onChange={(event) => setConfirm(event.target.value)}
+            {...register('confirm')}
             aria-invalid={errors.confirm ? true : undefined}
-            aria-describedby={errors.confirm ? `${ids.confirm}-error` : undefined}
+            aria-describedby={
+              errors.confirm ? `${ids.confirm}-error` : undefined
+            }
           />
           {errors.confirm && (
             <span
@@ -166,15 +146,23 @@ export function SignUp(): JSX.Element {
               role="alert"
               className="field-error"
             >
-              {errors.confirm}
+              {errors.confirm.message}
             </span>
           )}
         </div>
-        <button type="submit" disabled={submitting}>
-          {submitting ? 'Creating account…' : 'Create account'}
+
+        {errors.root && (
+          <div role="alert" className="form-error">
+            {errors.root.message}
+          </div>
+        )}
+
+        <button type="submit" disabled={isSubmitting}>
+          {isSubmitting ? 'Creating account…' : 'Create account'}
         </button>
       </form>
-      <p className="auth-switch">
+
+      <p className="auth-link">
         Already have an account? <Link to="/login">Sign in</Link>
       </p>
     </main>
