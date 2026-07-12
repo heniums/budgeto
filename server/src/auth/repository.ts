@@ -9,10 +9,39 @@ import { users, type User } from '../db/schema';
 export async function createUser(input: {
   email: string;
   passwordHash: string;
+  name?: string;
 }): Promise<User> {
   const [user] = await db
     .insert(users)
-    .values({ email: input.email, passwordHash: input.passwordHash })
+    .values({
+      email: input.email,
+      passwordHash: input.passwordHash,
+      name: input.name ?? '',
+    })
+    .returning();
+  return user;
+}
+
+export async function updateUserName(
+  id: string,
+  name: string,
+): Promise<User | undefined> {
+  const [user] = await db
+    .update(users)
+    .set({ name, updatedAt: new Date() })
+    .where(eq(users.id, id))
+    .returning();
+  return user;
+}
+
+export async function updateUserPasswordHash(
+  id: string,
+  passwordHash: string,
+): Promise<User | undefined> {
+  const [user] = await db
+    .update(users)
+    .set({ passwordHash, updatedAt: new Date() })
+    .where(eq(users.id, id))
     .returning();
   return user;
 }

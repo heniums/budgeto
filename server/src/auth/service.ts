@@ -5,6 +5,7 @@ import { signToken, type TokenPayload } from './token';
 import { conflictError, unauthorizedError } from '../errors';
 
 export const registerSchema = z.object({
+  name: z.string().min(1).max(128),
   email: z.string().email(),
   password: z.string().min(8).max(128),
 });
@@ -19,7 +20,7 @@ export type LoginInput = z.infer<typeof loginSchema>;
 
 export interface AuthResult {
   token: string;
-  user: { id: string; email: string };
+  user: { id: string; email: string; name: string };
 }
 
 /**
@@ -27,14 +28,18 @@ export interface AuthResult {
  */
 export async function register(
   input: RegisterInput,
-): Promise<{ id: string; email: string }> {
+): Promise<{ id: string; email: string; name: string }> {
   const existing = await findUserByEmail(input.email);
   if (existing) {
     throw conflictError('Email already registered');
   }
   const passwordHash = await hashPassword(input.password);
-  const user = await createUser({ email: input.email, passwordHash });
-  return { id: user.id, email: user.email };
+  const user = await createUser({
+    email: input.email,
+    passwordHash,
+    name: input.name,
+  });
+  return { id: user.id, email: user.email, name: user.name };
 }
 
 /**
@@ -50,7 +55,7 @@ export async function login(input: LoginInput): Promise<AuthResult> {
     throw unauthorizedError('Invalid credentials');
   }
   const token = signToken({ sub: user.id, email: user.email });
-  return { token, user: { id: user.id, email: user.email } };
+  return { token, user: { id: user.id, email: user.email, name: user.name } };
 }
 
 export type { TokenPayload };

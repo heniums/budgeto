@@ -12,17 +12,20 @@ describe('user repository', () => {
     await deleteAllUsers();
   });
 
-  it('creates a user and reads it back by email', async () => {
+  it('creates a user with a name and reads it back by email', async () => {
     const passwordHash = await hashPassword('supersecret');
     const created = await createUser({
       email: 'alice@example.com',
       passwordHash,
+      name: 'Alice Example',
     });
     expect(created.id).toBeDefined();
     expect(created.email).toBe('alice@example.com');
+    expect(created.name).toBe('Alice Example');
 
     const found = await findUserByEmail('alice@example.com');
     expect(found?.id).toBe(created.id);
+    expect(found?.name).toBe('Alice Example');
   });
 
   it('returns undefined for an unknown email', async () => {
