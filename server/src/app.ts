@@ -8,6 +8,13 @@ import {
   updateMeHandler,
   changePasswordHandler,
 } from './auth/controller';
+import {
+  createHandler,
+  listHandler,
+  getHandler,
+  updateHandler,
+  deleteHandler,
+} from './wallets/controller';
 import { authenticate } from './auth/middleware';
 import { isAppError } from './errors';
 
@@ -26,6 +33,12 @@ export function createApp(): Express {
   app.get('/auth/me', authenticate, meHandler);
   app.patch('/auth/me', authenticate, updateMeHandler);
   app.post('/auth/change-password', authenticate, changePasswordHandler);
+
+  app.post('/wallets', authenticate, createHandler);
+  app.get('/wallets', authenticate, listHandler);
+  app.get('/wallets/:id', authenticate, getHandler);
+  app.put('/wallets/:id', authenticate, updateHandler);
+  app.delete('/wallets/:id', authenticate, deleteHandler);
 
   app.use(
     (
