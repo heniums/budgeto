@@ -11,17 +11,17 @@ export interface Config {
 let cached: Config | null = null;
 
 /**
- * Resolves runtime configuration from environment variables. Intentionally throws
- * when DATABASE_URL is missing so misconfiguration fails fast at startup.
+ * Resolves runtime configuration from environment variables. `DATABASE_URL`
+ * defaults to the local embedded PostgreSQL instance so the app runs without a
+ * `.env` file in development; set it explicitly for test/Neon environments.
  */
 export function getConfig(): Config {
   if (cached) {
     return cached;
   }
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error('DATABASE_URL environment variable is required');
-  }
+  const databaseUrl =
+    process.env.DATABASE_URL ??
+    'postgresql://postgres:postgres@localhost:5433/budgeto';
   const jwtSecret =
     process.env.JWT_SECRET ?? 'dev-only-insecure-secret-change-me';
   const jwtExpiresIn = Number(process.env.JWT_EXPIRES_IN ?? '86400');
