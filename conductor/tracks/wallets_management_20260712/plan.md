@@ -2,13 +2,13 @@
 
 ## Phase 1: Database Schema – Wallets & Transactions
 
-- [ ] Task: Define `wallets` table in Drizzle schema
-    - [ ] Add `wallet` table (id uuid PK, user_id FK, name text, description text, color text, created_at, updated_at)
-    - [ ] Add `transaction` table (id uuid PK, wallet_id FK, amount numeric, description text, created_at)
-- [ ] Task: Run Drizzle migration to create tables
-- [ ] Task: Write tests for schema shape and constraints
-    - [ ] Verify table columns, types, and foreign key relationships
-- [ ] Task: Implement schema in `server/src/db/schema.ts`
+- [x] Task: Define `wallets` table in Drizzle schema 59ec02f
+    - [x] Add `wallet` table (id uuid PK, user_id FK, name text, description text, color text, created_at, updated_at)
+    - [x] Add `transaction` table (id uuid PK, wallet_id FK, amount numeric, description text, created_at)
+- [x] Task: Run Drizzle migration to create tables 59ec02f
+- [x] Task: Write tests for schema shape and constraints 59ec02f
+    - [x] Verify table columns, types, and foreign key relationships
+- [x] Task: Implement schema in `server/src/db/schema.ts` 59ec02f
 - [ ] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md)
 
 ## Phase 2: Backend API – Wallet CRUD
