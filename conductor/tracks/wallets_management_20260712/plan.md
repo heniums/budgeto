@@ -29,25 +29,25 @@
 - [x] Task: Register wallet routes in app.ts (all under `/wallets` prefix, auth-protected) eadcdbe
 - [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 251b237
 
-## Phase 3: Backend API – Transactions & Balance
+## Phase 3: Backend API – Transactions & Balance [checkpoint: 1eced3f]
 
-- [ ] Task: Write tests for transaction and transfer endpoints
-    - [ ] POST /wallets/:id/transactions – create transaction, returns 201
-    - [ ] GET /wallets/:id/transactions – list transactions for wallet, returns 200
-    - [ ] POST /wallets/transfer – transfer between wallets (atomic), returns 200
-    - [ ] Balance included in GET /wallets and GET /wallets/:id responses
-- [ ] Task: Implement transaction repository
-    - [ ] createTransaction, findTransactionsByWalletId
-- [ ] Task: Implement transaction service
-    - [ ] zod schema for create transaction input
-    - [ ] zod schema for transfer input (sourceId, targetId, amount, description)
-    - [ ] Atomic transfer logic (db transaction: two inserts)
-- [ ] Task: Implement transaction controller
-    - [ ] createTransactionHandler, listTransactionsHandler, transferHandler
-- [ ] Task: Implement balance calculation (SQL aggregation via Drizzle)
-    - [ ] Add balance field to wallet responses (computed, not stored)
-- [ ] Task: Register transaction routes in app.ts
-- [ ] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md)
+- [x] Task: Write tests for transaction and transfer endpoints b76ff08
+    - [x] POST /wallets/:id/transactions – create transaction, returns 201
+    - [x] GET /wallets/:id/transactions – list transactions for wallet, returns 200
+    - [x] POST /wallets/transfer – transfer between wallets (atomic), returns 200
+    - [x] Balance included in GET /wallets and GET /wallets/:id responses
+- [x] Task: Implement transaction repository b76ff08
+    - [x] createTransaction, findTransactionsByWalletId
+- [x] Task: Implement transaction service b76ff08
+    - [x] zod schema for create transaction input
+    - [x] zod schema for transfer input (sourceId, targetId, amount, description)
+    - [x] Atomic transfer logic (db transaction: two inserts)
+- [x] Task: Implement transaction controller b76ff08
+    - [x] createTransactionHandler, listTransactionsHandler, transferHandler
+- [x] Task: Implement balance calculation (SQL aggregation via Drizzle) b76ff08
+    - [x] Add balance field to wallet responses (computed, not stored)
+- [x] Task: Register transaction routes in app.ts b76ff08
+- [x] Task: Conductor - User Manual Verification 'Phase 3' (Protocol in workflow.md) 1eced3f
 
 ## Phase 4: Frontend – Wallet Management Pages
 
