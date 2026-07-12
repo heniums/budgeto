@@ -2,22 +2,22 @@
 
 ## Phase 1: Create Axios Client Module
 
-- [ ] Task: Install axios dependency
-    - [ ] Run `npm install axios` in the `client/` directory
-    - [ ] Verify axios is added to `client/package.json`
-- [ ] Task: Create the axios instance and interceptors (`client/src/api/client.ts`)
-    - [ ] Define a pre-configured axios instance with `VITE_API_BASE_URL` as `baseURL`
-    - [ ] Implement a request interceptor that reads `budgeto.token` from localStorage and sets `Authorization: Bearer <token>` header
-    - [ ] Implement a response interceptor that:
-        - [ ] Normalizes error responses into `ApiError` (message, status, code)
-        - [ ] On 401 responses: clears the token from localStorage and dispatches a custom event for auth state reset
-    - [ ] Export the configured axios instance as a singleton
-- [ ] Task: Write tests for the axios client module
-    - [ ] Test that the request interceptor attaches the token when present
-    - [ ] Test that the request interceptor does not attach a header when no token exists
-    - [ ] Test that the response interceptor normalizes errors into `ApiError`
-    - [ ] Test that the response interceptor handles 401 by clearing the token
-    - [ ] Test that the response interceptor re-throws errors so callers can catch them
+- [x] Task: Install axios dependency `0ee13c9`
+    - [x] Run `npm install axios` in the `client/` directory
+    - [x] Verify axios is added to `client/package.json`
+- [x] Task: Create the axios instance and interceptors (`client/src/api/client.ts`) `0ee13c9`
+    - [x] Define a pre-configured axios instance with `VITE_API_BASE_URL` as `baseURL`
+    - [x] Implement a request interceptor that reads `budgeto.token` from localStorage and sets `Authorization: Bearer <token>` header
+    - [x] Implement a response interceptor that:
+        - [x] Normalizes error responses into `ApiError` (message, status, code)
+        - [x] On 401 responses: clears the token from localStorage and dispatches a custom event for auth state reset
+    - [x] Export the configured axios instance as a singleton
+- [x] Task: Write tests for the axios client module `0ee13c9`
+    - [x] Test that the request interceptor attaches the token when present
+    - [x] Test that the request interceptor does not attach a header when no token exists
+    - [x] Test that the response interceptor normalizes errors into `ApiError`
+    - [x] Test that the response interceptor handles 401 by clearing the token
+    - [x] Test that the response interceptor re-throws errors so callers can catch them
 - [ ] Task: Conductor - User Manual Verification 'Phase 1: Create Axios Client Module' (Protocol in workflow.md)
 
 ## Phase 2: Refactor API Functions
