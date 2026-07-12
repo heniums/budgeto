@@ -1,6 +1,6 @@
 # Implementation Plan: Centralized HTTP Client with Axios
 
-## Phase 1: Create Axios Client Module
+## Phase 1: Create Axios Client Module [checkpoint: 01bcc2d]
 
 - [x] Task: Install axios dependency `0ee13c9`
     - [x] Run `npm install axios` in the `client/` directory
@@ -18,7 +18,8 @@
     - [x] Test that the response interceptor normalizes errors into `ApiError`
     - [x] Test that the response interceptor handles 401 by clearing the token
     - [x] Test that the response interceptor re-throws errors so callers can catch them
-- [~] Task: Conductor - User Manual Verification 'Phase 1: Create Axios Client Module' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 1: Create Axios Client Module' (Protocol in workflow.md) `01bcc2d`
+[checkpoint: 01bcc2d]
 
 ## Phase 2: Refactor API Functions
 
