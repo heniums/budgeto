@@ -26,7 +26,7 @@ const onSuccess = vi.fn();
 function renderForm(): void {
   render(
     <MemoryRouter>
-      <TransactionForm wallets={wallets} token="tok" onSuccess={onSuccess} />
+      <TransactionForm wallets={wallets} onSuccess={onSuccess} />
     </MemoryRouter>,
   );
 }
@@ -82,7 +82,7 @@ describe('TransactionForm', () => {
     await user.click(screen.getByRole('button', { name: /add transaction/i }));
 
     await waitFor(() => {
-      expect(vi.mocked(createTransaction)).toHaveBeenCalledWith('tok', 'w1', {
+      expect(vi.mocked(createTransaction)).toHaveBeenCalledWith('w1', {
         amount: '-25.50',
         description: 'Groceries',
       });

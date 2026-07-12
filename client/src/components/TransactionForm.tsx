@@ -19,13 +19,11 @@ type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
-  token: string;
   onSuccess: () => void;
 }
 
 export function TransactionForm({
   wallets,
-  token,
   onSuccess,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
@@ -43,7 +41,7 @@ export function TransactionForm({
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
     try {
-      await createTransaction(token, values.walletId, {
+      await createTransaction(values.walletId, {
         amount: values.amount,
         description: values.description,
       });

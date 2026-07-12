@@ -26,7 +26,7 @@ const onSuccess = vi.fn();
 function renderForm(): void {
   render(
     <MemoryRouter>
-      <TransferForm wallets={wallets} token="tok" onSuccess={onSuccess} />
+      <TransferForm wallets={wallets} onSuccess={onSuccess} />
     </MemoryRouter>,
   );
 }
@@ -93,7 +93,7 @@ describe('TransferForm', () => {
     await user.click(screen.getByRole('button', { name: /transfer/i }));
 
     await waitFor(() => {
-      expect(vi.mocked(transferFunds)).toHaveBeenCalledWith('tok', {
+      expect(vi.mocked(transferFunds)).toHaveBeenCalledWith({
         sourceId: 'w1',
         targetId: 'w2',
         amount: '25',

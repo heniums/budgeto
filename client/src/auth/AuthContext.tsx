@@ -63,7 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       return;
     }
     setStatus('loading');
-    getMe(token)
+    getMe()
       .then((fetched) => {
         if (!active) return;
         setUser(fetched);
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   const refreshUser = useCallback(async () => {
     if (!token) return;
     try {
-      const user = await getMe(token);
+      const user = await getMe();
       setUser(user);
     } catch {
       writeToken(null);

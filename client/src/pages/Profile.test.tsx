@@ -39,7 +39,7 @@ describe('Profile page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getMe).mockResolvedValue(mockUser);
-    vi.mocked(updateName).mockImplementation((_token, name) =>
+    vi.mocked(updateName).mockImplementation((name) =>
       Promise.resolve({ ...mockUser, name }),
     );
     vi.mocked(changePassword).mockResolvedValue(undefined);
@@ -126,7 +126,7 @@ describe('Profile page', () => {
       screen.getByRole('button', { name: /update password/i }),
     );
     expect(await screen.findByText(/password updated/i)).toBeInTheDocument();
-    expect(vi.mocked(changePassword)).toHaveBeenCalledWith('tok', {
+    expect(vi.mocked(changePassword)).toHaveBeenCalledWith({
       currentPassword: 'oldpass1',
       newPassword: 'newpassword',
     });

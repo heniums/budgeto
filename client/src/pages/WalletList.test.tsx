@@ -109,7 +109,7 @@ describe('WalletList page', () => {
 
     expect(window.confirm).toHaveBeenCalled();
     await waitFor(() => {
-      expect(vi.mocked(deleteWallet)).toHaveBeenCalledWith('tok', 'w2');
+      expect(vi.mocked(deleteWallet)).toHaveBeenCalledWith('w2');
     });
   });
 });

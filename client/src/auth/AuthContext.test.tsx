@@ -55,7 +55,7 @@ describe('AuthProvider', () => {
       'authenticated',
     );
     expect(screen.getByTestId('email')).toHaveTextContent('a@b.co');
-    expect(vi.mocked(getMe)).toHaveBeenCalledWith('saved-token');
+    expect(vi.mocked(getMe)).toHaveBeenCalled();
   });
 
   it('clears the session when getMe fails', async () => {

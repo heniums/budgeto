@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
 import {
   getWallet,
   getTransactions,
@@ -10,7 +9,6 @@ import {
 
 export function WalletDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,8 +17,8 @@ export function WalletDetail(): JSX.Element {
   useEffect(() => {
     let active = true;
     Promise.all([
-      getWallet(token!, id!),
-      getTransactions(token!, id!),
+      getWallet(id!),
+      getTransactions(id!),
     ])
       .then(([w, t]) => {
         if (!active) return;
@@ -36,7 +34,7 @@ export function WalletDetail(): JSX.Element {
     return () => {
       active = false;
     };
-  }, [id, token]);
+  }, [id]);
 
   if (loading) {
     return (
