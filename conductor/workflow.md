@@ -8,6 +8,7 @@
 4. **High Code Coverage:** Aim for >80% code coverage for all modules
 5. **User Experience First:** Every decision should prioritize user experience
 6. **Non-Interactive & CI-Aware:** Prefer non-interactive commands. Use `CI=true` for watch-mode tools (tests, linters) to ensure single execution.
+7. **Migrations are mandatory for schema changes:** Any change to `server/src/db/schema.ts` MUST be accompanied by a corresponding Drizzle migration under `server/migrations/` (e.g. via `npx drizzle-kit generate`). The same schema must run unchanged against the local embedded PostgreSQL and Neon in production. Never hand-edit the database without a migration, and keep `setup.ts` in sync with the schema so tests create the same columns.
 
 ## Task Workflow
 
