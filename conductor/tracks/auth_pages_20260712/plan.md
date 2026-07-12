@@ -33,9 +33,9 @@
 - [x] Task: Conductor - User Manual Verification 'Phase 3 — Sign Up Page' (Protocol in workflow.md)
 
 ## Phase 4 — Sign In Page
-- [ ] Task: SignIn form component
-    - [ ] Write failing tests for validation + inline error on invalid credentials
-    - [ ] Implement SignIn page: email/password, inline validation, submit -> API -> redirect `/account/profile`
+- [x] Task: SignIn form component (973ce65)
+    - [x] Write failing tests for validation + inline error on invalid credentials
+    - [x] Implement SignIn page: email/password, inline validation, submit -> API -> redirect `/account/profile`
 - [ ] Task: Conductor - User Manual Verification 'Phase 4 — Sign In Page' (Protocol in workflow.md)
 
 ## Phase 5 — Profile Management Page
