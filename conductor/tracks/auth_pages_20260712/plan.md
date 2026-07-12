@@ -26,11 +26,11 @@
     - [x] Implement React Router: `/signup`, `/login` public; `/account/profile` guarded; redirect logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 2 — Frontend Foundation' (Protocol in workflow.md)
 
-## Phase 3 — Sign Up Page
+## Phase 3 — Sign Up Page [checkpoint: 74e9193]
 - [x] Task: SignUp form component (2916e96)
     - [x] Write failing tests for validation (required, email format, password >=8, match) + inline error display
     - [x] Implement SignUp page: name, email, password, confirm; inline validation; submit -> API -> redirect `/account/profile`
-- [ ] Task: Conductor - User Manual Verification 'Phase 3 — Sign Up Page' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 3 — Sign Up Page' (Protocol in workflow.md)
 
 ## Phase 4 — Sign In Page
 - [ ] Task: SignIn form component
