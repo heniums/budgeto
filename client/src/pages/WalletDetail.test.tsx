@@ -38,6 +38,10 @@ function renderDetail(): void {
             path="/account/wallets/:id/edit"
             element={<div>Edit Wallet</div>}
           />
+          <Route
+            path="/account/wallets"
+            element={<div>Wallet List</div>}
+          />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -111,6 +115,6 @@ describe('WalletDetail page', () => {
     renderDetail();
     await screen.findByText('Cash');
     await user.click(screen.getByRole('link', { name: /back/i }));
-    // Should navigate to /account/wallets
+    expect(screen.getByText('Wallet List')).toBeInTheDocument();
   });
 });
