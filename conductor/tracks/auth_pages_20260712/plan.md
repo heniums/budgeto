@@ -14,16 +14,16 @@
     - [x] Implement change-password service, controller, and route (auth-guarded)
 - [ ] Task: Conductor - User Manual Verification 'Phase 1 — Backend: Extend Auth API (Name & Profile)' (Protocol in workflow.md)
 
-## Phase 2 — Frontend Foundation: Session, API Client, Routing & Guards
-- [ ] Task: Auth/session context
-    - [ ] Write failing tests for session provider (stores token, loads current user via `/auth/me`, exposes logout)
-    - [ ] Implement React context: token persistence (localStorage), `useAuth()` hook, current user fetch
-- [ ] Task: Typed auth API client
-    - [ ] Write failing tests for API client functions (register, login, getMe, updateName, changePassword) mocking fetch
-    - [ ] Implement typed client calling the auth endpoints
-- [ ] Task: Router with public & guarded routes
-    - [ ] Write failing tests for route guards (unauthenticated `/account/profile` redirects to `/login`; post-login redirect)
-    - [ ] Implement React Router: `/signup`, `/login` public; `/account/profile` guarded; redirect logic
+## Phase 2 — Frontend Foundation: Session, API Client, Routing & Guards [checkpoint: 19c57b6]
+- [x] Task: Auth/session context (c247528)
+    - [x] Write failing tests for session provider (stores token, loads current user via /auth/me, exposes logout)
+    - [x] Implement React context: token persistence (localStorage), `useAuth()` hook, current user fetch
+- [x] Task: Typed auth API client (7348212)
+    - [x] Write failing tests for API client functions (register, login, getMe, updateName, changePassword) mocking fetch
+    - [x] Implement typed client calling the auth endpoints
+- [x] Task: Router with public & guarded routes (bf67732)
+    - [x] Write failing tests for route guards (unauthenticated `/account/profile` redirects to `/login`; post-login redirect)
+    - [x] Implement React Router: `/signup`, `/login` public; `/account/profile` guarded; redirect logic
 - [ ] Task: Conductor - User Manual Verification 'Phase 2 — Frontend Foundation' (Protocol in workflow.md)
 
 ## Phase 3 — Sign Up Page
