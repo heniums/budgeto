@@ -11,7 +11,7 @@
 - [x] Task: Implement schema in `server/src/db/schema.ts` 59ec02f
 - [x] Task: Conductor - User Manual Verification 'Phase 1' (Protocol in workflow.md) e999d16
 
-## Phase 2: Backend API – Wallet CRUD
+## Phase 2: Backend API – Wallet CRUD [checkpoint: 251b237]
 
 - [x] Task: Write tests for wallet API endpoints eadcdbe
     - [x] POST /wallets – create wallet with name, returns 201
@@ -27,7 +27,7 @@
 - [x] Task: Implement wallet controller (HTTP handlers) eadcdbe
     - [x] createHandler, listHandler, getHandler, updateHandler, deleteHandler
 - [x] Task: Register wallet routes in app.ts (all under `/wallets` prefix, auth-protected) eadcdbe
-- [ ] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md)
+- [x] Task: Conductor - User Manual Verification 'Phase 2' (Protocol in workflow.md) 251b237
 
 ## Phase 3: Backend API – Transactions & Balance
 
