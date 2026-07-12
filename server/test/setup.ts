@@ -36,6 +36,26 @@ export async function setup(): Promise<void> {
       "updated_at" timestamptz NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "wallet" (
+      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "user_id" uuid NOT NULL REFERENCES "user"("id"),
+      "name" text NOT NULL,
+      "description" text DEFAULT '',
+      "color" text DEFAULT '#1f8a4c',
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "transaction" (
+      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "wallet_id" uuid NOT NULL REFERENCES "wallet"("id"),
+      "amount" numeric(12,2) NOT NULL,
+      "description" text DEFAULT '',
+      "created_at" timestamptz NOT NULL DEFAULT now()
+    )
+  `);
   await pool.end();
 }
 
