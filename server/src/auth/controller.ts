@@ -1,5 +1,14 @@
 import type { Request, Response, NextFunction } from 'express';
-import { registerSchema, loginSchema, register, login } from './service';
+import {
+  registerSchema,
+  loginSchema,
+  profileUpdateSchema,
+  register,
+  login,
+  getProfile,
+  updateProfile,
+} from './service';
+import { notFoundError } from '../errors';
 
 /**
  * HTTP handlers for the auth endpoints. Validation is delegated to zod schemas;
@@ -28,6 +37,39 @@ export async function loginHandler(
     const input = loginSchema.parse(req.body);
     const result = await login(input);
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function meHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw notFoundError('User not found');
+    }
+    const user = await getProfile(req.user.sub);
+    res.status(200).json({ user });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateMeHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw notFoundError('User not found');
+    }
+    const input = profileUpdateSchema.parse(req.body);
+    const user = await updateProfile(req.user.sub, input);
+    res.status(200).json({ user });
   } catch (error) {
     next(error);
   }

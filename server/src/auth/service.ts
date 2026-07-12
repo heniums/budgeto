@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { findUserByEmail, createUser } from './repository';
+import {
+  findUserByEmail,
+  findUserById,
+  createUser,
+  updateUserName,
+} from './repository';
 import { hashPassword, verifyPassword } from './password';
 import { signToken, type TokenPayload } from './token';
 import { conflictError, unauthorizedError } from '../errors';
@@ -15,8 +20,13 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const profileUpdateSchema = z.object({
+  name: z.string().min(1).max(128),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
+export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 
 export interface AuthResult {
   token: string;
@@ -59,3 +69,30 @@ export async function login(input: LoginInput): Promise<AuthResult> {
 }
 
 export type { TokenPayload };
+
+/**
+ * Returns the full profile (id, email, name) for the given user id.
+ */
+export async function getProfile(
+  id: string,
+): Promise<{ id: string; email: string; name: string }> {
+  const user = await findUserById(id);
+  if (!user) {
+    throw unauthorizedError('User not found');
+  }
+  return { id: user.id, email: user.email, name: user.name };
+}
+
+/**
+ * Updates the display name for the given user.
+ */
+export async function updateProfile(
+  id: string,
+  input: ProfileUpdateInput,
+): Promise<{ id: string; email: string; name: string }> {
+  const updated = await updateUserName(id, input.name);
+  if (!updated) {
+    throw unauthorizedError('User not found');
+  }
+  return { id: updated.id, email: updated.email, name: updated.name };
+}
