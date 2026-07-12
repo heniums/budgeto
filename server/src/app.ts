@@ -6,6 +6,7 @@ import {
   loginHandler,
   meHandler,
   updateMeHandler,
+  changePasswordHandler,
 } from './auth/controller';
 import { authenticate } from './auth/middleware';
 import { isAppError } from './errors';
@@ -24,6 +25,7 @@ export function createApp(): Express {
 
   app.get('/auth/me', authenticate, meHandler);
   app.patch('/auth/me', authenticate, updateMeHandler);
+  app.post('/auth/change-password', authenticate, changePasswordHandler);
 
   app.use(
     (

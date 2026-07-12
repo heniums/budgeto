@@ -4,6 +4,7 @@ import {
   findUserById,
   createUser,
   updateUserName,
+  updateUserPasswordHash,
 } from './repository';
 import { hashPassword, verifyPassword } from './password';
 import { signToken, type TokenPayload } from './token';
@@ -24,9 +25,15 @@ export const profileUpdateSchema = z.object({
   name: z.string().min(1).max(128),
 });
 
+export const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(128),
+});
+
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
 export interface AuthResult {
   token: string;
@@ -95,4 +102,24 @@ export async function updateProfile(
     throw unauthorizedError('User not found');
   }
   return { id: updated.id, email: updated.email, name: updated.name };
+}
+
+/**
+ * Changes the password after verifying the current one. Rejects if the current
+ * password is wrong, then stores a fresh bcrypt hash.
+ */
+export async function changePassword(
+  id: string,
+  input: ChangePasswordInput,
+): Promise<void> {
+  const user = await findUserById(id);
+  if (!user) {
+    throw unauthorizedError('User not found');
+  }
+  const valid = await verifyPassword(input.currentPassword, user.passwordHash);
+  if (!valid) {
+    throw unauthorizedError('Current password is incorrect');
+  }
+  const passwordHash = await hashPassword(input.newPassword);
+  await updateUserPasswordHash(id, passwordHash);
 }

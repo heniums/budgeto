@@ -3,10 +3,12 @@ import {
   registerSchema,
   loginSchema,
   profileUpdateSchema,
+  changePasswordSchema,
   register,
   login,
   getProfile,
   updateProfile,
+  changePassword,
 } from './service';
 import { notFoundError } from '../errors';
 
@@ -70,6 +72,23 @@ export async function updateMeHandler(
     const input = profileUpdateSchema.parse(req.body);
     const user = await updateProfile(req.user.sub, input);
     res.status(200).json({ user });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function changePasswordHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw notFoundError('User not found');
+    }
+    const input = changePasswordSchema.parse(req.body);
+    await changePassword(req.user.sub, input);
+    res.status(204).send();
   } catch (error) {
     next(error);
   }
