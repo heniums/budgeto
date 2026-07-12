@@ -14,5 +14,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: balances/wallets management**
-  *Link: [./tracks/wallets_management_20260712/](./tracks/wallets_management_20260712/)*
+- [x] **Track: balances/wallets management** (archived)
+  *Link: [./archive/wallets_management_20260712/](./archive/wallets_management_20260712/)*
