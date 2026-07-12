@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type TokenPayload } from './token';
-import { UnauthorizedError } from '../errors';
+import { unauthorizedError } from '../errors';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -22,7 +22,7 @@ export function authenticate(
 ): void {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
-    next(new UnauthorizedError('Missing or invalid Authorization header'));
+    next(unauthorizedError('Missing or invalid Authorization header'));
     return;
   }
   const token = header.slice('Bearer '.length);
@@ -30,6 +30,6 @@ export function authenticate(
     req.user = verifyToken(token);
     next();
   } catch {
-    next(new UnauthorizedError('Invalid or expired token'));
+    next(unauthorizedError('Invalid or expired token'));
   }
 }

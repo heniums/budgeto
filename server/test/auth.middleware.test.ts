@@ -1,15 +1,13 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { AuthService } from '../src/auth/service';
-import { UserRepository } from '../src/auth/repository';
+import { register, login } from '../src/auth/service';
+import { deleteAllUsers } from '../src/auth/repository';
 
 const app = createApp();
-const service = new AuthService();
-const repository = new UserRepository();
 
 async function loginToken(): Promise<string> {
-  const result = await service.login({
+  const result = await login({
     email: 'mallory@example.com',
     password: 'password123',
   });
@@ -18,8 +16,8 @@ async function loginToken(): Promise<string> {
 
 describe('Protected routes', () => {
   beforeEach(async () => {
-    await repository.deleteAll();
-    await service.register({
+    await deleteAllUsers();
+    await register({
       email: 'mallory@example.com',
       password: 'password123',
     });

@@ -1,18 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
-import { AuthService } from '../src/auth/service';
-import { ConflictError, UnauthorizedError } from '../src/errors';
-import { UserRepository } from '../src/auth/repository';
+import { register, login } from '../src/auth/service';
+import { deleteAllUsers } from '../src/auth/repository';
 
-const service = new AuthService();
-const repository = new UserRepository();
-
-describe('AuthService.register', () => {
+describe('register', () => {
   beforeEach(async () => {
-    await repository.deleteAll();
+    await deleteAllUsers();
   });
 
   it('registers a new user', async () => {
-    const result = await service.register({
+    const result = await register({
       email: 'dave@example.com',
       password: 'password123',
     });
@@ -21,30 +17,30 @@ describe('AuthService.register', () => {
   });
 
   it('rejects a duplicate email', async () => {
-    await service.register({
+    await register({
       email: 'erin@example.com',
       password: 'password123',
     });
     await expect(
-      service.register({
+      register({
         email: 'erin@example.com',
         password: 'password123',
       }),
-    ).rejects.toBeInstanceOf(ConflictError);
+    ).rejects.toMatchObject({ code: 'CONFLICT' });
   });
 });
 
-describe('AuthService.login', () => {
+describe('login', () => {
   beforeEach(async () => {
-    await repository.deleteAll();
+    await deleteAllUsers();
   });
 
   it('logs in with valid credentials and returns a token', async () => {
-    await service.register({
+    await register({
       email: 'frank@example.com',
       password: 'password123',
     });
-    const result = await service.login({
+    const result = await login({
       email: 'frank@example.com',
       password: 'password123',
     });
@@ -54,17 +50,17 @@ describe('AuthService.login', () => {
 
   it('rejects an unknown user', async () => {
     await expect(
-      service.login({ email: 'ghost@example.com', password: 'password123' }),
-    ).rejects.toBeInstanceOf(UnauthorizedError);
+      login({ email: 'ghost@example.com', password: 'password123' }),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
   });
 
   it('rejects a wrong password', async () => {
-    await service.register({
+    await register({
       email: 'grace@example.com',
       password: 'password123',
     });
     await expect(
-      service.login({ email: 'grace@example.com', password: 'wrongpass' }),
-    ).rejects.toBeInstanceOf(UnauthorizedError);
+      login({ email: 'grace@example.com', password: 'wrongpass' }),
+    ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
   });
 });

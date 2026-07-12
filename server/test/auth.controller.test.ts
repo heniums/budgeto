@@ -1,16 +1,14 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import request from 'supertest';
 import { createApp } from '../src/app';
-import { AuthService } from '../src/auth/service';
-import { UserRepository } from '../src/auth/repository';
+import { register } from '../src/auth/service';
+import { deleteAllUsers } from '../src/auth/repository';
 
 const app = createApp();
-const service = new AuthService();
-const repository = new UserRepository();
 
 describe('POST /auth/register', () => {
   beforeEach(async () => {
-    await repository.deleteAll();
+    await deleteAllUsers();
   });
 
   it('creates a user with valid input (201)', async () => {
@@ -31,7 +29,7 @@ describe('POST /auth/register', () => {
   });
 
   it('rejects a duplicate email (409)', async () => {
-    await service.register({
+    await register({
       email: 'ivan@example.com',
       password: 'password123',
     });
@@ -45,8 +43,8 @@ describe('POST /auth/register', () => {
 
 describe('POST /auth/login', () => {
   beforeEach(async () => {
-    await repository.deleteAll();
-    await service.register({
+    await deleteAllUsers();
+    await register({
       email: 'judy@example.com',
       password: 'password123',
     });

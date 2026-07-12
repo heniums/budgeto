@@ -1,9 +1,9 @@
 import express, { type Express, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { healthCheck } from './health';
-import { authController } from './auth/controller';
+import { registerHandler, loginHandler } from './auth/controller';
 import { authenticate } from './auth/middleware';
-import { AppError } from './errors';
+import { isAppError } from './errors';
 
 /**
  * Builds the Express application without starting the HTTP server. Exporting a
@@ -14,8 +14,8 @@ export function createApp(): Express {
   app.use(express.json());
 
   app.get('/health', healthCheck);
-  app.post('/auth/register', authController.register);
-  app.post('/auth/login', authController.login);
+  app.post('/auth/register', registerHandler);
+  app.post('/auth/login', loginHandler);
 
   app.get('/auth/me', authenticate, (req: Request, res: Response) => {
     res.status(200).json({ user: req.user });
@@ -39,7 +39,7 @@ export function createApp(): Express {
         });
         return;
       }
-      if (error instanceof AppError) {
+      if (isAppError(error)) {
         res.status(error.statusCode).json({
           code: error.code,
           message: error.message,
