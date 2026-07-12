@@ -1,0 +1,8 @@
+{
+  "track_id": "scaffold_auth_20260712",
+  "type": "feature",
+  "status": "new",
+  "created_at": "2026-07-12T06:43:29Z",
+  "updated_at": "2026-07-12T06:43:29Z",
+  "description": "Project scaffolding (React PWA + Express + PostgreSQL, TypeScript) plus authentication (register/login)."
+}
