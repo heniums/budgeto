@@ -4,7 +4,7 @@
 
 - [ ] Task: Define `wallets` table in Drizzle schema
     - [ ] Add `wallet` table (id uuid PK, user_id FK, name text, description text, color text, created_at, updated_at)
-    - [ ] Add `transaction` table (id uuid PK, wallet_id FK, user_id FK, amount numeric, description text, created_at)
+    - [ ] Add `transaction` table (id uuid PK, wallet_id FK, amount numeric, description text, created_at)
 - [ ] Task: Run Drizzle migration to create tables
 - [ ] Task: Write tests for schema shape and constraints
     - [ ] Verify table columns, types, and foreign key relationships
