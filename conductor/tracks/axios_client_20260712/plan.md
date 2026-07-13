@@ -67,3 +67,6 @@
     - [x] Run TypeScript type checking (`npx tsc --noEmit`) (no new errors introduced)
     - [x] Fix any issues found (fixed unused `navigate` in WalletList.tsx)
 - [x] Task: Conductor - User Manual Verification 'Phase 4: Final Verification & Cleanup' (Protocol in workflow.md) `67588e3`
+
+## Phase: Review Fixes
+- [x] Task: Apply review suggestions `41e5ef8`
