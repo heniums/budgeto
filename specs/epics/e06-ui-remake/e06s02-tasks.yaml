@@ -1,0 +1,20 @@
+story_id: e06s02
+title: Layout & Router — Home/Settings nav + mobile drawer
+status: failing
+bcps: 3
+tasks:
+  - id: 1
+    description: "Rewrite Sidebar to render only Home + Settings nav items; remove wallet-fetching/listing logic (AGENTS.md gotcha #7 no longer applies)"
+    verify: "npm test -- client/src/components/Sidebar.test.tsx"
+    risk: P1
+    status: failing
+  - id: 2
+    description: "Add mobile drawer using shadcn Sheet + hamburger toggle in Layout; hide sidebar below breakpoint"
+    verify: "npm test -- client/src/components/Layout.test.tsx"
+    risk: P1
+    status: failing
+  - id: 3
+    description: "Update client router: routes / (Home) and /settings (Settings hub); remove /dashboard, /wallets, /profile and old /account/categories routes; update router tests"
+    verify: "npm test -- client/src/router.test.tsx"
+    risk: P1
+    status: failing

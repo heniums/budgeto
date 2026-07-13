@@ -1,0 +1,45 @@
+# specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
+# Feature: UI Remake with shadcn/ui. Elaborated 2026-07-13.
+
+feature_name: 'UI Remake with shadcn/ui'
+
+problem_statement: >
+  The current Budgeto client UI is wallet-centric: a Dashboard plus a Sidebar that
+  lists every wallet, with no unified view of the user's transactions. Navigation is
+  cluttered and the component layer is hand-rolled against a single global styles.css.
+  The user wants a simpler, modern, component-driven UI centered on transactions, using
+  shadcn/ui, with a left nav reduced to just Home (all transactions) and Settings
+  (manage wallets, categories, and user settings).
+
+constraints:
+  - "Adopt Tailwind CSS + shadcn/ui. This OVERRIDES the AGENTS.md 'No CSS modules / Tailwind' rule — convention to be updated."
+  - 'Reuse existing server APIs (wallets, categories, transactions, auth) and as much existing client logic as possible.'
+  - 'Left nav contains ONLY Home and Settings.'
+  - 'Responsive: left sidebar collapses to a collapsible drawer on mobile (shadcn Sheet).'
+  - 'Auth pages (SignIn / SignUp) are unchanged and not in the left nav.'
+  - 'Transaction & transfer creation lives on Home (reusing TransactionForm / TransferForm, reworked onto shadcn Form).'
+  - 'ASSUMPTION TO VERIFY IN PLAN PHASE: a user-scoped transactions list endpoint already exists server-side (server has a transactions/ module). If missing, add a backend sub-task.'
+
+out_of_scope:
+  - 'Dashboard analytics / summary cards.'
+  - 'Dark mode / theming for v1.'
+  - 'Category budgeting.'
+  - 'Wallet or category hierarchy / nesting.'
+  - 'New backend endpoints beyond what already exists (assumes transactions list API exists).'
+  - 'Auth / SignIn / SignUp UI changes.'
+
+key_decisions:
+  - decision: 'Adopt Tailwind + shadcn/ui and override the no-Tailwind convention in AGENTS.md.'
+    rationale: 'shadcn/ui is built on Tailwind CSS + Radix; it is the only path to the requested component library.'
+  - decision: 'Left nav = only Home + Settings (was Dashboard + wallet list).'
+    rationale: 'Simplify navigation per explicit user request.'
+  - decision: 'Home = all-transactions list with filters (wallet / category / type / date), search, pagination, plus Add transaction / Transfer buttons.'
+    rationale: 'Center the app on transactions; create-on-Home matches a typical dashboard feel.'
+  - decision: 'Settings = single page with Wallets / Categories / User tabs.'
+    rationale: 'Consolidate management surfaces into one route instead of scattered pages.'
+  - decision: 'Remove Dashboard; reuse WalletList/Detail as Settings > Wallets, and Profile as Settings > User.'
+    rationale: 'Avoid duplicate management UIs and reuse existing logic.'
+  - decision: 'Mobile = collapsible drawer (shadcn Sheet) for the left sidebar.'
+    rationale: 'Standard responsive pattern for a left sidebar.'
+  - decision: 'Rework TransactionForm / TransferForm onto shadcn Form (react-hook-form).'
+    rationale: 'Resolves the pre-existing TS6133 / resolver type errors and aligns forms with the new component system.'

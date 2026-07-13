@@ -1,0 +1,82 @@
+# specs/product/SCOPE_LATEST.yaml — Bounded PRD for the UI Remake initiative.
+# Written by scope-work (planning spine step 1) on 2026-07-13.
+# Consumes specs/planning-context.yaml (elaborate-spec output).
+
+core_value: >
+  Replace Budgeto's hand-rolled, wallet-centric client UI with a modern,
+  component-driven UI built on Tailwind CSS + shadcn/ui, centered on the
+  user's transactions and simplified to a two-item left nav (Home, Settings).
+
+summary: >
+  The current client is a multi-page app whose Sidebar lists every wallet and
+  whose Dashboard is wallet-centric, with no unified transactions view. This
+  initiative rebuilds the client UI using shadcn/ui components (which require
+  Tailwind CSS + Radix), overriding the prior "no Tailwind" styling convention.
+  The left navigation is reduced to Home and Settings. Home becomes an
+  all-transactions list with filters, search, pagination, and quick
+  Add-transaction / Transfer actions. Settings becomes a single page with three
+  tabs — Wallets, Categories, User — reusing the existing management logic.
+  The Dashboard page is removed. Existing server APIs (wallets, categories,
+  transactions, auth) are reused; auth pages (SignIn/SignUp) are untouched.
+
+in_scope:
+  - id: SC-1
+    maps_to: e06s01
+    description: 'Adopt Tailwind CSS + shadcn/ui toolchain; update AGENTS.md styling convention.'
+  - id: SC-2
+    maps_to: e06s02
+    description: 'Rebuild Layout/Sidebar and router: left nav = Home + Settings only; mobile collapsible drawer.'
+  - id: SC-3
+    maps_to: e06s03
+    description: 'Home = all-transactions list with filters (wallet/category/type/date), search, pagination, Add/Transfer buttons.'
+  - id: SC-4
+    maps_to: e06s04
+    description: 'Settings page with Wallets / Categories / User tabs, reusing existing management UIs and APIs.'
+  - id: SC-5
+    maps_to: e06s05
+    description: 'Rework TransactionForm / TransferForm onto shadcn Form (react-hook-form), resolving pre-existing type errors.'
+  - id: SC-6
+    maps_to: e06s06
+    description: 'Update/extend client tests and ensure npm test + npm run type-check pass cleanly.'
+
+out_of_scope:
+  - id: OOS-1
+    item: 'Dashboard analytics / summary cards (balances, trends).'
+    reason: 'Deferred — user wants a transaction-centered Home, not a dashboard. Revisit as a later track (G-003 Financial Insights).'
+  - id: OOS-2
+    item: 'Dark mode / theming for v1.'
+    reason: 'Deferred — shadcn supports theming but it is not in the requested v1 scope; adds toggle + token work.'
+  - id: OOS-3
+    item: 'Category budgeting (budgets per category, progress).'
+    reason: 'Deferred — separate future track (G-002 Manage Budgets). Not part of the UI remake.'
+  - id: OOS-4
+    item: 'Wallet or category hierarchy / nesting.'
+    reason: 'Deferred — out of scope per existing category epic; categories remain flat per user.'
+  - id: OOS-5
+    item: 'New backend endpoints beyond what exists.'
+    reason: 'Deferred — assumes a user-scoped, filterable transactions list API already exists. If missing, it becomes a sub-task of e06s03 (explicit verify step), not a new epic.'
+  - id: OOS-6
+    item: 'Auth / SignIn / SignUp UI changes.'
+    reason: 'Out of scope — auth pages are unchanged and not in the left nav.'
+
+constraints:
+  - 'Adopt Tailwind CSS + shadcn/ui; this OVERRIDES the AGENTS.md "No CSS modules / Tailwind" rule (convention to be updated in e06s01).'
+  - 'Reuse existing server APIs (wallets, categories, transactions, auth) and as much existing client logic/components as possible.'
+  - 'Left navigation contains ONLY Home and Settings.'
+  - 'Responsive: left sidebar collapses to a drawer on mobile (shadcn Sheet).'
+  - 'Transaction & transfer creation lives on Home (reusing TransactionForm / TransferForm reworked onto shadcn Form).'
+  - 'Auth pages (SignIn / SignUp) unchanged and absent from the left nav.'
+  - 'npm test (>=80% coverage) and npm run type-check must remain green; the prior WalletForm/TransferForm type errors are resolved, not masked.'
+
+success_criteria:
+  - 'Authenticated user sees a left nav with only Home and Settings; on mobile it collapses to a drawer.'
+  - 'Home lists all of the user''s transactions with working filters (wallet/category/type/date), search, and pagination.'
+  - 'Add transaction and Transfer actions on Home open the (shadcn-reworked) forms and persist correctly.'
+  - 'Settings page shows Wallets, Categories, and User tabs; each manages its resource using existing APIs.'
+  - 'npm test passes (updated tests) and npm run type-check is clean (prior type errors resolved).'
+
+references:
+  - specs/planning-context.yaml
+  - specs/tech-architecture/TECH_STACK_LATEST.md
+  - specs/product/VISION_LATEST.yaml
+  - specs/epics/e06-ui-remake/epic.yaml

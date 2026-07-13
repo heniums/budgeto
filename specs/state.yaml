@@ -30,15 +30,15 @@ metrics:
   bcp_per_hour: null
 
 git:
-  branch: feat/transactions-crud
-  hash: 'eb96af009b7e2d6a5e918b1ac4382f4d60be58ca'
-  pushed: false
+  branch: main
+  hash: 'b82a507'
+  pushed: true
 
 handoff:
-  last_step_completed: 'Specs synced (e05 done; e06 created). Transactions branch amended (eb96af0): 4 categoryId test fixtures fixed, Co-Authored-By stripped, 112 tests pass. Push to origin BLOCKED by sandbox auth — user to push + open PR.'
+  last_step_completed: 'Ran scope-work (SCOPE_LATEST.yaml) + plan-release: created e06 UI Remake capsule (epic.yaml, 6 story specs, 6 task files), execution-status.yaml, and updated release-plan.yaml (added e06, marked e05 done).'
   open_decisions:
-    - 'Push to origin BLOCKED in sandbox (no SSH key; gh x-access-token 403 on git endpoint despite API push:true). User must push feat/transactions-crud from local env, then open PR (release-branch).'
-    - 'Type-check (8) and lint (12) errors are pre-existing main baseline, not introduced by this branch — left as-is per decision.'
+    - 'e06s05 reworks TransactionForm/TransferForm onto shadcn Form, resolving the pre-existing WalletForm/TransferForm react-hook-form type errors (TS2322/TS2345).'
+    - 'e06s03 task 1 verifies a user-scoped, filterable GET /transactions exists server-side; if missing, implement it in server/src/transactions before the client list.'
   required_reading:
     - specs/product/VISION_LATEST.yaml
     - specs/product/GUIDELINES_LATEST.yaml
@@ -46,8 +46,7 @@ handoff:
     - specs/tech-architecture/METHODOLOGY_LATEST.md
     - specs/release-plan.yaml
     - specs/epics/e05-categories/epic.yaml
-    - specs/epics/e06-transactions/epic.yaml
-  next_skill: release-branch
+  next_skill: plan-work
 
 two_pass_spec:
   journey_pass: pending
