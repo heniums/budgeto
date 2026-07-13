@@ -50,6 +50,9 @@ export function Sidebar(): JSX.Element {
       <Link to="/account/wallets" className="sidebar-manage">
         Manage wallets
       </Link>
+      <Link to="/account/categories" className="sidebar-manage">
+        Manage categories
+      </Link>
     </aside>
   );
 }
