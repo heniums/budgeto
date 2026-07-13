@@ -9,7 +9,7 @@ const { mockGet, mockPost, mockPut, mockDelete } = vi.hoisted(() => {
 });
 
 vi.mock('./client', () => ({
-  default: {
+  apiClient: {
     get: mockGet,
     post: mockPost,
     put: mockPut,

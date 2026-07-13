@@ -17,7 +17,7 @@ vi.mock('axios', () => ({
   },
 }));
 
-import apiClient, { ApiError } from './client';
+import { apiClient, ApiError } from './client';
 
 const responseErrorInterceptor = mockResponseUse.mock.calls[0]?.[1] as (
   error: unknown,

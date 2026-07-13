@@ -22,10 +22,10 @@ apiClient.interceptors.response.use(
     if (error.response) {
       const { data, status } = error.response;
       const message =
-        (data && (data.message as string)) ||
-        (data && (data.error as string)) ||
+        (typeof data?.message === 'string' && data.message) ||
+        (typeof data?.error === 'string' && data.error) ||
         'Request failed';
-      const code = data && (data.code as string | undefined);
+      const code = typeof data?.code === 'string' ? data.code : undefined;
 
       if (status === 401) {
         window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
@@ -48,4 +48,4 @@ export class ApiError extends Error {
   }
 }
 
-export default apiClient;
+export { apiClient };
