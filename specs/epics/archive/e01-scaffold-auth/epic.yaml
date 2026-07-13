@@ -1,0 +1,46 @@
+# Epic e01 — Scaffold + Auth
+# Migrated from conductor/archive/scaffold_auth_20260712/ on 2026-07-13
+# Status: done
+
+id: e01
+title: 'Scaffold + Auth'
+status: done
+wsjf: 10
+created_at: '2026-07-12'
+completed_at: '2026-07-12'
+
+description: >
+  Set up the project structure, tooling, PostgreSQL connection, PWA foundation,
+  and user registration/login/auth middleware.
+
+stories:
+  - id: e01s01
+    title: 'Project Scaffolding'
+    status: done
+    description: >
+      Set up project structure, tooling, PostgreSQL connection, ORM, code style,
+      and PWA foundation.
+    tasks:
+      - Set up project structure and tooling (package.json, tsconfig, client/server folders, dev scripts)
+      - Configure PostgreSQL connection and ORM (Drizzle, initial users table migration)
+      - Establish code style and CI-aware dev commands (lint, type-check, test scripts)
+      - Add PWA foundation (manifest + service worker)
+    verify:
+      - 'npm test -- --run'
+      - 'npm run type-check'
+      - 'npm run lint'
+
+  - id: e01s02
+    title: 'Authentication'
+    status: done
+    description: >
+      Implement user registration, login, and route protection middleware.
+    tasks:
+      - Implement user registration (POST /auth/register with hashed passwords)
+      - Implement user login (POST /auth/login issuing JWT)
+      - Protect routes/endpoints with auth middleware
+    verify:
+      - 'npm test -- --run'
+      - 'curl -X POST http://localhost:3000/api/auth/register -H ''Content-Type: application/json'' -d ''{"email":"test@test.com","password":"test1234"}'''
+
+source: conductor/archive/scaffold_auth_20260712/plan.md

@@ -1,0 +1,45 @@
+# Budgeto — Release Plan v0.1.0
+# Migrated from conductor/tracks.md on 2026-07-13
+
+release: '0.1.0'
+created: '2026-07-13'
+description: >
+  Initial release: foundational auth, wallet management, category management.
+  Epics ordered by WSJF (Weighted Shortest Job First).
+
+epics:
+  - id: e01
+    title: 'Scaffold + Auth'
+    wsjf: 10
+    status: done
+    completed_at: '2026-07-12'
+    file: 'specs/epics/archive/e01-scaffold-auth/'
+
+  - id: e02
+    title: 'User Sign-Up, Sign-In & Profile Management Pages'
+    wsjf: 15
+    status: done
+    completed_at: '2026-07-12'
+    file: 'specs/epics/archive/e02-auth-pages/'
+
+  - id: e03
+    title: 'Balances/Wallets Management'
+    wsjf: 20
+    status: done
+    completed_at: '2026-07-12'
+    file: 'specs/epics/archive/e03-wallets-management/'
+
+  - id: e04
+    title: 'Centralized HTTP Client with Axios'
+    wsjf: 5
+    status: done
+    completed_at: '2026-07-12'
+    file: 'specs/epics/archive/e04-axios-client/'
+
+  - id: e05
+    title: 'Category Management System'
+    wsjf: 18
+    status: in_progress
+    file: 'specs/epics/e05-categories/'
+
+source: conductor/tracks.md

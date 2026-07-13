@@ -1,0 +1,76 @@
+# Epic e04 — Centralized HTTP Client with Axios
+# Migrated from conductor/archive/axios_client_20260712/ on 2026-07-13
+# Status: done
+
+id: e04
+title: 'Centralized HTTP Client with Axios'
+status: done
+wsjf: 5
+created_at: '2026-07-12'
+completed_at: '2026-07-12'
+
+description: >
+  Replace manual fetch-based HTTP with a centralized axios instance:
+  JWT interceptor, error normalization (ApiError), 401 event-driven logout,
+  and refactor all API modules + consumer components.
+
+stories:
+  - id: e04s01
+    title: 'Create Axios Client Module'
+    status: done
+    description: >
+      Install axios, create pre-configured instance with JWT interceptor,
+      error normalization, and 401 handling.
+    tasks:
+      - Install axios dependency
+      - Create axios instance with baseURL from env
+      - Implement request interceptor (attach Bearer token from localStorage)
+      - Implement response interceptor (normalize errors into ApiError, 401 clears token + dispatches event)
+      - Write tests for the axios client module
+    verify:
+      - 'npm test -- --run client'
+      - 'npm run type-check'
+
+  - id: e04s02
+    title: 'Refactor API Functions'
+    status: done
+    description: >
+      Refactor auth.ts and wallets.ts API modules to use the axios client
+      instead of manual fetch.
+    tasks:
+      - Refactor client/src/api/auth.ts (remove local request/authHeader helpers, use axios)
+      - Refactor client/src/api/wallets.ts (remove local helpers, use axios)
+      - Write/update tests for refactored API functions
+    verify:
+      - 'npm test -- --run client'
+
+  - id: e04s03
+    title: 'Update Consumer Components'
+    status: done
+    description: >
+      Remove manual token passing from all consumer components that call
+      API functions.
+    tasks:
+      - Update AuthContext, Dashboard, WalletList, WalletDetail, WalletForm
+      - Update Profile, TransactionForm, TransferForm, Sidebar
+      - Update component tests to match new signatures (no token args)
+    verify:
+      - 'npm test -- --run client'
+      - 'npm run type-check'
+
+  - id: e04s04
+    title: 'Final Verification & Cleanup'
+    status: done
+    description: >
+      Run full test suite, verify coverage, lint, and type-check.
+    tasks:
+      - Run full test suite and verify coverage (>80%)
+      - Run linting and type checking
+      - Fix any issues found
+    verify:
+      - 'CI=true npm test'
+      - 'npm run test:coverage'
+      - 'npm run lint'
+      - 'npm run type-check'
+
+source: conductor/archive/axios_client_20260712/plan.md
