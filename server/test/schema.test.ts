@@ -63,3 +63,38 @@ describe('transaction table schema', () => {
     expect(transactions.walletId.notNull).toBe(true);
   });
 });
+
+describe('category table schema', () => {
+  it('has id, user_id, name, type, color, icon, created_at, updated_at columns', async () => {
+    const { categories } = await importSchema();
+
+    expect(categories.id).toBeDefined();
+    expect(categories.userId).toBeDefined();
+    expect(categories.name).toBeDefined();
+    expect(categories.type).toBeDefined();
+    expect(categories.color).toBeDefined();
+    expect(categories.icon).toBeDefined();
+    expect(categories.createdAt).toBeDefined();
+    expect(categories.updatedAt).toBeDefined();
+  });
+
+  it('enforces NOT NULL on required fields', async () => {
+    const { categories } = await importSchema();
+
+    expect(categories.id.notNull).toBe(true);
+    expect(categories.userId.notNull).toBe(true);
+    expect(categories.name.notNull).toBe(true);
+    expect(categories.type.notNull).toBe(true);
+    expect(categories.color.notNull).toBe(true);
+    expect(categories.icon.notNull).toBe(true);
+    expect(categories.createdAt.notNull).toBe(true);
+    expect(categories.updatedAt.notNull).toBe(true);
+  });
+
+  it('has user_id column configured as FK to users', async () => {
+    const { categories } = await importSchema();
+
+    expect(categories.userId).toBeDefined();
+    expect(categories.userId.notNull).toBe(true);
+  });
+});

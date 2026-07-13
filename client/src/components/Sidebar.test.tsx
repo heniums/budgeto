@@ -76,11 +76,12 @@ describe('Sidebar', () => {
     expect(screen.getByText('50.00')).toBeInTheDocument();
   });
 
-  it('links to wallet management page', async () => {
+  it('links to wallet and category management pages', async () => {
     renderSidebar();
-    expect(
-      await screen.findByRole('link', { name: /manage/i }),
-    ).toBeInTheDocument();
+    const manageLinks = await screen.findAllByRole('link', { name: /manage/i });
+    expect(manageLinks).toHaveLength(2);
+    expect(manageLinks[0]).toHaveTextContent('Manage wallets');
+    expect(manageLinks[1]).toHaveTextContent('Manage categories');
   });
 
   it('links to individual wallets', async () => {

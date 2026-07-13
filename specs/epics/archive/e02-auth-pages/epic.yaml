@@ -1,0 +1,95 @@
+# Epic e02 — User Sign-Up, Sign-In & Profile Management Pages
+# Migrated from conductor/archive/auth_pages_20260712/ on 2026-07-13
+# Status: done
+
+id: e02
+title: 'User Sign-Up, Sign-In & Profile Management Pages'
+status: done
+wsjf: 15
+created_at: '2026-07-12'
+completed_at: '2026-07-12'
+
+description: >
+  Extend the auth backend (add name field, profile read/update, change-password)
+  and build the frontend: session context, auth API client, router with guards,
+  SignUp/SignIn/Profile pages, and shared UX polish.
+
+stories:
+  - id: e02s01
+    title: 'Backend: Extend Auth API (Name & Profile)'
+    status: done
+    description: >
+      Add name column to users, profile read/update endpoint,
+      and change-password endpoint.
+    tasks:
+      - Add `name` to the user model (schema + migration + register returns name)
+      - Profile read/update endpoint (GET/PATCH /auth/me with name)
+      - Change-password endpoint (POST /auth/change-password, verifies current password)
+    verify:
+      - 'npm test -- --run'
+      - "curl -X GET http://localhost:3000/api/auth/me -H 'Authorization: Bearer <token>'"
+
+  - id: e02s02
+    title: 'Frontend Foundation: Session, API Client, Routing & Guards'
+    status: done
+    description: >
+      Auth/session context (React), typed auth API client, router with
+      public and guarded routes.
+    tasks:
+      - Auth/session context (token persistence in localStorage, useAuth hook, current user fetch)
+      - Typed auth API client (register, login, getMe, updateName, changePassword)
+      - Router with public & guarded routes (redirect logic, ProtectedRoute)
+    verify:
+      - 'npm test -- --run'
+      - 'npm run type-check'
+
+  - id: e02s03
+    title: 'Sign Up Page'
+    status: done
+    description: >
+      SignUp form with validation (name, email, password, confirm) and
+      API integration.
+    tasks:
+      - SignUp form component with inline validation and API submit
+    verify:
+      - 'npm test -- --run client'
+      - 'Manual: navigate to /signup, fill form, submit → redirect to /account/profile'
+
+  - id: e02s04
+    title: 'Sign In Page'
+    status: done
+    description: >
+      SignIn form with validation and API integration.
+    tasks:
+      - SignIn form component with inline validation and API submit
+    verify:
+      - 'npm test -- --run client'
+      - 'Manual: navigate to /login, fill form, submit → redirect to /account/profile'
+
+  - id: e02s05
+    title: 'Profile Management Page'
+    status: done
+    description: >
+      Display & edit display name, change-password form, sign-out action.
+    tasks:
+      - Display & edit display name (inline edit/save with validation)
+      - Change-password form (current, new, confirm with validation)
+      - Sign-out action (clear token, redirect to /login)
+    verify:
+      - 'npm test -- --run client'
+      - 'Manual: go to /account/profile, edit name, change password, sign out'
+
+  - id: e02s06
+    title: 'Shared UX & Accessibility Polish'
+    status: done
+    description: >
+      Conversational microcopy, branding palette, WCAG AA accessibility,
+      responsive/PWA verification.
+    tasks:
+      - Conversational microcopy & branding (friendly copy, calm green/blue theme)
+      - Accessibility & responsive/PWA (WCAG AA contrast, labels, keyboard, responsive layouts)
+    verify:
+      - 'npm run lint'
+      - 'Manual: verify PWA installability and offline behavior'
+
+source: conductor/archive/auth_pages_20260712/plan.md
