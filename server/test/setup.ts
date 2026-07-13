@@ -56,6 +56,18 @@ export async function setup(): Promise<void> {
       "created_at" timestamptz NOT NULL DEFAULT now()
     )
   `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "category" (
+      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "user_id" uuid NOT NULL REFERENCES "user"("id"),
+      "name" text NOT NULL,
+      "type" text NOT NULL,
+      "color" text NOT NULL,
+      "icon" text NOT NULL,
+      "created_at" timestamptz NOT NULL DEFAULT now(),
+      "updated_at" timestamptz NOT NULL DEFAULT now()
+    )
+  `);
   await pool.end();
 }
 
