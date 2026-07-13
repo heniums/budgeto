@@ -2,22 +2,25 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getWallet, type WalletData } from '../api/wallets';
 import { getTransactions, type TransactionData } from '../api/transactions';
+import { getCategories, type CategoryData } from '../api/categories';
 
-export function WalletDetail(): JSX.Element {
+export function Transactions(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!id) return;
     let active = true;
-    Promise.all([getWallet(id), getTransactions(id)])
-      .then(([w, t]) => {
+    Promise.all([getWallet(id), getTransactions(id), getCategories()])
+      .then(([w, t, c]) => {
         if (!active) return;
         setWallet(w);
         setTransactions(t.transactions);
+        setCategories(c.categories);
         setLoading(false);
       })
       .catch((err) => {
@@ -29,6 +32,9 @@ export function WalletDetail(): JSX.Element {
       active = false;
     };
   }, [id]);
+
+  const categoryName = (categoryId: string | null): string | undefined =>
+    categoryId ? categories.find((c) => c.id === categoryId)?.name : undefined;
 
   if (!id) {
     return (
@@ -59,7 +65,7 @@ export function WalletDetail(): JSX.Element {
 
   return (
     <main>
-      <Link to="/account/wallets">Back</Link>
+      <Link to={`/account/wallets/${id}`}>Back</Link>
 
       {wallet && (
         <>
@@ -94,9 +100,11 @@ export function WalletDetail(): JSX.Element {
             </p>
           </section>
 
-          <div className="button-row">
-            <Link to={`/account/wallets/${id}/edit`}>Edit</Link>
-            <Link to={`/account/wallets/${id}/transactions`}>Transactions</Link>
+          <div className="button-row" style={{ marginTop: '1rem' }}>
+            <Link to={`/account/wallets/${id}/transactions/new`}>
+              Add transaction
+            </Link>
+            <Link to={`/account/wallets/${id}/transfer`}>Transfer</Link>
           </div>
 
           <section style={{ marginTop: '1.5rem' }}>
@@ -110,6 +118,17 @@ export function WalletDetail(): JSX.Element {
                     <div className="wallet-row">
                       <div>
                         <strong>{tx.description || '—'}</strong>
+                        {categoryName(tx.categoryId) && (
+                          <span
+                            style={{
+                              display: 'block',
+                              color: 'var(--color-muted)',
+                              fontSize: '0.85rem',
+                            }}
+                          >
+                            {categoryName(tx.categoryId)}
+                          </span>
+                        )}
                         <span
                           style={{
                             display: 'block',

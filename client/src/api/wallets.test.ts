@@ -33,9 +33,6 @@ import {
   getWallet,
   updateWallet,
   deleteWallet,
-  createTransaction,
-  getTransactions,
-  transferFunds,
 } from './wallets';
 import { ApiError } from './client';
 
@@ -93,68 +90,6 @@ describe('wallets API client', () => {
     mockDelete.mockResolvedValue({ data: undefined });
     await expect(deleteWallet('w1')).resolves.toBeUndefined();
     expect(mockDelete).toHaveBeenCalledWith('/wallets/w1');
-  });
-
-  it('createTransaction sends POST', async () => {
-    mockPost.mockResolvedValue({
-      data: {
-        id: 't1',
-        walletId: 'w1',
-        amount: '50.00',
-        description: 'Groceries',
-        createdAt: '2024-01-01',
-      },
-    });
-    const tx = await createTransaction('w1', {
-      amount: '50.00',
-      description: 'Groceries',
-    });
-    expect(mockPost).toHaveBeenCalledWith('/wallets/w1/transactions', {
-      amount: '50.00',
-      description: 'Groceries',
-    });
-    expect(tx.amount).toBe('50.00');
-    expect(tx.walletId).toBe('w1');
-  });
-
-  it('getTransactions sends GET', async () => {
-    mockGet.mockResolvedValue({
-      data: {
-        transactions: [
-          { id: 't1', walletId: 'w1', amount: '50.00', description: 'Test' },
-        ],
-      },
-    });
-    const result = await getTransactions('w1');
-    expect(mockGet).toHaveBeenCalledWith('/wallets/w1/transactions');
-    expect(result.transactions).toHaveLength(1);
-  });
-
-  it('transferFunds sends POST with transfer details', async () => {
-    mockPost.mockResolvedValue({
-      data: {
-        sourceTransaction: {
-          id: 't1', walletId: 'w1', amount: '-25.00',
-          description: 'Transfer', createdAt: '',
-        },
-        targetTransaction: {
-          id: 't2', walletId: 'w2', amount: '25.00',
-          description: 'Transfer', createdAt: '',
-        },
-      },
-    });
-    const result = await transferFunds({
-      sourceId: 'w1',
-      targetId: 'w2',
-      amount: '25.00',
-    });
-    expect(mockPost).toHaveBeenCalledWith('/wallets/transfer', {
-      sourceId: 'w1',
-      targetId: 'w2',
-      amount: '25.00',
-    });
-    expect(result.sourceTransaction.amount).toBe('-25.00');
-    expect(result.targetTransaction.amount).toBe('25.00');
   });
 
   it('throws ApiError on errors', async () => {

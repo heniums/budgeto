@@ -2,23 +2,39 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { TransferForm } from '../components/TransferForm';
+import { Transfer } from './Transfer';
 
-import type * as WalletModule from '../api/wallets';
+import type * as TransactionsModule from '../api/transactions';
 
-vi.mock('../api/wallets', async (importOriginal) => {
-  const actual = await importOriginal<typeof WalletModule>();
+vi.mock('../api/transactions', async (importOriginal) => {
+  const actual = await importOriginal<typeof TransactionsModule>();
   return {
     ...actual,
     transferFunds: vi.fn(),
   };
 });
 
-import { transferFunds } from '../api/wallets';
+import { transferFunds } from '../api/transactions';
 
 const wallets = [
-  { id: 'w1', name: 'Cash', description: '', color: '#1f8a4c', balance: '100.00', createdAt: '', updatedAt: '' },
-  { id: 'w2', name: 'Savings', description: '', color: '#2f6fed', balance: '50.00', createdAt: '', updatedAt: '' },
+  {
+    id: 'w1',
+    name: 'Cash',
+    description: '',
+    color: '#1f8a4c',
+    balance: '100.00',
+    createdAt: '',
+    updatedAt: '',
+  },
+  {
+    id: 'w2',
+    name: 'Savings',
+    description: '',
+    color: '#2f6fed',
+    balance: '50.00',
+    createdAt: '',
+    updatedAt: '',
+  },
 ];
 
 const onSuccess = vi.fn();
@@ -26,7 +42,7 @@ const onSuccess = vi.fn();
 function renderForm(): void {
   render(
     <MemoryRouter>
-      <TransferForm wallets={wallets} onSuccess={onSuccess} />
+      <Transfer wallets={wallets} onSuccess={onSuccess} />
     </MemoryRouter>,
   );
 }
@@ -38,6 +54,7 @@ describe('TransferForm', () => {
       sourceTransaction: {
         id: 't1',
         walletId: 'w1',
+        categoryId: null,
         amount: '-25.00',
         description: 'Transfer',
         createdAt: '',
@@ -45,6 +62,7 @@ describe('TransferForm', () => {
       targetTransaction: {
         id: 't2',
         walletId: 'w2',
+        categoryId: null,
         amount: '25.00',
         description: 'Transfer',
         createdAt: '',
@@ -77,9 +95,7 @@ describe('TransferForm', () => {
     await user.selectOptions(screen.getByLabelText('From'), 'w1');
     await user.selectOptions(screen.getByLabelText('To'), 'w2');
     await user.click(screen.getByRole('button', { name: /transfer/i }));
-    expect(
-      await screen.findByText(/amount is required/i),
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/amount is required/i)).toBeInTheDocument();
     expect(vi.mocked(transferFunds)).not.toHaveBeenCalled();
   });
 
