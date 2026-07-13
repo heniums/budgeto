@@ -1,67 +1,21 @@
+import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
 import { z } from 'zod';
 import { healthCheck } from './health';
-import {
-  registerHandler,
-  loginHandler,
-  meHandler,
-  updateMeHandler,
-  changePasswordHandler,
-} from './auth/controller';
-import {
-  createHandler,
-  listHandler,
-  getHandler,
-  updateHandler,
-  deleteHandler,
-} from './wallets/controller';
-import {
-  createTransactionHandler,
-  listTransactionsHandler,
-  transferHandler,
-} from './transactions/controller';
-import {
-  createHandler as createCategoryHandler,
-  listHandler as listCategoryHandler,
-  getHandler as getCategoryHandler,
-  updateHandler as updateCategoryHandler,
-  deleteHandler as deleteCategoryHandler,
-} from './categories/controller';
-import { authenticate } from './auth/middleware';
+import authRouter from './auth/router';
+import walletsRouter from './wallets/router';
+import categoriesRouter from './categories/router';
 import { isAppError } from './errors';
 
-/**
- * Builds the Express application without starting the HTTP server. Exporting a
- * factory keeps the app testable and reusable across test suites.
- */
 export function createApp(): Express {
   const app = express();
+  app.use(cors({ origin: 'http://localhost:5173' }));
   app.use(express.json());
 
   app.get('/health', healthCheck);
-  app.post('/auth/register', registerHandler);
-  app.post('/auth/login', loginHandler);
-
-  app.get('/auth/me', authenticate, meHandler);
-  app.patch('/auth/me', authenticate, updateMeHandler);
-  app.post('/auth/change-password', authenticate, changePasswordHandler);
-
-  app.post('/wallets/transfer', authenticate, transferHandler);
-
-  app.post('/wallets', authenticate, createHandler);
-  app.get('/wallets', authenticate, listHandler);
-  app.get('/wallets/:id', authenticate, getHandler);
-  app.put('/wallets/:id', authenticate, updateHandler);
-  app.delete('/wallets/:id', authenticate, deleteHandler);
-
-  app.post('/categories', authenticate, createCategoryHandler);
-  app.get('/categories', authenticate, listCategoryHandler);
-  app.get('/categories/:id', authenticate, getCategoryHandler);
-  app.put('/categories/:id', authenticate, updateCategoryHandler);
-  app.delete('/categories/:id', authenticate, deleteCategoryHandler);
-
-  app.post('/wallets/:id/transactions', authenticate, createTransactionHandler);
-  app.get('/wallets/:id/transactions', authenticate, listTransactionsHandler);
+  app.use('/auth', authRouter);
+  app.use('/wallets', walletsRouter);
+  app.use('/categories', categoriesRouter);
 
   app.use(
     (
