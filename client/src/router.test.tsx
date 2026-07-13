@@ -28,7 +28,7 @@ function LoginSpy(): JSX.Element {
 describe('router guards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
     window.localStorage.clear();
     cleanup();
   });
@@ -79,7 +79,7 @@ describe('router guards', () => {
   });
 
   it('lets an authenticated user reach /account/profile', async () => {
-    window.localStorage.setItem('budgeto.token', 'tok');
+    vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
         <MemoryRouter initialEntries={['/account/profile']}>

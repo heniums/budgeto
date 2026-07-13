@@ -53,7 +53,6 @@ describe('conversational microcopy', () => {
   });
 
   it('frames the profile page around the person', () => {
-    window.localStorage.setItem('budgeto.token', 'tok');
     renderAt('/account/profile', <Profile />);
     expect(
       screen.getByRole('heading', { name: /your profile/i }),

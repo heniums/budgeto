@@ -1,4 +1,4 @@
-import apiClient, { ApiError } from './client';
+import apiClient  from './client';
 
 export interface AuthUser {
   id: string;
@@ -26,8 +26,6 @@ export interface ChangePasswordInput {
   currentPassword: string;
   newPassword: string;
 }
-
-export { ApiError };
 
 export async function register(input: RegisterInput): Promise<AuthUser> {
   const response = await apiClient.post<AuthUser>('/auth/register', input);

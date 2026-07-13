@@ -53,7 +53,7 @@ export function SignUp(): JSX.Element {
         email: data.email.trim(),
         password: data.password,
       });
-      signIn(token, user);
+      signIn(user, token);
       navigate('/account/profile');
     } catch (err) {
       setError('root', {

@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
-import { ApiError, login } from '../api/auth';
+import { ApiError } from '../api/client';
+import { login } from '../api/auth';
 
 const signInSchema = z.object({
   email: z
@@ -40,11 +41,11 @@ export function SignIn(): JSX.Element {
 
   const onSubmit = async (data: SignInValues): Promise<void> => {
     try {
-      const { token, user } = await login({
+      const { user, token } = await login({
         email: data.email.trim(),
         password: data.password,
       });
-      signIn(token, user);
+      signIn(user, token);
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {

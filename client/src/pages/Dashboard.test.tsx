@@ -27,7 +27,6 @@ import { getWallets } from '../api/wallets';
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 function renderDashboard(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/dashboard']}>

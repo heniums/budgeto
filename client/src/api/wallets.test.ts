@@ -37,7 +37,7 @@ import {
   getTransactions,
   transferFunds,
 } from './wallets';
-import { ApiError } from './auth';
+import { ApiError } from './client';
 
 describe('wallets API client', () => {
   beforeEach(() => {

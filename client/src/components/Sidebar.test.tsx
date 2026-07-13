@@ -24,7 +24,6 @@ import { getMe } from '../api/auth';
 import { getWallets } from '../api/wallets';
 
 function renderSidebar(route = '/account/wallets'): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={[route]}>

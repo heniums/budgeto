@@ -1,20 +1,17 @@
 import axios from 'axios';
 
-const TOKEN_KEY = 'budgeto.token';
 const UNAUTHORIZED_EVENT = 'budgeto:unauthorized';
+
+const AUTH_TOKEN_KEY = 'budgeto:token';
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
 });
 
 apiClient.interceptors.request.use((config) => {
-  try {
-    const token = localStorage.getItem(TOKEN_KEY);
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-  } catch {
-    // Ignore storage failures.
+  const token = localStorage.getItem(AUTH_TOKEN_KEY);
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -31,11 +28,6 @@ apiClient.interceptors.response.use(
       const code = data && (data.code as string | undefined);
 
       if (status === 401) {
-        try {
-          localStorage.removeItem(TOKEN_KEY);
-        } catch {
-          // Ignore storage failures.
-        }
         window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
       }
 

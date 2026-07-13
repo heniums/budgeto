@@ -19,10 +19,10 @@ vi.mock('../api/auth', async (importOriginal) => {
   };
 });
 
-import { ApiError, getMe, updateName, changePassword } from '../api/auth';
+import { getMe, updateName, changePassword } from '../api/auth';
+import { ApiError } from '../api/client';
 
 function renderProfile(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/profile']}>
@@ -156,8 +156,5 @@ describe('Profile page', () => {
     await screen.findByText('Ada Lovelace');
     await user.click(screen.getByRole('button', { name: /sign out/i }));
     expect(await screen.findByText('Sign in page')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(window.localStorage.getItem('budgeto.token')).toBeNull();
-    });
   });
 });

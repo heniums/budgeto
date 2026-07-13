@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
-import { ApiError, changePassword, updateName } from '../api/auth';
+import { changePassword, updateName } from '../api/auth';
+import { ApiError } from '../api/client';
 
 const nameSchema = z.object({
   name: z.string().min(1, 'Please enter a display name.'),

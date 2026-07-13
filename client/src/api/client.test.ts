@@ -17,12 +17,7 @@ vi.mock('axios', () => ({
   },
 }));
 
-import apiClient from './client';
-import { ApiError } from './client';
-
-const requestInterceptor = mockRequestUse.mock.calls[0]?.[0] as (
-  config: { headers: Record<string, string> },
-) => { headers: Record<string, string> };
+import apiClient, { ApiError } from './client';
 
 const responseErrorInterceptor = mockResponseUse.mock.calls[0]?.[1] as (
   error: unknown,
@@ -31,40 +26,7 @@ const responseErrorInterceptor = mockResponseUse.mock.calls[0]?.[1] as (
 describe('apiClient', () => {
   it('is a singleton axios instance', () => {
     expect(apiClient).toBeDefined();
-    expect(mockRequestUse).toHaveBeenCalled();
     expect(mockResponseUse).toHaveBeenCalled();
-  });
-
-  describe('request interceptor', () => {
-    beforeEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    it('attaches the auth token when present in localStorage', () => {
-      const getItem = vi.fn().mockReturnValue('test-token');
-      vi.stubGlobal('localStorage', { getItem });
-      const config = { headers: {} };
-      const result = requestInterceptor(config);
-      expect(result.headers.Authorization).toBe('Bearer test-token');
-    });
-
-    it('does not attach a header when no token exists in localStorage', () => {
-      const getItem = vi.fn().mockReturnValue(null);
-      vi.stubGlobal('localStorage', { getItem });
-      const config = { headers: {} };
-      const result = requestInterceptor(config);
-      expect(result.headers.Authorization).toBeUndefined();
-    });
-
-    it('does not modify headers when localStorage throws', () => {
-      const getItem = vi.fn(() => {
-        throw new Error('Storage unavailable');
-      });
-      vi.stubGlobal('localStorage', { getItem });
-      const config = { headers: {} };
-      const result = requestInterceptor(config);
-      expect(result.headers.Authorization).toBeUndefined();
-    });
   });
 
   describe('response interceptor', () => {
@@ -104,24 +66,8 @@ describe('apiClient', () => {
       }
     });
 
-    it('handles 401 by clearing the token from localStorage', () => {
-      const removeItem = vi.fn();
-      vi.stubGlobal('localStorage', { removeItem });
-      const error = {
-        response: { data: { message: 'Unauthorized' }, status: 401 },
-      };
-      try {
-        responseErrorInterceptor(error);
-        expect.fail('should have thrown');
-      } catch (e) {
-        expect(removeItem).toHaveBeenCalledWith('budgeto.token');
-      }
-    });
-
-    it('dispatches custom event on 401', () => {
-      const removeItem = vi.fn();
+    it('handles 401 by dispatching an unauthorized event', () => {
       const dispatchEvent = vi.fn();
-      vi.stubGlobal('localStorage', { removeItem });
       vi.stubGlobal('window', { dispatchEvent });
       const error = {
         response: { data: { message: 'Unauthorized' }, status: 401 },

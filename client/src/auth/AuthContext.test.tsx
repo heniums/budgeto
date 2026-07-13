@@ -11,13 +11,12 @@ vi.mock('../api/auth', () => ({
 import { getMe } from '../api/auth';
 
 function Probe(): JSX.Element {
-  const { user, token, status, login, logout } = useAuth();
+  const { user, status, login, logout } = useAuth();
   return (
     <div>
       <span data-testid="status">{status}</span>
       <span data-testid="email">{user?.email ?? 'none'}</span>
-      <span data-testid="token">{token ?? 'none'}</span>
-      <button onClick={() => login('tok', mockUser)}>login</button>
+      <button onClick={() => login(mockUser, 'token-1')}>login</button>
       <button onClick={() => logout()}>logout</button>
     </div>
   );
@@ -26,12 +25,12 @@ function Probe(): JSX.Element {
 describe('AuthProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
     window.localStorage.clear();
     cleanup();
   });
 
-  it('starts unauthenticated when no token is stored', async () => {
+  it('starts unauthenticated when getMe fails', async () => {
+    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
     render(
       <AuthProvider>
         <Probe />
@@ -43,9 +42,8 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('email')).toHaveTextContent('none');
   });
 
-  it('loads the current user via getMe when a token exists', async () => {
+  it('loads the current user via getMe on mount', async () => {
     vi.mocked(getMe).mockResolvedValue(mockUser);
-    window.localStorage.setItem('budgeto.token', 'saved-token');
     render(
       <AuthProvider>
         <Probe />
@@ -58,9 +56,8 @@ describe('AuthProvider', () => {
     expect(vi.mocked(getMe)).toHaveBeenCalled();
   });
 
-  it('clears the session when getMe fails', async () => {
+  it('clears the session when initial getMe fails', async () => {
     vi.mocked(getMe).mockRejectedValue(new Error('bad token'));
-    window.localStorage.setItem('budgeto.token', 'bad');
     render(
       <AuthProvider>
         <Probe />
@@ -71,7 +68,8 @@ describe('AuthProvider', () => {
     );
   });
 
-  it('login persists the token and exposes the user', async () => {
+  it('login exposes the user', async () => {
+    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
     render(
       <AuthProvider>
         <Probe />
@@ -84,12 +82,10 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'authenticated',
     );
-    expect(screen.getByTestId('token')).toHaveTextContent('tok');
-    expect(window.localStorage.getItem('budgeto.token')).toBe('tok');
   });
 
-  it('logout clears the session and storage', async () => {
-    window.localStorage.setItem('budgeto.token', 'saved-token');
+  it('logout clears the session', async () => {
+    vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
         <Probe />
@@ -102,6 +98,5 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'unauthenticated',
     );
-    expect(window.localStorage.getItem('budgeto.token')).toBeNull();
   });
 });

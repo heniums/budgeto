@@ -29,7 +29,6 @@ import { createWallet, getWallet, updateWallet } from '../api/wallets';
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 function renderCreate(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/wallets/new']}>
@@ -46,7 +45,6 @@ function renderCreate(): void {
 }
 
 function renderEdit(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/wallets/w1/edit']}>

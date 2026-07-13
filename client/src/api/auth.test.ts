@@ -25,7 +25,8 @@ vi.mock('./client', () => ({
   },
 }));
 
-import { register, login, getMe, updateName, changePassword, ApiError } from './auth';
+import { register, login, getMe, updateName, changePassword } from './auth';
+import { ApiError } from './client';
 
 describe('auth API client', () => {
   beforeEach(() => {
@@ -40,18 +41,17 @@ describe('auth API client', () => {
     expect(user).toEqual({ id: 'u1', email: 'a@b.co', name: 'A' });
   });
 
-  it('login posts credentials and returns a token', async () => {
+  it('login posts credentials and returns the user', async () => {
     mockPost.mockResolvedValue({
-      data: { token: 'tkn', user: { id: 'u1', email: 'a@b.co', name: 'A' } },
+      data: { user: { id: 'u1', email: 'a@b.co', name: 'A' } },
     });
     const input = { email: 'a@b.co', password: 'password123' };
     const result = await login(input);
     expect(mockPost).toHaveBeenCalledWith('/auth/login', input);
-    expect(result.token).toBe('tkn');
     expect(result.user.email).toBe('a@b.co');
   });
 
-  it('getMe sends GET with no token parameter', async () => {
+  it('getMe sends GET', async () => {
     mockGet.mockResolvedValue({
       data: { user: { id: 'u1', email: 'a@b.co', name: 'A' } },
     });
