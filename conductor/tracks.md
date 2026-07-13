@@ -24,5 +24,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [ ] **Track: Category Management System**
+- [~] **Track: Category Management System**
   *Link: [./tracks/categories_20260713/](./tracks/categories_20260713/)*

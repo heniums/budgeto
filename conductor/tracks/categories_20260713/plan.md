@@ -6,7 +6,7 @@
     - [x] Write tests for categories table schema shape and constraints
     - [x] Add `category` table (id uuid PK, user_id FK, name text NOT NULL, type text NOT NULL, color text NOT NULL, icon text NOT NULL, created_at, updated_at) to `server/src/db/schema.ts`
     - [x] Run Drizzle migration to create the table
-- [ ] Task: Conductor - User Manual Verification 'Backend - Database Schema & Migration' (Protocol in workflow.md)
+- [~] Task: Conductor - User Manual Verification 'Backend - Database Schema & Migration' (Protocol in workflow.md)
 
 ## Phase 2: Backend – Categories CRUD API
 
