@@ -9,8 +9,8 @@ import { ApiError } from '../api/client';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(128),
-  description: z.string().max(512).optional().default(''),
-  color: z.string().optional().default('#1f8a4c'),
+  description: z.string().max(512),
+  color: z.string(),
 });
 
 type WalletValues = z.infer<typeof walletSchema>;
@@ -61,12 +61,12 @@ export function WalletForm(): JSX.Element {
       const wallet = isEdit
         ? await updateWallet(id!, {
             name: values.name.trim(),
-            description: values.description?.trim(),
+            description: values.description.trim(),
             color: values.color,
           })
         : await createWallet({
             name: values.name.trim(),
-            description: values.description?.trim(),
+            description: values.description.trim(),
             color: values.color,
           });
       navigate(`/account/wallets/${wallet.id}`);

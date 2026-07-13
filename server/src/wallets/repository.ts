@@ -1,27 +1,23 @@
-import { eq, and, sql } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 import { db } from '../db/client';
-import { wallets, transactions, type Wallet, type NewWallet } from '../db/schema';
+import {
+  wallets,
+  transactions,
+  type Wallet,
+  type NewWallet,
+} from '../db/schema';
 
-export async function createWallet(
-  input: NewWallet,
-): Promise<Wallet> {
+export async function createWallet(input: NewWallet): Promise<Wallet> {
   const [wallet] = await db.insert(wallets).values(input).returning();
   return wallet;
 }
 
-export async function findWalletById(
-  id: string,
-): Promise<Wallet | undefined> {
-  const [wallet] = await db
-    .select()
-    .from(wallets)
-    .where(eq(wallets.id, id));
+export async function findWalletById(id: string): Promise<Wallet | undefined> {
+  const [wallet] = await db.select().from(wallets).where(eq(wallets.id, id));
   return wallet;
 }
 
-export async function findWalletsByUserId(
-  userId: string,
-): Promise<Wallet[]> {
+export async function findWalletsByUserId(userId: string): Promise<Wallet[]> {
   return db.select().from(wallets).where(eq(wallets.userId, userId));
 }
 

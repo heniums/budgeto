@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const { mockRequestUse, mockResponseUse } = vi.hoisted(() => {
   const mockRequestUse = vi.fn();
