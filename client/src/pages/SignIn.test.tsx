@@ -23,7 +23,8 @@ vi.mock('../api/auth', async (importOriginal) => {
   };
 });
 
-import { ApiError, getMe, login } from '../api/auth';
+import { getMe, login } from '../api/auth';
+import { ApiError } from '../api/client';
 
 function LocationSpy(): JSX.Element {
   const location = useLocation();
@@ -50,7 +51,7 @@ describe('SignIn form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getMe).mockResolvedValue(mockUser);
-    vi.mocked(login).mockResolvedValue({ token: 'tok', user: mockUser });
+    vi.mocked(login).mockResolvedValue({ token: 'token-1', user: mockUser });
     window.localStorage.clear();
     cleanup();
   });
@@ -104,7 +105,6 @@ describe('SignIn form', () => {
       email: 'ada@example.com',
       password: 'supersecret',
     });
-    expect(window.localStorage.getItem('budgeto.token')).toBe('tok');
   });
 
   it('returns to the intended route after a guarded redirect', async () => {

@@ -40,7 +40,7 @@ describe('form accessibility', () => {
     vi.clearAllMocks();
     vi.mocked(getMe).mockResolvedValue(mockUser);
     vi.mocked(register).mockResolvedValue(mockUser);
-    vi.mocked(login).mockResolvedValue({ token: 'tok', user: mockUser });
+    vi.mocked(login).mockResolvedValue({ token: 'token-1', user: mockUser });
     window.localStorage.clear();
     cleanup();
   });

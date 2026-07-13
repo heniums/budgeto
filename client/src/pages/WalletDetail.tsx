@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
 import {
   getWallet,
   getTransactions,
@@ -10,17 +9,17 @@ import {
 
 export function WalletDetail(): JSX.Element {
   const { id } = useParams<{ id: string }>();
-  const { token } = useAuth();
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!id) return;
     let active = true;
     Promise.all([
-      getWallet(token!, id!),
-      getTransactions(token!, id!),
+      getWallet(id),
+      getTransactions(id),
     ])
       .then(([w, t]) => {
         if (!active) return;
@@ -36,7 +35,15 @@ export function WalletDetail(): JSX.Element {
     return () => {
       active = false;
     };
-  }, [id, token]);
+  }, [id]);
+
+  if (!id) {
+    return (
+      <main>
+        <Link to="/account/wallets">Back to Wallets</Link>
+      </main>
+    );
+  }
 
   if (loading) {
     return (
@@ -64,7 +71,9 @@ export function WalletDetail(): JSX.Element {
       {wallet && (
         <>
           <section className="profile-card" style={{ marginTop: '1rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <div
+              style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}
+            >
               <span
                 style={{
                   display: 'inline-block',
@@ -85,7 +94,9 @@ export function WalletDetail(): JSX.Element {
                 )}
               </div>
             </div>
-            <p style={{ fontSize: '2rem', fontWeight: 700, margin: '1rem 0 0' }}>
+            <p
+              style={{ fontSize: '2rem', fontWeight: 700, margin: '1rem 0 0' }}
+            >
               {wallet.balance}
             </p>
           </section>

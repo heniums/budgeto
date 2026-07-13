@@ -1,4 +1,4 @@
-import { ApiError } from './auth';
+import { apiClient } from './client';
 
 export interface WalletData {
   id: string;
@@ -47,114 +47,62 @@ export interface TransferInput {
   description?: string;
 }
 
-function authHeader(token: string): Record<string, string> {
-  return { Authorization: `Bearer ${token}` };
-}
-
-async function request<T>(path: string, init: RequestInit): Promise<T> {
-  const response = await fetch(path, init);
-  if (response.status === 204) {
-    return undefined as T;
-  }
-  const contentType = response.headers.get('content-type') ?? '';
-  const body = contentType.includes('application/json')
-    ? await response.json()
-    : null;
-  if (!response.ok) {
-    const message =
-      (body && (body.message as string)) ||
-      (body && (body.error as string)) ||
-      'Request failed';
-    const code = body && (body.code as string | undefined);
-    throw new ApiError(message, response.status, code);
-  }
-  return body as T;
-}
-
 export async function createWallet(
-  token: string,
   input: CreateWalletInput,
 ): Promise<WalletData> {
-  return request<WalletData>('/wallets', {
-    method: 'POST',
-    headers: { ...authHeader(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
+  const response = await apiClient.post<WalletData>('/wallets', input);
+  return response.data;
 }
 
-export async function getWallets(
-  token: string,
-): Promise<{ wallets: WalletData[] }> {
-  return request<{ wallets: WalletData[] }>('/wallets', {
-    method: 'GET',
-    headers: authHeader(token),
-  });
+export async function getWallets(): Promise<{ wallets: WalletData[] }> {
+  const response =
+    await apiClient.get<{ wallets: WalletData[] }>('/wallets');
+  return response.data;
 }
 
-export async function getWallet(
-  token: string,
-  id: string,
-): Promise<WalletData> {
-  return request<WalletData>(`/wallets/${id}`, {
-    method: 'GET',
-    headers: authHeader(token),
-  });
+export async function getWallet(id: string): Promise<WalletData> {
+  const response = await apiClient.get<WalletData>(`/wallets/${id}`);
+  return response.data;
 }
 
 export async function updateWallet(
-  token: string,
   id: string,
   input: UpdateWalletInput,
 ): Promise<WalletData> {
-  return request<WalletData>(`/wallets/${id}`, {
-    method: 'PUT',
-    headers: { ...authHeader(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
+  const response = await apiClient.put<WalletData>(`/wallets/${id}`, input);
+  return response.data;
 }
 
-export async function deleteWallet(
-  token: string,
-  id: string,
-): Promise<void> {
-  return request<void>(`/wallets/${id}`, {
-    method: 'DELETE',
-    headers: authHeader(token),
-  });
+export async function deleteWallet(id: string): Promise<void> {
+  await apiClient.delete(`/wallets/${id}`);
 }
 
 export async function createTransaction(
-  token: string,
   walletId: string,
   input: CreateTransactionInput,
 ): Promise<TransactionData> {
-  return request<TransactionData>(`/wallets/${walletId}/transactions`, {
-    method: 'POST',
-    headers: { ...authHeader(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
+  const response = await apiClient.post<TransactionData>(
+    `/wallets/${walletId}/transactions`,
+    input,
+  );
+  return response.data;
 }
 
 export async function getTransactions(
-  token: string,
   walletId: string,
 ): Promise<{ transactions: TransactionData[] }> {
-  return request<{ transactions: TransactionData[] }>(
+  const response = await apiClient.get<{ transactions: TransactionData[] }>(
     `/wallets/${walletId}/transactions`,
-    {
-      method: 'GET',
-      headers: authHeader(token),
-    },
   );
+  return response.data;
 }
 
 export async function transferFunds(
-  token: string,
   input: TransferInput,
 ): Promise<TransferResult> {
-  return request<TransferResult>('/wallets/transfer', {
-    method: 'POST',
-    headers: { ...authHeader(token), 'Content-Type': 'application/json' },
-    body: JSON.stringify(input),
-  });
+  const response = await apiClient.post<TransferResult>(
+    '/wallets/transfer',
+    input,
+  );
+  return response.data;
 }

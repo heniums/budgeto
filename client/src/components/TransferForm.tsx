@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { transferFunds, type WalletData, ApiError } from '../api/wallets';
+import { transferFunds, type WalletData } from '../api/wallets';
+import { ApiError } from '../api/client';
 
 const transferSchema = z
   .object({
@@ -25,13 +26,11 @@ type TransferValues = z.infer<typeof transferSchema>;
 
 interface TransferFormProps {
   wallets: WalletData[];
-  token: string;
   onSuccess: () => void;
 }
 
 export function TransferForm({
   wallets,
-  token,
   onSuccess,
 }: TransferFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
@@ -49,7 +48,7 @@ export function TransferForm({
   const onSubmit = async (values: TransferValues): Promise<void> => {
     setFormError(null);
     try {
-      await transferFunds(token, {
+      await transferFunds({
         sourceId: values.sourceId,
         targetId: values.targetId,
         amount: values.amount,

@@ -3,13 +3,9 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useAuth } from '../auth/AuthContext';
-import {
-  createWallet,
-  getWallet,
-  updateWallet,
-  ApiError,
-} from '../api/wallets';
+
+import { createWallet, getWallet, updateWallet } from '../api/wallets';
+import { ApiError } from '../api/client';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(128),
@@ -22,7 +18,6 @@ type WalletValues = z.infer<typeof walletSchema>;
 export function WalletForm(): JSX.Element {
   const { id } = useParams<{ id: string }>();
   const isEdit = Boolean(id);
-  const { token } = useAuth();
   const navigate = useNavigate();
   const [formError, setFormError] = useState<string | null>(null);
   const [loading, setLoading] = useState(isEdit);
@@ -40,7 +35,7 @@ export function WalletForm(): JSX.Element {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    getWallet(token!, id)
+    getWallet(id)
       .then((wallet) => {
         if (!active) return;
         reset({
@@ -58,18 +53,18 @@ export function WalletForm(): JSX.Element {
     return () => {
       active = false;
     };
-  }, [id, token, reset]);
+  }, [id, reset]);
 
   const onSubmit = async (values: WalletValues): Promise<void> => {
     setFormError(null);
     try {
       const wallet = isEdit
-        ? await updateWallet(token!, id!, {
+        ? await updateWallet(id!, {
             name: values.name.trim(),
             description: values.description?.trim(),
             color: values.color,
           })
-        : await createWallet(token!, {
+        : await createWallet({
             name: values.name.trim(),
             description: values.description?.trim(),
             color: values.color,
@@ -129,20 +124,12 @@ export function WalletForm(): JSX.Element {
 
         <div className="field">
           <label htmlFor="wallet-desc">Description</label>
-          <input
-            id="wallet-desc"
-            type="text"
-            {...register('description')}
-          />
+          <input id="wallet-desc" type="text" {...register('description')} />
         </div>
 
         <div className="field">
           <label htmlFor="wallet-color">Color</label>
-          <input
-            id="wallet-color"
-            type="color"
-            {...register('color')}
-          />
+          <input id="wallet-color" type="color" {...register('color')} />
         </div>
 
         <div className="button-row">

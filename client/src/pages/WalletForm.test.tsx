@@ -29,7 +29,6 @@ import { createWallet, getWallet, updateWallet } from '../api/wallets';
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 function renderCreate(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/wallets/new']}>
@@ -46,7 +45,6 @@ function renderCreate(): void {
 }
 
 function renderEdit(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/wallets/w1/edit']}>
@@ -114,7 +112,7 @@ describe('WalletForm — create', () => {
     await user.type(screen.getByLabelText('Name'), 'My Wallet');
     await user.click(screen.getByRole('button', { name: /save/i }));
     await waitFor(() => {
-      expect(vi.mocked(createWallet)).toHaveBeenCalledWith('tok', {
+      expect(vi.mocked(createWallet)).toHaveBeenCalledWith({
         name: 'My Wallet',
         description: '',
         color: '#1f8a4c',
@@ -168,7 +166,7 @@ describe('WalletForm — edit', () => {
     await user.click(screen.getByRole('button', { name: /save/i }));
 
     await waitFor(() => {
-      expect(vi.mocked(updateWallet)).toHaveBeenCalledWith('tok', 'w1', {
+      expect(vi.mocked(updateWallet)).toHaveBeenCalledWith('w1', {
         name: 'Renamed',
         description: 'Old desc',
         color: '#1f8a4c',

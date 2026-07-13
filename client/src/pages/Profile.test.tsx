@@ -19,10 +19,10 @@ vi.mock('../api/auth', async (importOriginal) => {
   };
 });
 
-import { ApiError, getMe, updateName, changePassword } from '../api/auth';
+import { getMe, updateName, changePassword } from '../api/auth';
+import { ApiError } from '../api/client';
 
 function renderProfile(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/profile']}>
@@ -39,7 +39,7 @@ describe('Profile page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getMe).mockResolvedValue(mockUser);
-    vi.mocked(updateName).mockImplementation((_token, name) =>
+    vi.mocked(updateName).mockImplementation((name) =>
       Promise.resolve({ ...mockUser, name }),
     );
     vi.mocked(changePassword).mockResolvedValue(undefined);
@@ -126,7 +126,7 @@ describe('Profile page', () => {
       screen.getByRole('button', { name: /update password/i }),
     );
     expect(await screen.findByText(/password updated/i)).toBeInTheDocument();
-    expect(vi.mocked(changePassword)).toHaveBeenCalledWith('tok', {
+    expect(vi.mocked(changePassword)).toHaveBeenCalledWith({
       currentPassword: 'oldpass1',
       newPassword: 'newpassword',
     });
@@ -156,8 +156,5 @@ describe('Profile page', () => {
     await screen.findByText('Ada Lovelace');
     await user.click(screen.getByRole('button', { name: /sign out/i }));
     expect(await screen.findByText('Sign in page')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(window.localStorage.getItem('budgeto.token')).toBeNull();
-    });
   });
 });

@@ -1,4 +1,32 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+const { mockGet, mockPost, mockPut, mockDelete } = vi.hoisted(() => {
+  const mockGet = vi.fn();
+  const mockPost = vi.fn();
+  const mockPut = vi.fn();
+  const mockDelete = vi.fn();
+  return { mockGet, mockPost, mockPut, mockDelete };
+});
+
+vi.mock('./client', () => ({
+  apiClient: {
+    get: mockGet,
+    post: mockPost,
+    put: mockPut,
+    delete: mockDelete,
+  },
+  ApiError: class ApiError extends Error {
+    constructor(
+      message: string,
+      public readonly status: number,
+      public readonly code?: string,
+    ) {
+      super(message);
+      this.name = 'ApiError';
+    }
+  },
+}));
+
 import {
   createWallet,
   getWallets,
@@ -9,84 +37,79 @@ import {
   getTransactions,
   transferFunds,
 } from './wallets';
-import { ApiError } from './auth';
-
-const TOKEN = 'test-token';
-
-function mockFetch(body: unknown, status = 200): void {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn(async () => ({
-      ok: status >= 200 && status < 300,
-      status,
-      headers: { get: () => 'application/json' },
-      json: async () => body,
-    })),
-  );
-}
+import { ApiError } from './client';
 
 describe('wallets API client', () => {
   beforeEach(() => {
-    vi.restoreAllMocks();
-    vi.unstubAllGlobals();
+    vi.clearAllMocks();
   });
 
   it('createWallet sends POST and returns wallet', async () => {
-    mockFetch({
-      id: 'w1',
-      name: 'Savings',
-      balance: '0',
-      createdAt: '2024-01-01',
-      updatedAt: '2024-01-01',
+    mockPost.mockResolvedValue({
+      data: {
+        id: 'w1',
+        name: 'Savings',
+        balance: '0',
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+      },
     });
-    const wallet = await createWallet(TOKEN, { name: 'Savings' });
+    const wallet = await createWallet({ name: 'Savings' });
+    expect(mockPost).toHaveBeenCalledWith('/wallets', { name: 'Savings' });
     expect(wallet.name).toBe('Savings');
     expect(wallet.id).toBe('w1');
   });
 
   it('getWallets sends GET and returns wallet list', async () => {
-    mockFetch({ wallets: [{ id: 'w1', name: 'Cash', balance: '100.00' }] });
-    const result = await getWallets(TOKEN);
+    mockGet.mockResolvedValue({
+      data: { wallets: [{ id: 'w1', name: 'Cash', balance: '100.00' }] },
+    });
+    const result = await getWallets();
+    expect(mockGet).toHaveBeenCalledWith('/wallets');
     expect(result.wallets).toHaveLength(1);
     expect(result.wallets[0].name).toBe('Cash');
   });
 
   it('getWallet sends GET for single wallet', async () => {
-    mockFetch({ id: 'w1', name: 'Cash', balance: '50.00' });
-    const wallet = await getWallet(TOKEN, 'w1');
+    mockGet.mockResolvedValue({
+      data: { id: 'w1', name: 'Cash', balance: '50.00' },
+    });
+    const wallet = await getWallet('w1');
+    expect(mockGet).toHaveBeenCalledWith('/wallets/w1');
     expect(wallet.name).toBe('Cash');
     expect(wallet.balance).toBe('50.00');
   });
 
   it('updateWallet sends PUT with changes', async () => {
-    mockFetch({ id: 'w1', name: 'Updated', balance: '0' });
-    const wallet = await updateWallet(TOKEN, 'w1', { name: 'Updated' });
+    mockPut.mockResolvedValue({
+      data: { id: 'w1', name: 'Updated', balance: '0' },
+    });
+    const wallet = await updateWallet('w1', { name: 'Updated' });
+    expect(mockPut).toHaveBeenCalledWith('/wallets/w1', { name: 'Updated' });
     expect(wallet.name).toBe('Updated');
   });
 
   it('deleteWallet sends DELETE and resolves on 204', async () => {
-    const fetchMock = vi.fn(async () => ({
-      ok: true,
-      status: 204,
-      headers: { get: () => 'application/json' },
-      json: async () => null,
-    }));
-    vi.stubGlobal('fetch', fetchMock);
-    await expect(deleteWallet(TOKEN, 'w1')).resolves.toBeUndefined();
-    expect(
-      (fetchMock.mock.calls[0] as unknown as [string, RequestInit])[1].method,
-    ).toBe('DELETE');
+    mockDelete.mockResolvedValue({ data: undefined });
+    await expect(deleteWallet('w1')).resolves.toBeUndefined();
+    expect(mockDelete).toHaveBeenCalledWith('/wallets/w1');
   });
 
   it('createTransaction sends POST', async () => {
-    mockFetch({
-      id: 't1',
-      walletId: 'w1',
+    mockPost.mockResolvedValue({
+      data: {
+        id: 't1',
+        walletId: 'w1',
+        amount: '50.00',
+        description: 'Groceries',
+        createdAt: '2024-01-01',
+      },
+    });
+    const tx = await createTransaction('w1', {
       amount: '50.00',
       description: 'Groceries',
-      createdAt: '2024-01-01',
     });
-    const tx = await createTransaction(TOKEN, 'w1', {
+    expect(mockPost).toHaveBeenCalledWith('/wallets/w1/transactions', {
       amount: '50.00',
       description: 'Groceries',
     });
@@ -95,31 +118,37 @@ describe('wallets API client', () => {
   });
 
   it('getTransactions sends GET', async () => {
-    mockFetch({
-      transactions: [
-        { id: 't1', walletId: 'w1', amount: '50.00', description: 'Test' },
-      ],
+    mockGet.mockResolvedValue({
+      data: {
+        transactions: [
+          { id: 't1', walletId: 'w1', amount: '50.00', description: 'Test' },
+        ],
+      },
     });
-    const result = await getTransactions(TOKEN, 'w1');
+    const result = await getTransactions('w1');
+    expect(mockGet).toHaveBeenCalledWith('/wallets/w1/transactions');
     expect(result.transactions).toHaveLength(1);
   });
 
   it('transferFunds sends POST with transfer details', async () => {
-    mockFetch({
-      sourceTransaction: {
-        id: 't1',
-        walletId: 'w1',
-        amount: '-25.00',
-        description: 'Transfer',
-      },
-      targetTransaction: {
-        id: 't2',
-        walletId: 'w2',
-        amount: '25.00',
-        description: 'Transfer',
+    mockPost.mockResolvedValue({
+      data: {
+        sourceTransaction: {
+          id: 't1', walletId: 'w1', amount: '-25.00',
+          description: 'Transfer', createdAt: '',
+        },
+        targetTransaction: {
+          id: 't2', walletId: 'w2', amount: '25.00',
+          description: 'Transfer', createdAt: '',
+        },
       },
     });
-    const result = await transferFunds(TOKEN, {
+    const result = await transferFunds({
+      sourceId: 'w1',
+      targetId: 'w2',
+      amount: '25.00',
+    });
+    expect(mockPost).toHaveBeenCalledWith('/wallets/transfer', {
       sourceId: 'w1',
       targetId: 'w2',
       amount: '25.00',
@@ -129,9 +158,10 @@ describe('wallets API client', () => {
   });
 
   it('throws ApiError on errors', async () => {
-    mockFetch({ message: 'Not found', code: 'NOT_FOUND' }, 404);
-    await expect(getWallet(TOKEN, 'bad-id')).rejects.toBeInstanceOf(ApiError);
-    await expect(getWallet(TOKEN, 'bad-id')).rejects.toMatchObject({
+    const apiError = new ApiError('Not found', 404, 'NOT_FOUND');
+    mockGet.mockRejectedValue(apiError);
+    await expect(getWallet('bad-id')).rejects.toBeInstanceOf(ApiError);
+    await expect(getWallet('bad-id')).rejects.toMatchObject({
       status: 404,
       code: 'NOT_FOUND',
     });

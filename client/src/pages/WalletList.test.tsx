@@ -28,7 +28,6 @@ import { getWallets, deleteWallet } from '../api/wallets';
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 function renderList(): void {
-  window.localStorage.setItem('budgeto.token', 'tok');
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/account/wallets']}>
@@ -109,7 +108,7 @@ describe('WalletList page', () => {
 
     expect(window.confirm).toHaveBeenCalled();
     await waitFor(() => {
-      expect(vi.mocked(deleteWallet)).toHaveBeenCalledWith('tok', 'w2');
+      expect(vi.mocked(deleteWallet)).toHaveBeenCalledWith('w2');
     });
   });
 });

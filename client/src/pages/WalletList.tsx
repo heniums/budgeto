@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
+import { Link } from 'react-router-dom';
 import { getWallets, deleteWallet, type WalletData } from '../api/wallets';
 
 export function WalletList(): JSX.Element {
-  const { token } = useAuth();
-  const navigate = useNavigate();
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let active = true;
-    getWallets(token!)
+    getWallets()
       .then((res) => {
         if (!active) return;
         setWallets(res.wallets);
@@ -26,7 +23,7 @@ export function WalletList(): JSX.Element {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, []);
 
   const handleDelete = async (wallet: WalletData): Promise<void> => {
     if (
@@ -37,7 +34,7 @@ export function WalletList(): JSX.Element {
       return;
     }
     try {
-      await deleteWallet(token!, wallet.id);
+      await deleteWallet(wallet.id);
       setWallets((prev) => prev.filter((w) => w.id !== wallet.id));
     } catch (err) {
       setError(

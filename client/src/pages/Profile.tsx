@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
-import { ApiError, changePassword, updateName } from '../api/auth';
+import { changePassword, updateName } from '../api/auth';
+import { ApiError } from '../api/client';
 
 const nameSchema = z.object({
   name: z.string().min(1, 'Please enter a display name.'),
@@ -30,7 +31,7 @@ type PasswordValues = z.infer<typeof passwordSchema>;
 
 export function Profile(): JSX.Element {
   const navigate = useNavigate();
-  const { user, token, logout, refreshUser } = useAuth();
+  const { user, logout, refreshUser } = useAuth();
   const [nameEditing, setNameEditing] = useState(false);
   const [pwFormError, setPwFormError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState<string | null>(null);
@@ -70,7 +71,7 @@ export function Profile(): JSX.Element {
 
   const submitName = async (values: NameValues): Promise<void> => {
     try {
-      await updateName(token as string, values.name.trim());
+      await updateName(values.name.trim());
       await refreshUser();
       setNameEditing(false);
     } catch {
@@ -84,7 +85,7 @@ export function Profile(): JSX.Element {
     setPwFormError(null);
     setPwSuccess(null);
     try {
-      await changePassword(token as string, {
+      await changePassword({
         currentPassword: values.currentPassword,
         newPassword: values.newPassword,
       });

@@ -1,17 +1,14 @@
 import { useEffect, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
 import { getWallets, type WalletData } from '../api/wallets';
 
 export function Sidebar(): JSX.Element {
-  const { token } = useAuth();
   const location = useLocation();
   const [wallets, setWallets] = useState<WalletData[]>([]);
 
   useEffect(() => {
-    if (!token) return;
     let active = true;
-    getWallets(token)
+    getWallets()
       .then((res) => {
         if (!active) return;
         setWallets(res.wallets);
@@ -22,7 +19,7 @@ export function Sidebar(): JSX.Element {
     return () => {
       active = false;
     };
-  }, [token, location.pathname]);
+  }, [location.pathname]);
 
   return (
     <aside className="sidebar">

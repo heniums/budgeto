@@ -1,17 +1,15 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../auth/AuthContext';
 import { getWallets, type WalletData } from '../api/wallets';
 
 export function Dashboard(): JSX.Element {
-  const { token } = useAuth();
   const navigate = useNavigate();
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let active = true;
-    getWallets(token!)
+    getWallets()
       .then((res) => {
         if (!active) return;
         setWallets(res.wallets);
@@ -24,7 +22,7 @@ export function Dashboard(): JSX.Element {
     return () => {
       active = false;
     };
-  }, [token]);
+  }, []);
 
   const totalBalance = wallets
     .reduce((sum, w) => sum + Number(w.balance), 0)
