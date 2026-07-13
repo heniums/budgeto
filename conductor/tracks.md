@@ -19,5 +19,5 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 ---
 
-- [~] **Track: Abstract client-side token management and HTTP request into centralized axios service**
-  *Link: [./tracks/axios_client_20260712/](./tracks/axios_client_20260712/)**
+- [x] **Track: Abstract client-side token management and HTTP request into centralized axios service** (archived)
+  *Link: [./archive/axios_client_20260712/](./archive/axios_client_20260712/)*
