@@ -8,6 +8,9 @@ import { Dashboard } from './pages/Dashboard';
 import { WalletList } from './pages/WalletList';
 import { WalletForm } from './pages/WalletForm';
 import { WalletDetail } from './pages/WalletDetail';
+import { Transactions } from './pages/Transactions';
+import { TransactionForm } from './pages/TransactionForm';
+import { Transfer } from './pages/Transfer';
 import { Categories } from './pages/Categories';
 import { CategoryForm } from './pages/CategoryForm';
 
@@ -27,6 +30,12 @@ export const routes: RouteObject[] = [
       { path: '/account/wallets/new', element: <WalletForm /> },
       { path: '/account/wallets/:id/edit', element: <WalletForm /> },
       { path: '/account/wallets/:id', element: <WalletDetail /> },
+      { path: '/account/wallets/:id/transactions', element: <Transactions /> },
+      {
+        path: '/account/wallets/:id/transactions/new',
+        element: <TransactionForm />,
+      },
+      { path: '/account/wallets/:id/transfer', element: <Transfer /> },
       { path: '/account/categories', element: <Categories /> },
       { path: '/account/categories/new', element: <CategoryForm /> },
       { path: '/account/categories/:id/edit', element: <CategoryForm /> },

@@ -27,6 +27,14 @@ async function createWallet(
   return response.body.id;
 }
 
+async function createCategory(token: string, name = 'Food'): Promise<string> {
+  const response = await request(app)
+    .post('/categories')
+    .set('Authorization', `Bearer ${token}`)
+    .send({ name, type: 'expense', color: '#ff0000', icon: 'Tag' });
+  return response.body.id;
+}
+
 describe('POST /wallets/:id/transactions', () => {
   let token: string;
   let walletId: string;
@@ -91,6 +99,71 @@ describe('POST /wallets/:id/transactions', () => {
   });
 });
 
+describe('POST /wallets/:id/transactions — category', () => {
+  let token: string;
+  let walletId: string;
+  let categoryId: string;
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+    walletId = await createWallet(token);
+    categoryId = await createCategory(token);
+  });
+
+  it('assigns a category to the transaction (201)', async () => {
+    const response = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '100.00', description: 'Groceries', categoryId });
+    expect(response.status).toBe(201);
+    expect(response.body.categoryId).toBe(categoryId);
+  });
+
+  it('creates without a category (201)', async () => {
+    const response = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '100.00', description: 'No category' });
+    expect(response.status).toBe(201);
+    expect(response.body.categoryId).toBeNull();
+  });
+
+  it('rejects a non-existent category (404)', async () => {
+    const response = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        amount: '100.00',
+        description: 'Bad category',
+        categoryId: '00000000-0000-0000-0000-000000000000',
+      });
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects a category owned by another user (404)', async () => {
+    const otherUser = await register({
+      name: 'Other User',
+      email: 'other@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+    const otherCategory = await createCategory(otherToken, 'Other');
+    const response = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        amount: '100.00',
+        description: 'Cross-user category',
+        categoryId: otherCategory,
+      });
+    expect(response.status).toBe(404);
+  });
+});
+
 describe('GET /wallets/:id/transactions', () => {
   let token: string;
   let walletId: string;
@@ -129,8 +202,9 @@ describe('GET /wallets/:id/transactions', () => {
   });
 
   it('rejects unauthenticated requests (401)', async () => {
-    const response = await request(app)
-      .get(`/wallets/${walletId}/transactions`);
+    const response = await request(app).get(
+      `/wallets/${walletId}/transactions`,
+    );
     expect(response.status).toBe(401);
   });
 
@@ -267,7 +341,7 @@ describe('balance in wallet endpoints', () => {
   });
 
   it('reflects balances in wallet list', async () => {
-    const secondId = await createWallet(token, 'Second');
+    await createWallet(token, 'Second');
     await request(app)
       .post(`/wallets/${walletId}/transactions`)
       .set('Authorization', `Bearer ${token}`)
