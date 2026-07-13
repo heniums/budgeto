@@ -1,4 +1,4 @@
-import apiClient, { ApiError } from './client';
+import apiClient from './client';
 
 export interface WalletData {
   id: string;
@@ -46,8 +46,6 @@ export interface TransferInput {
   amount: string;
   description?: string;
 }
-
-export { ApiError };
 
 export async function createWallet(
   input: CreateWalletInput,

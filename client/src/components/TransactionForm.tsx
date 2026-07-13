@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { createTransaction, type WalletData, ApiError } from '../api/wallets';
+import { createTransaction, type WalletData } from '../api/wallets';
+import { ApiError } from '../api/client';
 
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
