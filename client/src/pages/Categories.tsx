@@ -5,6 +5,7 @@ import {
   deleteCategory,
   type CategoryData,
 } from '../api/categories';
+import { getIcon } from '../lib/icons';
 
 export function Categories(): JSX.Element {
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -67,39 +68,45 @@ export function Categories(): JSX.Element {
         <p>No categories yet.</p>
       ) : (
         <ul className="wallet-list" role="list">
-          {categories.map((category) => (
-            <li key={category.id} className="profile-card">
-              <div className="wallet-row">
-                <div className="wallet-info">
-                  <span
-                    className="wallet-color"
-                    style={{ background: category.color }}
-                    aria-hidden
-                  />
-                  <span className="wallet-name">{category.name}</span>
-                  <span className="wallet-balance">{category.type}</span>
+          {categories.map((category) => {
+            const Icon = getIcon(category.icon);
+            return (
+              <li key={category.id} className="profile-card">
+                <div className="wallet-row">
+                  <div className="wallet-info">
+                    {Icon ? (
+                      <Icon size={20} className="wallet-icon" aria-hidden />
+                    ) : null}
+                    <span
+                      className="wallet-color"
+                      style={{ background: category.color }}
+                      aria-hidden
+                    />
+                    <span className="wallet-name">{category.name}</span>
+                    <span className="wallet-balance">{category.type}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <Link
+                      to={`/account/categories/${category.id}/edit`}
+                      className="wallet-delete"
+                      style={{ color: 'var(--color-accent)' }}
+                      aria-label={`Edit ${category.name}`}
+                    >
+                      Edit
+                    </Link>
+                    <button
+                      type="button"
+                      className="wallet-delete"
+                      onClick={() => handleDelete(category)}
+                      aria-label={`Delete ${category.name}`}
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
-                <div style={{ display: 'flex', gap: '0.5rem' }}>
-                  <Link
-                    to={`/account/categories/${category.id}/edit`}
-                    className="wallet-delete"
-                    style={{ color: 'var(--color-accent)' }}
-                    aria-label={`Edit ${category.name}`}
-                  >
-                    Edit
-                  </Link>
-                  <button
-                    type="button"
-                    className="wallet-delete"
-                    onClick={() => handleDelete(category)}
-                    aria-label={`Delete ${category.name}`}
-                  >
-                    Delete
-                  </button>
-                </div>
-              </div>
-            </li>
-          ))}
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

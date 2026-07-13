@@ -3,75 +3,18 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  ShoppingCart,
-  ShoppingBag,
-  UtensilsCrossed,
-  Home,
-  Car,
-  Bus,
-  Plane,
-  BriefcaseBusiness,
-  GraduationCap,
-  Heart,
-  Activity,
-  Smartphone,
-  Laptop,
-  Tv,
-  Music,
-  Gamepad2,
-  Gift,
-  Coffee,
-  CreditCard,
-  Banknote,
-  PiggyBank,
-  Landmark,
-  Star,
-  Flag,
-  Tag,
-  type LucideIcon,
-} from 'lucide-react';
+import { ICONS } from '../lib/icons';
 
-import {
-  createCategory,
-  getCategory,
-  updateCategory,
-} from '../api/categories';
+import { createCategory, getCategory, updateCategory } from '../api/categories';
 import { ApiError } from '../api/client';
 
-const ICONS: { name: string; Icon: LucideIcon }[] = [
-  { name: 'ShoppingCart', Icon: ShoppingCart },
-  { name: 'ShoppingBag', Icon: ShoppingBag },
-  { name: 'UtensilsCrossed', Icon: UtensilsCrossed },
-  { name: 'Home', Icon: Home },
-  { name: 'Car', Icon: Car },
-  { name: 'Bus', Icon: Bus },
-  { name: 'Plane', Icon: Plane },
-  { name: 'BriefcaseBusiness', Icon: BriefcaseBusiness },
-  { name: 'GraduationCap', Icon: GraduationCap },
-  { name: 'Heart', Icon: Heart },
-  { name: 'Activity', Icon: Activity },
-  { name: 'Smartphone', Icon: Smartphone },
-  { name: 'Laptop', Icon: Laptop },
-  { name: 'Tv', Icon: Tv },
-  { name: 'Music', Icon: Music },
-  { name: 'Gamepad2', Icon: Gamepad2 },
-  { name: 'Gift', Icon: Gift },
-  { name: 'Coffee', Icon: Coffee },
-  { name: 'CreditCard', Icon: CreditCard },
-  { name: 'Banknote', Icon: Banknote },
-  { name: 'PiggyBank', Icon: PiggyBank },
-  { name: 'Landmark', Icon: Landmark },
-  { name: 'Star', Icon: Star },
-  { name: 'Flag', Icon: Flag },
-  { name: 'Tag', Icon: Tag },
-];
+// Icons are imported from '../lib/icons'.
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required.').max(128),
   type: z.enum(['expense', 'income']),
-  color: z.string().optional().default('#1f8a4c'),
-  icon: z.string().optional().default('Tag'),
+  color: z.string(),
+  icon: z.string(),
 });
 
 type CategoryValues = z.infer<typeof categorySchema>;
@@ -130,7 +73,11 @@ export function CategoryForm(): JSX.Element {
     setFormError(null);
     try {
       if (isEdit) {
-        await updateCategory(id!, {
+        if (!id) {
+          setFormError('Category ID is missing.');
+          return;
+        }
+        await updateCategory(id, {
           name: values.name.trim(),
           type: values.type,
           color: values.color,
@@ -197,15 +144,27 @@ export function CategoryForm(): JSX.Element {
 
         <div className="field">
           <label>Type</label>
-          <div style={{ display: 'flex', gap: '1.5rem', paddingTop: '0.35rem' }}>
+          <div
+            style={{ display: 'flex', gap: '1.5rem', paddingTop: '0.35rem' }}
+          >
             <label
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 400 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 400,
+              }}
             >
               <input type="radio" value="expense" {...register('type')} />
               Expense
             </label>
             <label
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontWeight: 400 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.35rem',
+                fontWeight: 400,
+              }}
             >
               <input type="radio" value="income" {...register('type')} />
               Income

@@ -44,7 +44,7 @@ const mockCategories = [
     name: 'Salary',
     type: 'income' as const,
     color: '#33ff57',
-    icon: 'Briefcase',
+    icon: 'BriefcaseBusiness',
     createdAt: '',
     updatedAt: '',
   },
@@ -93,6 +93,7 @@ describe('Categories page', () => {
     expect(screen.getByText('Salary')).toBeInTheDocument();
     expect(screen.getByText('expense')).toBeInTheDocument();
     expect(screen.getByText('income')).toBeInTheDocument();
+    expect(document.querySelectorAll('svg')).toHaveLength(2);
   });
 
   it('shows empty state when no categories exist', async () => {

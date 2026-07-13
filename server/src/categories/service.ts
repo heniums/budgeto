@@ -11,14 +11,25 @@ import { notFoundError } from '../errors';
 export const createCategorySchema = z.object({
   name: z.string().min(1).max(128),
   type: z.enum(['income', 'expense']),
-  color: z.string().min(1).max(32),
+  color: z
+    .string()
+    .regex(
+      /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/,
+      'Invalid color',
+    ),
   icon: z.string().min(1).max(128),
 });
 
 export const updateCategorySchema = z.object({
   name: z.string().min(1).max(128).optional(),
   type: z.enum(['income', 'expense']).optional(),
-  color: z.string().min(1).max(32).optional(),
+  color: z
+    .string()
+    .regex(
+      /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/,
+      'Invalid color',
+    )
+    .optional(),
   icon: z.string().min(1).max(128).optional(),
 });
 
@@ -92,10 +103,7 @@ export async function update(
   return formatCategoryResponse(updated);
 }
 
-export async function remove(
-  id: string,
-  userId: string,
-): Promise<void> {
+export async function remove(id: string, userId: string): Promise<void> {
   const category = await findCategoryById(id);
   if (!category) {
     throw notFoundError('Category not found');
@@ -106,9 +114,16 @@ export async function remove(
   await deleteCategory(id);
 }
 
-function formatCategoryResponse(
-  category: { id: string; userId: string; name: string; type: string; color: string; icon: string; createdAt: Date; updatedAt: Date },
-): CategoryResponse {
+function formatCategoryResponse(category: {
+  id: string;
+  userId: string;
+  name: string;
+  type: string;
+  color: string;
+  icon: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): CategoryResponse {
   return {
     id: category.id,
     userId: category.userId,
