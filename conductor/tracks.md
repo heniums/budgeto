@@ -21,3 +21,8 @@ This file tracks all major tracks for the project. Each track has its own detail
 
 - [x] **Track: Abstract client-side token management and HTTP request into centralized axios service** (archived)
   *Link: [./archive/axios_client_20260712/](./archive/axios_client_20260712/)*
+
+---
+
+- [ ] **Track: Category Management System**
+  *Link: [./tracks/categories_20260713/](./tracks/categories_20260713/)*
