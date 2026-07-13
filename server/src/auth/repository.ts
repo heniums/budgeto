@@ -1,6 +1,6 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../db/client';
-import { users, wallets, type User } from '../db/schema';
+import { users, wallets, categories, type User } from '../db/schema';
 
 /**
  * Data-access functions for the `user` table, backed by the shared Drizzle
@@ -63,6 +63,7 @@ export async function findUserById(id: string): Promise<User | undefined> {
 }
 
 export async function deleteAllUsers(): Promise<void> {
+  await db.delete(categories);
   await db.delete(wallets);
   await db.delete(users);
 }

@@ -20,6 +20,13 @@ import {
   listTransactionsHandler,
   transferHandler,
 } from './transactions/controller';
+import {
+  createHandler as createCategoryHandler,
+  listHandler as listCategoryHandler,
+  getHandler as getCategoryHandler,
+  updateHandler as updateCategoryHandler,
+  deleteHandler as deleteCategoryHandler,
+} from './categories/controller';
 import { authenticate } from './auth/middleware';
 import { isAppError } from './errors';
 
@@ -46,6 +53,12 @@ export function createApp(): Express {
   app.get('/wallets/:id', authenticate, getHandler);
   app.put('/wallets/:id', authenticate, updateHandler);
   app.delete('/wallets/:id', authenticate, deleteHandler);
+
+  app.post('/categories', authenticate, createCategoryHandler);
+  app.get('/categories', authenticate, listCategoryHandler);
+  app.get('/categories/:id', authenticate, getCategoryHandler);
+  app.put('/categories/:id', authenticate, updateCategoryHandler);
+  app.delete('/categories/:id', authenticate, deleteCategoryHandler);
 
   app.post('/wallets/:id/transactions', authenticate, createTransactionHandler);
   app.get('/wallets/:id/transactions', authenticate, listTransactionsHandler);
