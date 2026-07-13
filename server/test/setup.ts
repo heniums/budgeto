@@ -48,15 +48,6 @@ export async function setup(): Promise<void> {
     )
   `);
   await pool.query(`
-    CREATE TABLE IF NOT EXISTS "transaction" (
-      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-      "wallet_id" uuid NOT NULL REFERENCES "wallet"("id") ON DELETE CASCADE,
-      "amount" numeric(12,2) NOT NULL,
-      "description" text DEFAULT '',
-      "created_at" timestamptz NOT NULL DEFAULT now()
-    )
-  `);
-  await pool.query(`
     CREATE TABLE IF NOT EXISTS "category" (
       "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
       "user_id" uuid NOT NULL REFERENCES "user"("id"),
@@ -66,6 +57,16 @@ export async function setup(): Promise<void> {
       "icon" text NOT NULL,
       "created_at" timestamptz NOT NULL DEFAULT now(),
       "updated_at" timestamptz NOT NULL DEFAULT now()
+    )
+  `);
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS "transaction" (
+      "id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+      "wallet_id" uuid NOT NULL REFERENCES "wallet"("id") ON DELETE CASCADE,
+      "category_id" uuid REFERENCES "category"("id") ON DELETE SET NULL,
+      "amount" numeric(12,2) NOT NULL,
+      "description" text DEFAULT '',
+      "created_at" timestamptz NOT NULL DEFAULT now()
     )
   `);
   await pool.end();

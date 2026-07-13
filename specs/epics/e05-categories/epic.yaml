@@ -4,7 +4,7 @@
 
 id: e05
 title: 'Category Management System'
-status: in_progress
+status: done
 wsjf: 18
 created_at: '2026-07-13'
 
@@ -88,7 +88,8 @@ stories:
 
   - id: e05s03
     title: 'Frontend — Category Management UI'
-    status: pending
+    status: done
+    checkpoint: 'b82a507'
     description: >
       Install lucide-react, write frontend API client, and build
       Categories page + CategoryForm component with full CRUD UI.

@@ -1,9 +1,7 @@
 import { z } from 'zod';
-import {
-  createTransaction,
-  findTransactionsByWalletId,
-} from './repository';
+import { createTransaction, findTransactionsByWalletId } from './repository';
 import { findWalletById } from '../wallets/repository';
+import { findCategoryById } from '../categories/repository';
 import { db } from '../db/client';
 import { transactions } from '../db/schema';
 import { notFoundError, validationError } from '../errors';
@@ -13,6 +11,7 @@ export const createTransactionSchema = z.object({
     message: 'Amount must be a non-zero number',
   }),
   description: z.string().max(512).optional().default(''),
+  categoryId: z.string().uuid().optional(),
 });
 
 export const transferSchema = z.object({
@@ -44,10 +43,18 @@ export async function create(
     throw notFoundError('Wallet not found');
   }
 
+  if (input.categoryId) {
+    const category = await findCategoryById(input.categoryId);
+    if (!category || category.userId !== userId) {
+      throw notFoundError('Category not found');
+    }
+  }
+
   const tx = await createTransaction({
     walletId,
     amount: input.amount,
     description: input.description,
+    categoryId: input.categoryId,
   });
 
   return {
@@ -55,14 +62,12 @@ export async function create(
     walletId: tx.walletId,
     amount: tx.amount,
     description: tx.description ?? '',
+    categoryId: tx.categoryId ?? null,
     createdAt: tx.createdAt,
   };
 }
 
-export async function list(
-  userId: string,
-  walletId: string,
-) {
+export async function list(userId: string, walletId: string) {
   const wallet = await findWalletById(walletId);
   if (!wallet) {
     throw notFoundError('Wallet not found');
@@ -78,15 +83,13 @@ export async function list(
       walletId: tx.walletId,
       amount: tx.amount,
       description: tx.description ?? '',
+      categoryId: tx.categoryId ?? null,
       createdAt: tx.createdAt,
     })),
   };
 }
 
-export async function transfer(
-  userId: string,
-  input: TransferInput,
-) {
+export async function transfer(userId: string, input: TransferInput) {
   if (input.sourceId === input.targetId) {
     throw validationError('Source and target wallets must be different');
   }
@@ -129,6 +132,7 @@ export async function transfer(
       walletId: result.withdrawal.walletId,
       amount: result.withdrawal.amount,
       description: result.withdrawal.description ?? '',
+      categoryId: result.withdrawal.categoryId ?? null,
       createdAt: result.withdrawal.createdAt,
     },
     targetTransaction: {
@@ -136,6 +140,7 @@ export async function transfer(
       walletId: result.deposit.walletId,
       amount: result.deposit.amount,
       description: result.deposit.description ?? '',
+      categoryId: result.deposit.categoryId ?? null,
       createdAt: result.deposit.createdAt,
     },
   };
