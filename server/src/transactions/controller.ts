@@ -1,4 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
+import { getUser } from '../auth/middleware';
 import {
   createTransactionSchema,
   transferSchema,
@@ -7,7 +8,6 @@ import {
   listByUser,
   transfer,
 } from './service';
-import { unauthorizedError } from '../errors';
 
 export async function createTransactionHandler(
   req: Request,
@@ -15,11 +15,9 @@ export async function createTransactionHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    if (!req.user) {
-      throw unauthorizedError();
-    }
     const input = createTransactionSchema.parse(req.body);
-    const tx = await create(req.user.sub, req.params.id, input);
+    const user = getUser(req);
+    const tx = await create(user.sub, req.params.id, input);
     res.status(201).json(tx);
   } catch (error) {
     next(error);
@@ -32,10 +30,8 @@ export async function listTransactionsHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    if (!req.user) {
-      throw unauthorizedError();
-    }
-    const result = await list(req.user.sub, req.params.id);
+    const user = getUser(req);
+    const result = await list(user.sub, req.params.id);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -48,10 +44,8 @@ export async function listAllTransactionsHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    if (!req.user) {
-      throw unauthorizedError();
-    }
-    const result = await listByUser(req.user.sub);
+    const user = getUser(req);
+    const result = await listByUser(user.sub);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -64,11 +58,9 @@ export async function transferHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    if (!req.user) {
-      throw unauthorizedError();
-    }
     const input = transferSchema.parse(req.body);
-    const result = await transfer(req.user.sub, input);
+    const user = getUser(req);
+    const result = await transfer(user.sub, input);
     res.status(200).json(result);
   } catch (error) {
     next(error);

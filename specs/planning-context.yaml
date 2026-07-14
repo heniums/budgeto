@@ -13,7 +13,7 @@ problem_statement: >
 
 constraints:
   - 'Only remove dead-code guards in controllers — do not change auth/service.ts business-logic unauthorizedError throws.'
-  - 'Use `req.user!` non-null assertion pattern (not a new type alias or runtime helper).'
+  - 'Use `as TokenPayload` type assertion (non-null `!` was blocked by ESLint `no-non-null-assertion` rule).'
   - 'No API contract changes, no new dependencies, no test behavior changes.'
   - 'TypeScript must compile clean after changes (tsc --noEmit).'
 
@@ -26,8 +26,8 @@ out_of_scope:
 key_decisions:
   - decision: 'Remove `if (!req.user) throw unauthorizedError()` from all controller handlers.'
     rationale: 'The authenticate middleware already enforces this; the guards are unreachable dead code.'
-  - decision: 'Use `req.user!` non-null assertions in handlers instead of a type-narrowing wrapper.'
-    rationale: 'Less invasive, follows existing convention, avoids ceremony.'
+  - decision: 'Use `as TokenPayload` type assertions (via centralized `getUser()` helper in auth/middleware.ts).'
+    rationale: 'ESLint blocks `!`; centralized helper avoids scattering `as TokenPayload` and `import type { TokenPayload }` across every controller.'
   - decision: 'Remove `requireUserId` helper from categories/controller.ts.'
     rationale: 'Its only purpose was wrapping the guard being removed; inline `req.user!.sub` at call sites.'
   - decision: 'Keep auth/service.ts unauthorizedError throws as-is.'
