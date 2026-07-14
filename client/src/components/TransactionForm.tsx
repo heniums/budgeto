@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -28,6 +28,7 @@ interface TransactionFormProps {
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
   onViewWallet?: (walletId: string) => void;
+  autoSelectWalletId?: string;
 }
 
 export function TransactionForm({
@@ -37,6 +38,7 @@ export function TransactionForm({
   onCreateWallet,
   onCreateCategory,
   onViewWallet,
+  autoSelectWalletId,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -46,12 +48,19 @@ export function TransactionForm({
     watch,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<TransactionValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: { walletId: '', amount: '', description: '' },
   });
 
   const selectedWalletId = watch('walletId');
+
+  useEffect(() => {
+    if (autoSelectWalletId) {
+      setValue('walletId', autoSelectWalletId);
+    }
+  }, [autoSelectWalletId, setValue]);
 
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
