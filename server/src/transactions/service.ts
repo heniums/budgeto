@@ -5,6 +5,7 @@ import {
   findTransactionsByWalletId,
   findTransactionsByUserId,
   updateTransaction,
+  deleteTransaction,
 } from './repository';
 import { findWalletById } from '../wallets/repository';
 import { findCategoryById } from '../categories/repository';
@@ -141,6 +142,27 @@ export async function update(
     description: updated.description ?? '',
     categoryId: updated.categoryId ?? null,
     createdAt: updated.createdAt,
+  };
+}
+
+export async function remove(
+  userId: string,
+  txId: string,
+) {
+  const existing = await findTransactionById(txId);
+  if (!existing || existing.userId !== userId) {
+    throw notFoundError('Transaction not found');
+  }
+
+  const deleted = await deleteTransaction(txId);
+
+  return {
+    id: deleted.id,
+    walletId: deleted.walletId,
+    amount: deleted.amount,
+    description: deleted.description ?? '',
+    categoryId: deleted.categoryId ?? null,
+    createdAt: deleted.createdAt,
   };
 }
 

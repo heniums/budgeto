@@ -5,6 +5,7 @@ import {
   listAllTransactionsHandler,
   getTransactionHandler,
   updateTransactionHandler,
+  deleteTransactionHandler,
 } from './controller';
 import { authenticate } from '../auth/middleware';
 
@@ -22,3 +23,4 @@ listRouter.use(authenticate);
 listRouter.get('/', listAllTransactionsHandler);
 listRouter.get('/:id', getTransactionHandler);
 listRouter.put('/:id', updateTransactionHandler);
+listRouter.delete('/:id', deleteTransactionHandler);

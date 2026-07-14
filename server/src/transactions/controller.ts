@@ -7,6 +7,7 @@ import {
   create,
   getById,
   update,
+  remove,
   list,
   listByUser,
   transfer,
@@ -78,6 +79,20 @@ export async function updateTransactionHandler(
     const input = updateTransactionSchema.parse(req.body);
     const user = getUser(req);
     const tx = await update(user.sub, req.params.id, input);
+    res.status(200).json(tx);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteTransactionHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const user = getUser(req);
+    const tx = await remove(user.sub, req.params.id);
     res.status(200).json(tx);
   } catch (error) {
     next(error);

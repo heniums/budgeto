@@ -69,6 +69,16 @@ export async function updateTransaction(
   return tx;
 }
 
+export async function deleteTransaction(
+  txId: string,
+): Promise<Transaction> {
+  const [tx] = await db
+    .delete(transactions)
+    .where(eq(transactions.id, txId))
+    .returning();
+  return tx;
+}
+
 export async function findTransactionsByUserId(
   userId: string,
 ): Promise<Transaction[]> {
