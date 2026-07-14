@@ -4,6 +4,7 @@ import {
   createTransactionSchema,
   transferSchema,
   create,
+  getById,
   list,
   listByUser,
   transfer,
@@ -47,6 +48,20 @@ export async function listAllTransactionsHandler(
     const user = getUser(req);
     const result = await listByUser(user.sub);
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTransactionHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const user = getUser(req);
+    const tx = await getById(user.sub, req.params.id);
+    res.status(200).json(tx);
   } catch (error) {
     next(error);
   }

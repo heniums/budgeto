@@ -3,6 +3,7 @@ import {
   createTransactionHandler,
   listTransactionsHandler,
   listAllTransactionsHandler,
+  getTransactionHandler,
 } from './controller';
 import { authenticate } from '../auth/middleware';
 
@@ -18,3 +19,4 @@ export default router;
 export const listRouter = Router();
 listRouter.use(authenticate);
 listRouter.get('/', listAllTransactionsHandler);
+listRouter.get('/:id', getTransactionHandler);

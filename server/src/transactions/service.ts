@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import {
   createTransaction,
+  findTransactionById,
   findTransactionsByWalletId,
   findTransactionsByUserId,
 } from './repository';
@@ -67,6 +68,26 @@ export async function create(
     amount: tx.amount,
     description: tx.description ?? '',
     categoryId: tx.categoryId ?? null,
+    createdAt: tx.createdAt,
+  };
+}
+
+export async function getById(
+  userId: string,
+  txId: string,
+) {
+  const tx = await findTransactionById(txId);
+  if (!tx || tx.userId !== userId) {
+    throw notFoundError('Transaction not found');
+  }
+
+  return {
+    id: tx.id,
+    walletId: tx.walletId,
+    amount: tx.amount,
+    description: tx.description ?? '',
+    categoryId: tx.categoryId ?? null,
+    categoryName: tx.categoryName ?? null,
     createdAt: tx.createdAt,
   };
 }

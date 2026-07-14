@@ -1,4 +1,4 @@
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 import { db } from '../db/client';
 import {
   transactions,
@@ -7,6 +7,17 @@ import {
   type Transaction,
   type NewTransaction,
 } from '../db/schema';
+
+export interface TransactionWithCategory {
+  id: string;
+  walletId: string;
+  amount: string;
+  description: string | null;
+  categoryId: string | null;
+  categoryName: string | null;
+  createdAt: Date;
+  userId: string;
+}
 
 export async function createTransaction(
   input: NewTransaction,
@@ -23,6 +34,27 @@ export async function findTransactionsByWalletId(
     .from(transactions)
     .where(eq(transactions.walletId, walletId))
     .orderBy(desc(transactions.createdAt));
+}
+
+export async function findTransactionById(
+  txId: string,
+): Promise<TransactionWithCategory | undefined> {
+  const rows = await db
+    .select({
+      id: transactions.id,
+      walletId: transactions.walletId,
+      amount: transactions.amount,
+      description: transactions.description,
+      createdAt: transactions.createdAt,
+      categoryId: transactions.categoryId,
+      categoryName: categories.name,
+      userId: wallets.userId,
+    })
+    .from(transactions)
+    .innerJoin(wallets, eq(transactions.walletId, wallets.id))
+    .leftJoin(categories, eq(transactions.categoryId, categories.id))
+    .where(eq(transactions.id, txId));
+  return rows[0];
 }
 
 export async function findTransactionsByUserId(
