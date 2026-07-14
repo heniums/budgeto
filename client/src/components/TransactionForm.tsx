@@ -23,6 +23,7 @@ type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
+  categoriesCount?: number;
   onSuccess: () => void;
 }
 
