@@ -379,9 +379,9 @@ describe('Home transaction detail view', () => {
     renderHome();
     await screen.findByText('$50.00');
 
-    // Click the first transfer leg
-    const rows = screen.getAllByText('Transfer');
-    await user.click(rows[0]);
+    // Click the amount cell of the first transfer leg
+    const amountCells = screen.getAllByText('$50.00');
+    await user.click(amountCells[0]);
     await screen.findByText('Transaction details');
 
     await user.click(screen.getByRole('button', { name: /delete/i }));

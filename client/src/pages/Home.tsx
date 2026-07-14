@@ -23,6 +23,7 @@ import {
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
 import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
+import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletDetailSheet } from '../components/WalletDetailSheet';
 import { CategoryDetailSheet } from '../components/CategoryDetailSheet';
@@ -88,6 +89,11 @@ export function Home(): JSX.Element {
   const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
     null,
   );
+  const [cascadeTx, setCascadeTx] = useState<{
+    action: 'delete' | 'edit';
+    tx: TransactionData;
+    pair: TransactionData;
+  } | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
   const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
   const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
@@ -475,7 +481,12 @@ export function Home(): JSX.Element {
         onDelete={() => {
           if (detailTx) {
             setDetailTx(null);
-            setDeleteConfirm(detailTx);
+            const pair = findTransferPair(detailTx, transactions);
+            if (pair) {
+              setCascadeTx({ action: 'delete', tx: detailTx, pair });
+            } else {
+              setDeleteConfirm(detailTx);
+            }
           }
         }}
       />
@@ -550,6 +561,61 @@ export function Home(): JSX.Element {
               }}
             >
               Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+            <Dialog
+        open={cascadeTx !== null}
+        onOpenChange={(open) => {
+          if (!open) setCascadeTx(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {cascadeTx?.action === 'delete'
+                ? 'Delete transfer leg'
+                : 'Edit transfer leg'}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This transaction appears to be part of a transfer. Also{' '}
+            {cascadeTx?.action === 'delete' ? 'delete' : 'update'} the paired
+            transaction ({cascadeTx?.pair.description},{' '}
+            {Number(cascadeTx?.pair.amount) > 0 ? '+' : ''}
+            {cascadeTx?.pair.amount})?
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={async () => {
+                if (!cascadeTx) return;
+                if (cascadeTx.action === 'delete') {
+                  await deleteTransaction(cascadeTx.tx.id);
+                }
+                setCascadeTx(null);
+                setPage(1);
+                load();
+              }}
+            >
+              No, just this one
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (!cascadeTx) return;
+                if (cascadeTx.action === 'delete') {
+                  await deleteTransaction(cascadeTx.tx.id);
+                  await deleteTransaction(cascadeTx.pair.id);
+                }
+                setCascadeTx(null);
+                setPage(1);
+                load();
+              }}
+            >
+              Yes, {cascadeTx?.action === 'delete' ? 'delete' : 'update'} both
             </Button>
           </div>
         </DialogContent>
