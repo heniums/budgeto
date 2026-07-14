@@ -8,7 +8,7 @@ completed_epic: false
 
 epic_cycle:
   current_step: null
-  next_skill: null
+  next_skill: audit-code
   story_bcps: null
   completed_steps: []
   audit_result: null
@@ -35,7 +35,7 @@ git:
   pushed: false
 
 handoff:
-  last_step_completed: 'plan-work for e08 Guided UX — 5 story specs written (e08s01-e08s05) with requirement delta tags, zoom-out mandates, slopchecks, and acceptance criteria. All task YAMLs carry allure blocks and status:failing per e45s06.'
+  last_step_completed: 'verify-work for e08 Guided UX — all gates PASS: build, typecheck, lint, 105 tests (95.61% cov), security review PASS, manual UAT verified'
   open_decisions: []
   required_reading:
     - specs/product/VISION_LATEST.yaml
