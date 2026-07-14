@@ -75,7 +75,7 @@ describe('apiClient', () => {
       try {
         responseErrorInterceptor(error);
         expect.fail('should have thrown');
-      } catch (e) {
+      } catch {
         expect(dispatchEvent).toHaveBeenCalled();
         const event = dispatchEvent.mock.calls[0][0] as CustomEvent;
         expect(event.type).toBe('budgeto:unauthorized');

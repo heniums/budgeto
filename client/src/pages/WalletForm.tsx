@@ -59,7 +59,7 @@ export function WalletForm(): JSX.Element {
     setFormError(null);
     try {
       const wallet = isEdit
-        ? await updateWallet(id!, {
+        ? await updateWallet(id ?? '', {
             name: values.name.trim(),
             description: values.description.trim(),
             color: values.color,
