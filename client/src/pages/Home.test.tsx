@@ -10,7 +10,12 @@ import type * as CatModule from '../api/categories';
 
 vi.mock('../api/transactions', async (importOriginal) => {
   const actual = await importOriginal<typeof TxModule>();
-  return { ...actual, getTransactions: vi.fn() };
+  return {
+    ...actual,
+    getTransactions: vi.fn(),
+    updateTransaction: vi.fn(),
+    deleteTransaction: vi.fn(),
+  };
 });
 vi.mock('../api/wallets', async (importOriginal) => {
   const actual = await importOriginal<typeof WalletModule>();
@@ -26,7 +31,7 @@ vi.mock('../api/categories', async (importOriginal) => {
   return { ...actual, getCategories: vi.fn() };
 });
 
-import { getTransactions } from '../api/transactions';
+import { getTransactions, updateTransaction, deleteTransaction } from '../api/transactions';
 import { getWallets, getWallet, createWallet } from '../api/wallets';
 import { getCategories } from '../api/categories';
 
@@ -244,5 +249,98 @@ describe('Home stacked modal — transaction dialog + wallet/category sheets', (
     // Transaction dialog stays open behind the sheet
     const txTitlesAfter = screen.getAllByText('Add transaction');
     expect(txTitlesAfter.length).toBeGreaterThanOrEqual(2);
+  });
+});
+
+describe('Home transaction detail view', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
+    vi.mocked(getTransactions).mockResolvedValue({
+      transactions: [
+        {
+          id: 't1',
+          walletId: 'w1',
+          amount: '-42.50',
+          description: 'Groceries',
+          categoryId: 'c1',
+          categoryName: 'Food',
+          createdAt: '2026-01-02T10:00:00Z',
+        },
+      ],
+      total: 1,
+    });
+    vi.mocked(updateTransaction).mockResolvedValue({
+      id: 't1',
+      walletId: 'w1',
+      amount: '-99.00',
+      description: 'Updated',
+      categoryId: 'c1',
+      categoryName: 'Food',
+      createdAt: '2026-01-02T10:00:00Z',
+    });
+    vi.mocked(deleteTransaction).mockResolvedValue({
+      id: 't1',
+      walletId: 'w1',
+      amount: '-42.50',
+      description: 'Groceries',
+      categoryId: 'c1',
+      createdAt: '2026-01-02T10:00:00Z',
+    });
+    cleanup();
+  });
+
+  it('opens detail dialog when clicking a transaction row', async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByText('Groceries');
+
+    // Click the description cell (part of the row)
+    await user.click(screen.getByText('Groceries'));
+
+    expect(
+      await screen.findByText('Transaction details'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('-$42.50')).toBeInTheDocument();
+    expect(screen.getByText('Cash')).toBeInTheDocument();
+    expect(screen.getByText('Food')).toBeInTheDocument();
+  });
+
+  it('opens edit form when Edit is clicked in detail dialog', async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByText('Groceries');
+
+    await user.click(screen.getByText('Groceries'));
+    await screen.findByText('Transaction details');
+
+    await user.click(screen.getByRole('button', { name: /edit/i }));
+
+    // Edit form should appear with pre-filled values
+    expect(
+      await screen.findByRole('button', { name: /save changes/i }),
+    ).toBeInTheDocument();
+  });
+
+  it('deletes transaction after confirmation', async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByText('Groceries');
+
+    await user.click(screen.getByText('Groceries'));
+    await screen.findByText('Transaction details');
+
+    await user.click(screen.getByRole('button', { name: /delete/i }));
+
+    // Confirmation dialog should appear
+    expect(await screen.findByText(/are you sure/i)).toBeInTheDocument();
+
+    // Confirm delete
+    await user.click(
+      screen.getByRole('button', { name: /delete/i }),
+    );
+
+    expect(deleteTransaction).toHaveBeenCalledWith('t1');
   });
 });
