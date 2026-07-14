@@ -97,6 +97,24 @@ describe('POST /wallets/:id/transactions', () => {
       .send({ amount: '100', description: 'Bad wallet' });
     expect(response.status).toBe(404);
   });
+
+  it('rejects when wallet belongs to another user (404)', async () => {
+    const otherUser = await register({
+      name: 'Other Tx',
+      email: 'other-tx@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ amount: '100', description: 'Hack attempt' });
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('POST /wallets/:id/transactions — category', () => {
@@ -212,6 +230,23 @@ describe('GET /wallets/:id/transactions', () => {
     const response = await request(app)
       .get('/wallets/00000000-0000-0000-0000-000000000000/transactions')
       .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects when wallet belongs to another user (404)', async () => {
+    const otherUser = await register({
+      name: 'Other Tx List',
+      email: 'other-txlist@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .get(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${otherToken}`);
     expect(response.status).toBe(404);
   });
 });
