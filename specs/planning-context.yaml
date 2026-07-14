@@ -1,45 +1,34 @@
 # specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
-# Feature: UI Remake with shadcn/ui. Elaborated 2026-07-13.
+# Feature: Backend Auth Error Handling Refactor. Elaborated 2026-07-14.
 
-feature_name: 'UI Remake with shadcn/ui'
+feature_name: 'Backend Auth Error Handling Refactor'
 
 problem_statement: >
-  The current Budgeto client UI is wallet-centric: a Dashboard plus a Sidebar that
-  lists every wallet, with no unified view of the user's transactions. Navigation is
-  cluttered and the component layer is hand-rolled against a single global styles.css.
-  The user wants a simpler, modern, component-driven UI centered on transactions, using
-  shadcn/ui, with a left nav reduced to just Home (all transactions) and Settings
-  (manage wallets, categories, and user settings).
+  Every protected controller handler (wallets, categories, transactions) contains
+  a redundant `if (!req.user) throw unauthorizedError()` guard, even though the
+  `authenticate` middleware applied via `router.use(authenticate)` already enforces
+  that `req.user` is set before any handler runs. Express skips handlers when
+  middleware calls `next(error)`, so these guards are unreachable dead code that
+  duplicates the middleware's responsibility and adds noise to every handler.
 
 constraints:
-  - "Adopt Tailwind CSS + shadcn/ui. This OVERRIDES the AGENTS.md 'No CSS modules / Tailwind' rule — convention to be updated."
-  - 'Reuse existing server APIs (wallets, categories, transactions, auth) and as much existing client logic as possible.'
-  - 'Left nav contains ONLY Home and Settings.'
-  - 'Responsive: left sidebar collapses to a collapsible drawer on mobile (shadcn Sheet).'
-  - 'Auth pages (SignIn / SignUp) are unchanged and not in the left nav.'
-  - 'Transaction & transfer creation lives on Home (reusing TransactionForm / TransferForm, reworked onto shadcn Form).'
-  - 'ASSUMPTION TO VERIFY IN PLAN PHASE: a user-scoped transactions list endpoint already exists server-side (server has a transactions/ module). If missing, add a backend sub-task.'
+  - 'Only remove dead-code guards in controllers — do not change auth/service.ts business-logic unauthorizedError throws.'
+  - 'Use `req.user!` non-null assertion pattern (not a new type alias or runtime helper).'
+  - 'No API contract changes, no new dependencies, no test behavior changes.'
+  - 'TypeScript must compile clean after changes (tsc --noEmit).'
 
 out_of_scope:
-  - 'Dashboard analytics / summary cards.'
-  - 'Dark mode / theming for v1.'
-  - 'Category budgeting.'
-  - 'Wallet or category hierarchy / nesting.'
-  - 'New backend endpoints beyond what already exists (assumes transactions list API exists).'
-  - 'Auth / SignIn / SignUp UI changes.'
+  - 'Introducing a forbiddenError (403) concept or role-based access control.'
+  - 'Changing auth/service.ts (login, register, profile, changePassword) error handling.'
+  - 'Modifying the authenticate middleware itself.'
+  - 'Changing test files beyond any type-level fixes needed after import cleanup.'
 
 key_decisions:
-  - decision: 'Adopt Tailwind + shadcn/ui and override the no-Tailwind convention in AGENTS.md.'
-    rationale: 'shadcn/ui is built on Tailwind CSS + Radix; it is the only path to the requested component library.'
-  - decision: 'Left nav = only Home + Settings (was Dashboard + wallet list).'
-    rationale: 'Simplify navigation per explicit user request.'
-  - decision: 'Home = all-transactions list with filters (wallet / category / type / date), search, pagination, plus Add transaction / Transfer buttons.'
-    rationale: 'Center the app on transactions; create-on-Home matches a typical dashboard feel.'
-  - decision: 'Settings = single page with Wallets / Categories / User tabs.'
-    rationale: 'Consolidate management surfaces into one route instead of scattered pages.'
-  - decision: 'Remove Dashboard; reuse WalletList/Detail as Settings > Wallets, and Profile as Settings > User.'
-    rationale: 'Avoid duplicate management UIs and reuse existing logic.'
-  - decision: 'Mobile = collapsible drawer (shadcn Sheet) for the left sidebar.'
-    rationale: 'Standard responsive pattern for a left sidebar.'
-  - decision: 'Rework TransactionForm / TransferForm onto shadcn Form (react-hook-form).'
-    rationale: 'Resolves the pre-existing TS6133 / resolver type errors and aligns forms with the new component system.'
+  - decision: 'Remove `if (!req.user) throw unauthorizedError()` from all controller handlers.'
+    rationale: 'The authenticate middleware already enforces this; the guards are unreachable dead code.'
+  - decision: 'Use `req.user!` non-null assertions in handlers instead of a type-narrowing wrapper.'
+    rationale: 'Less invasive, follows existing convention, avoids ceremony.'
+  - decision: 'Remove `requireUserId` helper from categories/controller.ts.'
+    rationale: 'Its only purpose was wrapping the guard being removed; inline `req.user!.sub` at call sites.'
+  - decision: 'Keep auth/service.ts unauthorizedError throws as-is.'
+    rationale: 'Those are service-layer business logic (invalid credentials, wrong password) — not middleware concerns.'
