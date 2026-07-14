@@ -8,6 +8,7 @@ export default [
       'node_modules',
       'coverage',
       'client/dist',
+      'client/client',
       '*.config.ts',
       '*.config.mjs',
       '**/*.config.cjs',
