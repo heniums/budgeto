@@ -1,6 +1,6 @@
 story_id: e08s05
 title: Tests and type-check coverage
-status: failing
+status: passing
 bcps: 2
 spec: e08s05-tests-coverage.md
 tasks:
@@ -12,7 +12,7 @@ tasks:
       the new categoryId and categoryName fields.
     verify: 'npm test 2>&1 | tail -10'
     risk: P1
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
@@ -28,7 +28,7 @@ tasks:
       coverage.
     verify: 'npm run test:coverage 2>&1 | tail -20'
     risk: P1
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
@@ -42,7 +42,7 @@ tasks:
       refactored modal props. Ensure clean exit.
     verify: 'npm run type-check 2>&1 | tail -5'
     risk: P0
-    status: failing
+    status: passing
     allure:
       severity: critical
       categories:
