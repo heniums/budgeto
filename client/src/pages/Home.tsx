@@ -88,6 +88,9 @@ export function Home(): JSX.Element {
   const [createWalletOpen, setCreateWalletOpen] = useState(false);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [pendingWalletId, setPendingWalletId] = useState<string | null>(null);
+  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(
+    null,
+  );
 
   const load = (): void => {
     setLoading(true);
@@ -179,12 +182,20 @@ export function Home(): JSX.Element {
               </DialogHeader>
               <TransactionForm
                 wallets={wallets}
+                categories={categories.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  type: c.type,
+                  color: c.color,
+                }))}
                 categoriesCount={categories.length}
                 autoSelectWalletId={pendingWalletId ?? undefined}
+                autoSelectCategoryId={pendingCategoryId ?? undefined}
                 onSuccess={() => {
                   setTxOpen(false);
                   setPage(1);
                   setPendingWalletId(null);
+                  setPendingCategoryId(null);
                   load();
                 }}
                 onCreateWallet={() => {
@@ -470,8 +481,9 @@ export function Home(): JSX.Element {
         categoryId=""
         open={createCategoryOpen}
         onOpenChange={setCreateCategoryOpen}
-        onSuccess={() => {
+        onSuccess={(newCategory) => {
           setCreateCategoryOpen(false);
+          if (newCategory) setPendingCategoryId(newCategory.id);
           load();
         }}
       />

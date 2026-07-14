@@ -93,7 +93,7 @@ describe('TransactionForm — prerequisite warnings', () => {
         />
       </MemoryRouter>,
     );
-    const link = await screen.findByText(/create one/i);
+    const link = screen.getByText("Don't see your wallet? Create one →");
     link.click();
     expect(onCreateWallet).toHaveBeenCalled();
   });
