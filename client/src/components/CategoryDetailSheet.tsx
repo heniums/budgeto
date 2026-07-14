@@ -175,7 +175,13 @@ export function CategoryDetailSheet({
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Creating…' : isCreate ? 'Create' : 'Save'}
+              {isSubmitting && isCreate
+                ? 'Creating…'
+                : isSubmitting
+                  ? 'Saving…'
+                  : isCreate
+                    ? 'Create'
+                    : 'Save'}
             </Button>
           </form>
         )}
