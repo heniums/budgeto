@@ -43,5 +43,5 @@ export async function findTransactionsByUserId(
     .leftJoin(categories, eq(transactions.categoryId, categories.id))
     .where(eq(wallets.userId, userId))
     .orderBy(desc(transactions.createdAt));
-  return rows as Transaction[];
+  return rows as unknown as Transaction[];
 }

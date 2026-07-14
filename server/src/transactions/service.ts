@@ -111,15 +111,18 @@ export async function listByUser(
 ): Promise<UserTransactionsResult> {
   const rows = await findTransactionsByUserId(userId);
   return {
-    transactions: rows.map((tx) => ({
-      id: tx.id,
-      walletId: tx.walletId,
-      amount: tx.amount,
-      description: tx.description ?? '',
-      categoryId: (tx as Record<string, unknown>).categoryId ?? null,
-      categoryName: (tx as Record<string, unknown>).categoryName ?? null,
-      createdAt: tx.createdAt,
-    })),
+    transactions: rows.map((tx) => {
+      const r = tx as unknown as Record<string, unknown>;
+      return {
+        id: tx.id,
+        walletId: tx.walletId,
+        amount: tx.amount,
+        description: tx.description ?? '',
+        categoryId: (r.categoryId as string) ?? null,
+        categoryName: (r.categoryName as string) ?? null,
+        createdAt: tx.createdAt,
+      };
+    }),
     total: rows.length,
   };
 }

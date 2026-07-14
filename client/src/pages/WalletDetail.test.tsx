@@ -73,6 +73,8 @@ describe('WalletDetail page', () => {
           walletId: 'w1',
           amount: '100.00',
           description: 'Deposit',
+          categoryId: null,
+          categoryName: null,
           createdAt: '2024-01-03',
         },
         {
@@ -80,6 +82,8 @@ describe('WalletDetail page', () => {
           walletId: 'w1',
           amount: '-24.50',
           description: 'Expense',
+          categoryId: null,
+          categoryName: null,
           createdAt: '2024-01-02',
         },
       ],
