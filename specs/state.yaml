@@ -43,7 +43,7 @@ handoff:
     - specs/planning-context.yaml
     - specs/tech-architecture/TECH_STACK_LATEST.md
     - specs/release-plan.yaml
-    - specs/epics/e08-guided-ux/epic.yaml
+    - specs/epics/e08-guided-ux/e08s01-category-plumbing.md
   next_skill: develop-tdd
 
 two_pass_spec:
