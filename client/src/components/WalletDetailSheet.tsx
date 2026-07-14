@@ -3,7 +3,12 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
-import { getWallet, updateWallet, type WalletData } from '../api/wallets';
+import {
+  createWallet,
+  getWallet,
+  updateWallet,
+  type WalletData,
+} from '../api/wallets';
 import { ApiError } from '../api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,10 +29,10 @@ const editSchema = z.object({
 type EditValues = z.infer<typeof editSchema>;
 
 export interface WalletDetailSheetProps {
-  walletId: string;
+  walletId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (newWallet?: WalletData) => void;
 }
 
 export function WalletDetailSheet({
@@ -50,8 +55,17 @@ export function WalletDetailSheet({
     defaultValues: { name: '', description: '', color: '#1f8a4c' },
   });
 
+  const isCreate = !walletId;
+
   useEffect(() => {
-    if (!open || !walletId) return;
+    if (!open || isCreate) {
+      if (isCreate && open) {
+        setLoading(false);
+        setWallet(null);
+        reset({ name: '', description: '', color: '#1f8a4c' });
+      }
+      return;
+    }
     let active = true;
     setLoading(true);
     setFormError(null);
@@ -74,20 +88,29 @@ export function WalletDetailSheet({
     return () => {
       active = false;
     };
-  }, [open, walletId, reset]);
+  }, [open, walletId, reset, isCreate]);
 
   const onSubmit = async (values: EditValues): Promise<void> => {
     setFormError(null);
     try {
-      await updateWallet(walletId, {
-        name: values.name.trim(),
-        description: values.description.trim(),
-        color: values.color,
-      });
-      onSuccess?.();
+      if (isCreate) {
+        const newWallet = await createWallet({
+          name: values.name.trim(),
+          description: values.description.trim(),
+          color: values.color,
+        });
+        onSuccess?.(newWallet);
+      } else {
+        await updateWallet(walletId!, {
+          name: values.name.trim(),
+          description: values.description.trim(),
+          color: values.color,
+        });
+        onSuccess?.();
+      }
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to update wallet.',
+        err instanceof ApiError ? err.message : 'Failed to save wallet.',
       );
     }
   };
@@ -96,12 +119,12 @@ export function WalletDetailSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Wallet Details</SheetTitle>
+          <SheetTitle>{isCreate ? 'New Wallet' : 'Wallet Details'}</SheetTitle>
         </SheetHeader>
 
         {loading ? (
           <p className="text-muted-foreground mt-4">Loading…</p>
-        ) : formError && !wallet ? (
+        ) : formError && !isCreate && !wallet ? (
           <p className="text-destructive mt-4">{formError}</p>
         ) : (
           <form
@@ -147,7 +170,7 @@ export function WalletDetailSheet({
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Saving…' : 'Save'}
+              {isSubmitting ? 'Creating…' : isCreate ? 'Create' : 'Save'}
             </Button>
           </form>
         )}
