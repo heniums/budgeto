@@ -154,10 +154,19 @@ export function Home(): JSX.Element {
               </DialogHeader>
               <TransactionForm
                 wallets={wallets}
+                categoriesCount={categories.length}
                 onSuccess={() => {
                   setTxOpen(false);
                   setPage(1);
                   load();
+                }}
+                onCreateWallet={() => {
+                  setTxOpen(false);
+                  setWizardOpen(true);
+                }}
+                onCreateCategory={() => {
+                  setTxOpen(false);
+                  setWizardOpen(true);
                 }}
               />
             </DialogContent>

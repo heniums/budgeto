@@ -25,12 +25,16 @@ interface TransactionFormProps {
   wallets: WalletData[];
   categoriesCount?: number;
   onSuccess: () => void;
+  onCreateWallet?: () => void;
+  onCreateCategory?: () => void;
 }
 
 export function TransactionForm({
   wallets,
   categoriesCount,
   onSuccess,
+  onCreateWallet,
+  onCreateCategory,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -114,6 +118,15 @@ export function TransactionForm({
             {errors.walletId.message}
           </span>
         )}
+        {onCreateWallet && (
+          <span
+            className="text-xs text-muted-foreground underline cursor-pointer"
+            onClick={onCreateWallet}
+            role="button"
+          >
+            Don&apos;t see your wallet? Create one →
+          </span>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -140,6 +153,15 @@ export function TransactionForm({
           placeholder="e.g. Groceries"
           {...register('description')}
         />
+        {onCreateCategory && (
+          <span
+            className="text-xs text-muted-foreground underline cursor-pointer"
+            onClick={onCreateCategory}
+            role="button"
+          >
+            Don&apos;t see your category? Create one →
+          </span>
+        )}
       </div>
 
       <Button type="submit" disabled={isSubmitting || wallets.length === 0}>
