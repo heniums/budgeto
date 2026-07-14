@@ -1,20 +1,20 @@
 story_id: e06s05
 title: Forms — TransactionForm / TransferForm on shadcn Form
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: 1
     description: "Rework TransactionForm onto shadcn Form (FormField/FormItem/FormControl + Input/Select/Label) resolving react-hook-form resolver type errors"
     verify: "npm test -- client/src/components/TransactionForm.test.tsx"
     risk: P1
-    status: failing
+    status: passing
   - id: 2
     description: "Rework TransferForm onto shadcn Form (source/target wallet selects + amount) resolving type errors"
     verify: "npm test -- client/src/components/TransferForm.test.tsx"
     risk: P1
-    status: failing
+    status: passing
   - id: 3
     description: "Run full type-check; confirm no TS2322/TS2345 in the two forms"
     verify: "npm run type-check 2>&1 | grep -E 'TransactionForm|TransferForm' && echo 'TYPE ERRORS' || echo 'CLEAN'"
     risk: P1
-    status: failing
+    status: passing

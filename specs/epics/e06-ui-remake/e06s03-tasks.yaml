@@ -1,6 +1,6 @@
 story_id: e06s03
 title: Home — All-transactions list with filters
-status: failing
+status: passing
 bcps: 5
 tasks:
   - id: 1
@@ -8,19 +8,19 @@ tasks:
     verify: "npm test -- --run server 2>&1 | tail -5"
     risk: P0
     security: high
-    status: failing
+    status: passing
   - id: 2
     description: "Add client/src/api/transactions.ts (getTransactions with filters+page, getTransaction) and its tests; reuse axios apiClient"
     verify: "npm test -- client/src/api/transactions.test.ts"
     risk: P1
-    status: failing
+    status: passing
   - id: 3
     description: "Build Home page: shadcn Table/Card list of all transactions with filters (wallet/category/type/date), search, pagination; wire to getTransactions"
     verify: "npm test -- client/src/pages/Home.test.tsx"
     risk: P1
-    status: failing
+    status: passing
   - id: 4
     description: "Add Add-transaction and Transfer buttons on Home that open the forms (e06s05); reflect new transaction at top of list after submit"
     verify: "npm test -- client/src/pages/Home.test.tsx"
     risk: P1
-    status: failing
+    status: passing

@@ -1,20 +1,20 @@
 story_id: e06s06
 title: Tests & type-check cleanup
-status: failing
+status: passing
 bcps: 2
 tasks:
   - id: 1
     description: "Delete/relocate tests for removed pages (Dashboard, standalone WalletList/WalletDetail routes, old Category routes, Profile route); ensure no dangling imports"
     verify: "npm test -- --run client 2>&1 | tail -5"
     risk: P2
-    status: failing
+    status: passing
   - id: 2
     description: "Remove unused imports flagged by TS6133 (server/src/wallets/repository.ts 'and'; server/test/transaction.test.ts 'secondId')"
     verify: "npm run type-check 2>&1 | tail -5"
     risk: P2
-    status: failing
+    status: passing
   - id: 3
     description: "Run full client test suite + type-check as final gate"
     verify: "npm test -- --run client && npm run type-check"
     risk: P2
-    status: failing
+    status: passing
