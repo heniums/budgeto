@@ -29,6 +29,7 @@ interface TransactionFormProps {
 
 export function TransactionForm({
   wallets,
+  categoriesCount,
   onSuccess,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
@@ -63,6 +64,28 @@ export function TransactionForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      {wallets.length === 0 && (
+        <div
+          role="alert"
+          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          You need a wallet to add a transaction.{' '}
+          <span className="font-medium underline cursor-pointer">
+            Create one →
+          </span>
+        </div>
+      )}
+      {wallets.length > 0 && categoriesCount === 0 && (
+        <div
+          role="alert"
+          className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-700"
+        >
+          You have no categories yet.{' '}
+          <span className="font-medium underline cursor-pointer">
+            Create one →
+          </span>
+        </div>
+      )}
       {formError && (
         <div
           role="alert"
@@ -119,7 +142,7 @@ export function TransactionForm({
         />
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting || wallets.length === 0}>
         {isSubmitting ? 'Adding…' : 'Add Transaction'}
       </Button>
     </form>

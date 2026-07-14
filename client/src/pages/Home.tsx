@@ -247,8 +247,33 @@ export function Home(): JSX.Element {
 
       {loading ? (
         <p className="text-muted-foreground">Loading…</p>
+      ) : !loading && wallets.length === 0 ? (
+        <div className="rounded-md border p-8 text-center">
+          <p className="text-lg font-medium">You have no wallets yet.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create your first wallet to start tracking transactions.
+          </p>
+          <Button className="mt-4" onClick={() => setWizardOpen(true)}>
+            Create your first wallet
+          </Button>
+        </div>
+      ) : !loading && categories.length === 0 ? (
+        <div className="rounded-md border p-8 text-center">
+          <p className="text-lg font-medium">You have no categories yet.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create your first category to organize spending.
+          </p>
+          <Button className="mt-4" onClick={() => setWizardOpen(true)}>
+            Create your first category
+          </Button>
+        </div>
       ) : filtered.length === 0 ? (
-        <p className="text-muted-foreground">No transactions found.</p>
+        <div className="rounded-md border p-8 text-center">
+          <p className="text-muted-foreground">No transactions found.</p>
+          <Button className="mt-4" onClick={() => setTxOpen(true)}>
+            Add your first transaction
+          </Button>
+        </div>
       ) : (
         <>
           <div className="rounded-md border">
