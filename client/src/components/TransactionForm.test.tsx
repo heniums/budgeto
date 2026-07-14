@@ -81,4 +81,38 @@ describe('TransactionForm — prerequisite warnings', () => {
       screen.queryByText(/you have no categories yet/i),
     ).not.toBeInTheDocument();
   });
+
+  it('calls onCreateWallet when Create one link is clicked', async () => {
+    const onCreateWallet = vi.fn();
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          onSuccess={vi.fn()}
+          onCreateWallet={onCreateWallet}
+        />
+      </MemoryRouter>,
+    );
+    const link = await screen.findByText(/create one/i);
+    link.click();
+    expect(onCreateWallet).toHaveBeenCalled();
+  });
+
+  it('calls onCreateCategory when Create one link is clicked', async () => {
+    const onCreateCategory = vi.fn();
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categoriesCount={2}
+          onSuccess={vi.fn()}
+          onCreateCategory={onCreateCategory}
+        />
+      </MemoryRouter>,
+    );
+    const links = await screen.findAllByText(/create one/i);
+    const catLink = links[links.length - 1];
+    catLink.click();
+    expect(onCreateCategory).toHaveBeenCalled();
+  });
 });
