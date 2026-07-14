@@ -453,4 +453,42 @@ describe('GET /transactions (user-scoped)', () => {
     expect(response.status).toBe(200);
     expect(response.body.transactions[0].description).toBe('New');
   });
+
+  it('includes categoryId and categoryName in transaction list', async () => {
+    await deleteAllUsers();
+    const token = await createTestUser();
+    const walletId = await createWallet(token);
+    const categoryId = await createCategory(token, 'Food');
+
+    await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        amount: '50.00',
+        description: 'Groceries',
+        categoryId,
+      });
+    await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '20.00', description: 'No cat' });
+
+    const response = await request(app)
+      .get('/transactions')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.transactions).toHaveLength(2);
+
+    const categorized = response.body.transactions.find(
+      (tx: Record<string, unknown>) => tx.description === 'Groceries',
+    );
+    const uncategorized = response.body.transactions.find(
+      (tx: Record<string, unknown>) => tx.description === 'No cat',
+    );
+
+    expect(categorized.categoryId).toBe(categoryId);
+    expect(categorized.categoryName).toBe('Food');
+    expect(uncategorized.categoryId).toBeNull();
+    expect(uncategorized.categoryName).toBeNull();
+  });
 });
