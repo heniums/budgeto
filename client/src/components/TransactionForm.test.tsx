@@ -1,9 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { TransactionForm } from './TransactionForm';
 
 import type * as WalletModule from '../api/wallets';
+import type * as TxModule from '../api/transactions';
 
 vi.mock('../api/wallets', async (importOriginal) => {
   const actual = await importOriginal<typeof WalletModule>();
@@ -13,7 +15,16 @@ vi.mock('../api/wallets', async (importOriginal) => {
   };
 });
 
+vi.mock('../api/transactions', async (importOriginal) => {
+  const actual = await importOriginal<typeof TxModule>();
+  return {
+    ...actual,
+    updateTransaction: vi.fn(),
+  };
+});
+
 import { createTransaction } from '../api/wallets';
+import { updateTransaction } from '../api/transactions';
 
 const wallets = [
   {
@@ -219,5 +230,125 @@ describe('TransactionForm — prerequisite warnings', () => {
 
     const select = screen.getByLabelText('Category') as HTMLSelectElement;
     expect(select.value).toBe('c2');
+  });
+});
+
+describe('TransactionForm — edit mode', () => {
+  const categories = [
+    { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(updateTransaction).mockResolvedValue({
+      id: 't-edit',
+      walletId: 'w1',
+      amount: '200.00',
+      description: 'Updated desc',
+      categoryId: 'c1',
+      categoryName: 'Food',
+      createdAt: '2024-01-01',
+    });
+    vi.mocked(createTransaction).mockResolvedValue({
+      id: 't-new',
+      walletId: 'w1',
+      amount: '50.00',
+      description: 'Test',
+      categoryId: null,
+      createdAt: '',
+    });
+    cleanup();
+  });
+
+  it('pre-fills fields from initialValues in edit mode', () => {
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+          editMode
+          initialValues={{
+            walletId: 'w1',
+            amount: '42.50',
+            description: 'Groceries',
+            categoryId: 'c1',
+          }}
+          editTxId="t-edit"
+        />
+      </MemoryRouter>,
+    );
+
+    const walletSelect = screen.getByLabelText('Wallet') as HTMLSelectElement;
+    const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
+    const descInput = screen.getByLabelText('Description') as HTMLInputElement;
+    const categorySelect = screen.getByLabelText(
+      'Category',
+    ) as HTMLSelectElement;
+
+    expect(walletSelect.value).toBe('w1');
+    expect(amountInput.value).toBe('42.50');
+    expect(descInput.value).toBe('Groceries');
+    expect(categorySelect.value).toBe('c1');
+  });
+
+  it('shows "Save changes" button in edit mode', () => {
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+          editMode
+          initialValues={{
+            walletId: 'w1',
+            amount: '10',
+            description: '',
+            categoryId: '',
+          }}
+          editTxId="t-edit"
+        />
+      </MemoryRouter>,
+    );
+
+    expect(
+      screen.getByRole('button', { name: /save changes/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: /add transaction/i }),
+    ).not.toBeInTheDocument();
+  });
+
+  it('calls updateTransaction on submit in edit mode', async () => {
+    const onSuccess = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={onSuccess}
+          editMode
+          initialValues={{
+            walletId: 'w1',
+            amount: '100',
+            description: 'Old',
+            categoryId: '',
+          }}
+          editTxId="t-edit"
+        />
+      </MemoryRouter>,
+    );
+
+    await user.click(screen.getByRole('button', { name: /save changes/i }));
+
+    expect(updateTransaction).toHaveBeenCalledWith('t-edit', {
+      amount: '100',
+      description: 'Old',
+      categoryId: undefined,
+      walletId: 'w1',
+    });
+    expect(createTransaction).not.toHaveBeenCalled();
   });
 });
