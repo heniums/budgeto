@@ -1,0 +1,108 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { MemoryRouter } from 'react-router-dom';
+import { Home } from './Home';
+
+import type * as TxModule from '../api/transactions';
+import type * as WalletModule from '../api/wallets';
+
+vi.mock('../api/transactions', async (importOriginal) => {
+  const actual = await importOriginal<typeof TxModule>();
+  return { ...actual, getTransactions: vi.fn() };
+});
+vi.mock('../api/wallets', async (importOriginal) => {
+  const actual = await importOriginal<typeof WalletModule>();
+  return { ...actual, getWallets: vi.fn() };
+});
+
+import { getTransactions } from '../api/transactions';
+import { getWallets } from '../api/wallets';
+
+const wallets = [
+  {
+    id: 'w1',
+    name: 'Cash',
+    description: '',
+    color: '#1f8a4c',
+    balance: '100.00',
+    createdAt: '',
+    updatedAt: '',
+  },
+  {
+    id: 'w2',
+    name: 'Savings',
+    description: '',
+    color: '#2f6fed',
+    balance: '50.00',
+    createdAt: '',
+    updatedAt: '',
+  },
+];
+
+function renderHome(): void {
+  render(
+    <MemoryRouter>
+      <Home />
+    </MemoryRouter>,
+  );
+}
+
+describe('Home transactions list', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getTransactions).mockResolvedValue({
+      transactions: [
+        {
+          id: 't1',
+          walletId: 'w1',
+          amount: '50.00',
+          description: 'Salary',
+          createdAt: '2026-01-02T10:00:00Z',
+        },
+        {
+          id: 't2',
+          walletId: 'w2',
+          amount: '-20.00',
+          description: 'Coffee',
+          createdAt: '2026-01-01T10:00:00Z',
+        },
+      ],
+      total: 2,
+    });
+    cleanup();
+  });
+
+  it('lists all user transactions newest first', async () => {
+    renderHome();
+    expect(await screen.findByText('Salary')).toBeInTheDocument();
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+  });
+
+  it('filters by wallet', async () => {
+    renderHome();
+    await screen.findByText('Salary');
+    await userEvent.selectOptions(
+      screen.getByLabelText('Filter by wallet'),
+      'w1',
+    );
+    await waitFor(() => {
+      expect(screen.queryByText('Coffee')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Salary')).toBeInTheDocument();
+  });
+
+  it('filters by type (expense)', async () => {
+    renderHome();
+    await screen.findByText('Salary');
+    await userEvent.selectOptions(
+      screen.getByLabelText('Filter by type'),
+      'expense',
+    );
+    await waitFor(() => {
+      expect(screen.queryByText('Salary')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+  });
+});
