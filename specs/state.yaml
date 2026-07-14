@@ -30,23 +30,20 @@ metrics:
   bcp_per_hour: null
 
 git:
-  branch: feat/e06-ui-remake
-  hash: '3fed872'
+  branch: main
+  hash: '3b144f9'
   pushed: true
 
 handoff:
-  last_step_completed: 'Ran scope-work (SCOPE_LATEST.yaml) + plan-release: created e06 UI Remake capsule (epic.yaml, 6 story specs, 6 task files), execution-status.yaml, and updated release-plan.yaml (added e06, marked e05 done).'
-  open_decisions:
-    - 'e06s05 reworks TransactionForm/TransferForm onto shadcn Form, resolving the pre-existing WalletForm/TransferForm react-hook-form type errors (TS2322/TS2345).'
-    - 'e06s03 task 1 verifies a user-scoped, filterable GET /transactions exists server-side; if missing, implement it in server/src/transactions before the client list.'
+  last_step_completed: 'e06 UI Remake — all 6 stories done, PR #8 merged to main. Security review passed. Release v0.1.0 ready to tag.'
+  open_decisions: []
   required_reading:
     - specs/product/VISION_LATEST.yaml
     - specs/product/GUIDELINES_LATEST.yaml
     - specs/tech-architecture/TECH_STACK_LATEST.md
     - specs/tech-architecture/METHODOLOGY_LATEST.md
     - specs/release-plan.yaml
-    - specs/epics/e05-categories/epic.yaml
-  next_skill: plan-work
+  next_skill: null
 
 two_pass_spec:
   journey_pass: pending

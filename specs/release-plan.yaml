@@ -48,16 +48,17 @@ epics:
     completed_at: '2026-07-13'
     file: 'specs/epics/e05-categories/'
   - id: e06
-    title: 'UI Remake with shadcn/ui'
-    wsjf: 12
-    status: in_progress
-    capsule_dir: 'specs/epics/e06-ui-remake/'
-
-  - id: e06
     title: 'Transactions Management (CRUD + Wallet Transfers)'
     wsjf: 22
     status: done
     completed_at: '2026-07-13'
     file: 'specs/epics/e06-transactions/'
+
+  - id: e07
+    title: 'UI Remake with shadcn/ui'
+    wsjf: 12
+    status: done
+    completed_at: '2026-07-14'
+    capsule_dir: 'specs/epics/e06-ui-remake/'
 
 source: conductor/tracks.md
