@@ -115,4 +115,31 @@ describe('TransactionForm — prerequisite warnings', () => {
     catLink.click();
     expect(onCreateCategory).toHaveBeenCalled();
   });
+
+  it('auto-selects wallet when autoSelectWalletId prop is provided', async () => {
+    const walletsWithNew = [
+      ...wallets,
+      {
+        id: 'w-new',
+        name: 'Savings',
+        description: '',
+        color: '#2f6fed',
+        balance: '0.00',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={walletsWithNew}
+          onSuccess={vi.fn()}
+          autoSelectWalletId="w-new"
+        />
+      </MemoryRouter>,
+    );
+
+    const select = screen.getByLabelText('Wallet') as HTMLSelectElement;
+    expect(select.value).toBe('w-new');
+  });
 });
