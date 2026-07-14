@@ -112,7 +112,7 @@ describe('OnboardingWizard', () => {
     );
 
     await screen.findByText('Step 1 of 3');
-    await userEvent.click(screen.getByLabelText('Close wizard'));
+    await userEvent.click(screen.getByRole('button', { name: 'Close' }));
 
     expect(onOpenChange).toHaveBeenCalledWith(false);
     expect(localStorage.getItem('budgeto:wizardDismissed')).toBe('true');
