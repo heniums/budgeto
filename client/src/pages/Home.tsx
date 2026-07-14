@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
+import { OnboardingWizard } from '../components/OnboardingWizard';
 
 const PAGE_SIZE = 10;
 
@@ -51,6 +52,7 @@ export function Home(): JSX.Element {
   const [page, setPage] = useState(1);
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
 
   const load = (): void => {
     setLoading(true);
@@ -60,6 +62,13 @@ export function Home(): JSX.Element {
         setTransactions(txResult.transactions);
         setWallets(walletResult.wallets);
         setCategories(catResult.categories);
+
+        if (
+          walletResult.wallets.length === 0 &&
+          localStorage.getItem('budgeto:wizardDismissed') !== 'true'
+        ) {
+          setWizardOpen(true);
+        }
       })
       .catch((err) => {
         setError(
@@ -113,6 +122,15 @@ export function Home(): JSX.Element {
 
   return (
     <div className="space-y-6">
+      <OnboardingWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onComplete={() => {
+          setWizardOpen(false);
+          load();
+        }}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
         <div className="flex gap-2">

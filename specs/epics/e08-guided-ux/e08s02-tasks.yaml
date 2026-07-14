@@ -14,7 +14,7 @@ tasks:
       "Start setup" item in the user menu.
     verify: 'npm test -- client/src/components/OnboardingWizard.test.tsx'
     risk: P1
-    status: failing
+    status: passing
     allure:
       severity: high
       categories:
