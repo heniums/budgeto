@@ -142,4 +142,44 @@ describe('TransactionForm — prerequisite warnings', () => {
     const select = screen.getByLabelText('Wallet') as HTMLSelectElement;
     expect(select.value).toBe('w-new');
   });
+
+  it('renders category dropdown when categories are provided', () => {
+    const categories = [
+      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
+      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c' },
+    ];
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByLabelText('Category')).toBeInTheDocument();
+    expect(screen.getByText('Food')).toBeInTheDocument();
+    expect(screen.getByText('Salary')).toBeInTheDocument();
+  });
+
+  it('auto-selects category when autoSelectCategoryId prop is provided', () => {
+    const categories = [
+      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
+      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c' },
+    ];
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+          autoSelectCategoryId="c2"
+        />
+      </MemoryRouter>,
+    );
+
+    const select = screen.getByLabelText('Category') as HTMLSelectElement;
+    expect(select.value).toBe('c2');
+  });
 });
