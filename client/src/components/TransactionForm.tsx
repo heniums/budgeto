@@ -27,6 +27,7 @@ interface TransactionFormProps {
   onSuccess: () => void;
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
+  onViewWallet?: (walletId: string) => void;
 }
 
 export function TransactionForm({
@@ -35,18 +36,22 @@ export function TransactionForm({
   onSuccess,
   onCreateWallet,
   onCreateCategory,
+  onViewWallet,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<TransactionValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: { walletId: '', amount: '', description: '' },
   });
+
+  const selectedWalletId = watch('walletId');
 
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
@@ -125,6 +130,15 @@ export function TransactionForm({
             role="button"
           >
             Don&apos;t see your wallet? Create one →
+          </span>
+        )}
+        {onViewWallet && selectedWalletId && (
+          <span
+            className="text-xs text-muted-foreground underline cursor-pointer"
+            onClick={() => onViewWallet(selectedWalletId)}
+            role="button"
+          >
+            View wallet details
           </span>
         )}
       </div>

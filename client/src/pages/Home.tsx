@@ -34,6 +34,28 @@ import {
 
 const PAGE_SIZE = 10;
 
+function useLongPress(
+  onLongPress: () => void,
+  ms = 500,
+): {
+  onTouchStart: () => void;
+  onTouchEnd: () => void;
+  onTouchMove: () => void;
+} {
+  const timerRef = { current: null as ReturnType<typeof setTimeout> | null };
+  return {
+    onTouchStart: () => {
+      timerRef.current = setTimeout(onLongPress, ms);
+    },
+    onTouchEnd: () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    onTouchMove: () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+  };
+}
+
 function formatAmount(amount: string): string {
   const n = Number(amount);
   const sign = n < 0 ? '-' : '';
@@ -167,6 +189,10 @@ export function Home(): JSX.Element {
                 onCreateCategory={() => {
                   setTxOpen(false);
                   setWizardOpen(true);
+                }}
+                onViewWallet={(id) => {
+                  setTxOpen(false);
+                  setDetailWalletId(id);
                 }}
               />
             </DialogContent>
@@ -317,7 +343,12 @@ export function Home(): JSX.Element {
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>
                         <ContextMenu>
-                          <ContextMenuTrigger className="cursor-context-menu">
+                          <ContextMenuTrigger
+                            className="cursor-context-menu"
+                            {...useLongPress(() =>
+                              setDetailWalletId(tx.walletId),
+                            )}
+                          >
                             {walletName(tx.walletId)}
                           </ContextMenuTrigger>
                           <ContextMenuContent>
@@ -338,6 +369,9 @@ export function Home(): JSX.Element {
                                 backgroundColor: cat.color + '20',
                                 color: cat.color,
                               }}
+                              {...useLongPress(() =>
+                                setDetailCategoryId(cat.id),
+                              )}
                             >
                               {cat.name}
                             </ContextMenuTrigger>
