@@ -111,8 +111,46 @@ describe('TransactionForm — prerequisite warnings', () => {
       </MemoryRouter>,
     );
     const links = await screen.findAllByText(/create one/i);
+    // Last link is under the description section
     const catLink = links[links.length - 1];
     catLink.click();
+    expect(onCreateCategory).toHaveBeenCalled();
+  });
+
+  it('calls onCreateWallet when warning Create one is clicked (no wallets)', async () => {
+    const onCreateWallet = vi.fn();
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={[]}
+          onSuccess={vi.fn()}
+          onCreateWallet={onCreateWallet}
+        />
+      </MemoryRouter>,
+    );
+    const links = await screen.findAllByText(/create one/i);
+    // The warning span is the first one
+    const warnLink = links[0];
+    warnLink.click();
+    expect(onCreateWallet).toHaveBeenCalled();
+  });
+
+  it('calls onCreateCategory when warning Create one is clicked (no categories)', async () => {
+    const onCreateCategory = vi.fn();
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categoriesCount={0}
+          onSuccess={vi.fn()}
+          onCreateCategory={onCreateCategory}
+        />
+      </MemoryRouter>,
+    );
+    const links = await screen.findAllByText(/create one/i);
+    // The warning "Create one →" should be clickable
+    expect(onCreateCategory).not.toHaveBeenCalled();
+    links[0].click();
     expect(onCreateCategory).toHaveBeenCalled();
   });
 
