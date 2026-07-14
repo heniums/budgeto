@@ -1,46 +1,38 @@
-# Security Review — e06 UI Remake
+# Security Review — Backend Auth Guard Cleanup
 
-**Branch:** feat/e06-ui-remake
+**Branch:** ref/auth-guard-cleanup
 **Date:** 2026-07-14
-**Reviewer:** agent (audit-code / release-branch gate)
+**Reviewer:** agent (release-branch gate)
 
 ## Scope
 
-83 files changed (4,442 insertions, 679 deletions). Primary categories:
+6 files changed (113 insertions, 54 deletions). Primary categories:
 
-- **UI (client/):** Tailwind v3 + shadcn/ui toolchain, nav restructuring, Home page, Settings page, form reworks — no auth/data flow changes
-- **New endpoint:** `GET /transactions` — user-scoped all-transactions list
-- **Spec files:** Epic planning documents
+- **Server controllers:** Removed 13 unreachable `if (!req.user) throw unauthorizedError()` guards from wallets, categories, and transactions controllers. Auth enforcement remains in the `authenticate` middleware (unchanged).
+- **Middleware:** Added `getUser()` helper — pure type narrowing, no runtime auth check.
+- **Spec files:** Updated planning-context.yaml, added verification evidence.
 
 ## Findings
 
 ### Injection
-
-- ✅ No raw SQL queries — all DB access via Drizzle ORM
-- ✅ No user input interpolated into queries
-- ✅ Zod schema validation on all inputs
+- ✅ No new queries — all DB access unchanged (Drizzle ORM)
+- ✅ No user input interpolated
 
 ### Broken Auth
-
-- ✅ `GET /transactions` uses `findTransactionsByUserId(req.user.sub)` — properly user-scoped
-- ✅ No changes to auth middleware or JWT handling
-- ✅ Cross-user access tests added (5 new tests covering wallet/transaction ownership checks)
+- ✅ Auth enforcement unchanged — `authenticate` middleware untouched, still applied via `router.use(authenticate)` on all protected routes
+- ✅ Guards removed were dead code (middleware always sets `req.user` or calls `next(error)`)
+- ✅ `getUser()` helper does not bypass auth — it's a pure type-narrowing `as` cast
+- ✅ All 11 existing unauthenticated-request tests (401) still pass
 
 ### Sensitive Data Exposure
-
-- ✅ No new data fields exposed
-- ✅ No changes to response shapes that leak user data
+- ✅ No new fields, no response shape changes
 
 ### Security Misconfiguration
-
-- ✅ No CORS changes
-- ✅ No env/secret management changes
-- ✅ No dependency downgrades
+- ✅ No CORS, env, or dependency changes
 
 ### Secrets
-
-- ✅ No secrets in diff (no `sk-`, `ghp_`, `AKIA`, `.env` values)
+- ✅ No secrets in diff
 
 ## Verdict
 
-**PASS** — No security concerns. Pure UI remake with one properly-scoped new endpoint.
+**PASS** — No security concerns. Dead-code removal only. Auth enforcement path is unchanged.
