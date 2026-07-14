@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { TokenPayload } from '../auth/token';
+import { getUser } from '../auth/middleware';
 import {
   createWalletSchema,
   updateWalletSchema,
@@ -17,7 +17,8 @@ export async function createHandler(
 ): Promise<void> {
   try {
     const input = createWalletSchema.parse(req.body);
-    const wallet = await create((req.user as TokenPayload).sub, input);
+    const user = getUser(req);
+    const wallet = await create(user.sub, input);
     res.status(201).json(wallet);
   } catch (error) {
     next(error);
@@ -30,7 +31,8 @@ export async function listHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const result = await list((req.user as TokenPayload).sub);
+    const user = getUser(req);
+    const result = await list(user.sub);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -43,7 +45,8 @@ export async function getHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const wallet = await get(req.params.id, (req.user as TokenPayload).sub);
+    const user = getUser(req);
+    const wallet = await get(req.params.id, user.sub);
     res.status(200).json(wallet);
   } catch (error) {
     next(error);
@@ -57,7 +60,8 @@ export async function updateHandler(
 ): Promise<void> {
   try {
     const input = updateWalletSchema.parse(req.body);
-    const wallet = await update(req.params.id, (req.user as TokenPayload).sub, input);
+    const user = getUser(req);
+    const wallet = await update(req.params.id, user.sub, input);
     res.status(200).json(wallet);
   } catch (error) {
     next(error);
@@ -70,7 +74,8 @@ export async function deleteHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    await remove(req.params.id, (req.user as TokenPayload).sub);
+    const user = getUser(req);
+    await remove(req.params.id, user.sub);
     res.status(204).send();
   } catch (error) {
     next(error);

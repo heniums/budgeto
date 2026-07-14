@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { TokenPayload } from '../auth/token';
+import { getUser } from '../auth/middleware';
 import { z } from 'zod';
 import {
   createCategorySchema,
@@ -20,7 +20,8 @@ export async function createHandler(
 ): Promise<void> {
   try {
     const input = createCategorySchema.parse(req.body);
-    const category = await create((req.user as TokenPayload).sub, input);
+    const user = getUser(req);
+    const category = await create(user.sub, input);
     res.status(201).json(category);
   } catch (error) {
     next(error);
@@ -33,7 +34,8 @@ export async function listHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const result = await list((req.user as TokenPayload).sub);
+    const user = getUser(req);
+    const result = await list(user.sub);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -47,7 +49,8 @@ export async function getHandler(
 ): Promise<void> {
   try {
     const id = idParamSchema.parse(req.params.id);
-    const category = await get(id, (req.user as TokenPayload).sub);
+    const user = getUser(req);
+    const category = await get(id, user.sub);
     res.status(200).json(category);
   } catch (error) {
     next(error);
@@ -62,7 +65,8 @@ export async function updateHandler(
   try {
     const input = updateCategorySchema.parse(req.body);
     const id = idParamSchema.parse(req.params.id);
-    const category = await update(id, (req.user as TokenPayload).sub, input);
+    const user = getUser(req);
+    const category = await update(id, user.sub, input);
     res.status(200).json(category);
   } catch (error) {
     next(error);
@@ -76,7 +80,8 @@ export async function deleteHandler(
 ): Promise<void> {
   try {
     const id = idParamSchema.parse(req.params.id);
-    await remove(id, (req.user as TokenPayload).sub);
+    const user = getUser(req);
+    await remove(id, user.sub);
     res.status(204).send();
   } catch (error) {
     next(error);

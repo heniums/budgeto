@@ -33,3 +33,12 @@ export function authenticate(
     next(unauthorizedError('Invalid or expired token'));
   }
 }
+
+/**
+ * Extracts the authenticated user from a request that has passed through the
+ * `authenticate` middleware. This is a pure type-narrowing convenience — it
+ * does not re-check auth (the middleware already guarantees `req.user` is set).
+ */
+export function getUser(req: Request): TokenPayload {
+  return req.user as TokenPayload;
+}

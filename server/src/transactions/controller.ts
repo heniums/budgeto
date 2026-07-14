@@ -1,5 +1,5 @@
 import type { Request, Response, NextFunction } from 'express';
-import type { TokenPayload } from '../auth/token';
+import { getUser } from '../auth/middleware';
 import {
   createTransactionSchema,
   transferSchema,
@@ -16,7 +16,7 @@ export async function createTransactionHandler(
 ): Promise<void> {
   try {
     const input = createTransactionSchema.parse(req.body);
-    const user = req.user as TokenPayload;
+    const user = getUser(req);
     const tx = await create(user.sub, req.params.id, input);
     res.status(201).json(tx);
   } catch (error) {
@@ -30,7 +30,7 @@ export async function listTransactionsHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const user = req.user as TokenPayload;
+    const user = getUser(req);
     const result = await list(user.sub, req.params.id);
     res.status(200).json(result);
   } catch (error) {
@@ -44,7 +44,7 @@ export async function listAllTransactionsHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const user = req.user as TokenPayload;
+    const user = getUser(req);
     const result = await listByUser(user.sub);
     res.status(200).json(result);
   } catch (error) {
@@ -59,7 +59,7 @@ export async function transferHandler(
 ): Promise<void> {
   try {
     const input = transferSchema.parse(req.body);
-    const user = req.user as TokenPayload;
+    const user = getUser(req);
     const result = await transfer(user.sub, input);
     res.status(200).json(result);
   } catch (error) {
