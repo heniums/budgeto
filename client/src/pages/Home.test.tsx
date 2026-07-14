@@ -286,6 +286,7 @@ describe('Home transaction detail view', () => {
       amount: '-42.50',
       description: 'Groceries',
       categoryId: 'c1',
+      categoryName: null,
       createdAt: '2026-01-02T10:00:00Z',
     });
     cleanup();

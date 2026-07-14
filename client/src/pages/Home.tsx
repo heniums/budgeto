@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getTransactions, type TransactionData, updateTransaction, deleteTransaction } from '../api/transactions';
+import { getTransactions, type TransactionData, deleteTransaction } from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
