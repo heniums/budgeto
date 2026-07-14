@@ -23,24 +23,35 @@ type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
+  categoriesCount?: number;
   onSuccess: () => void;
+  onCreateWallet?: () => void;
+  onCreateCategory?: () => void;
+  onViewWallet?: (walletId: string) => void;
 }
 
 export function TransactionForm({
   wallets,
+  categoriesCount,
   onSuccess,
+  onCreateWallet,
+  onCreateCategory,
+  onViewWallet,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
   const {
     register,
     handleSubmit,
+    watch,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<TransactionValues>({
     resolver: zodResolver(transactionSchema),
     defaultValues: { walletId: '', amount: '', description: '' },
   });
+
+  const selectedWalletId = watch('walletId');
 
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
@@ -62,6 +73,28 @@ export function TransactionForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+      {wallets.length === 0 && (
+        <div
+          role="alert"
+          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
+        >
+          You need a wallet to add a transaction.{' '}
+          <span className="font-medium underline cursor-pointer">
+            Create one →
+          </span>
+        </div>
+      )}
+      {wallets.length > 0 && categoriesCount === 0 && (
+        <div
+          role="alert"
+          className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-700"
+        >
+          You have no categories yet.{' '}
+          <span className="font-medium underline cursor-pointer">
+            Create one →
+          </span>
+        </div>
+      )}
       {formError && (
         <div
           role="alert"
@@ -90,6 +123,24 @@ export function TransactionForm({
             {errors.walletId.message}
           </span>
         )}
+        {onCreateWallet && (
+          <span
+            className="text-xs text-muted-foreground underline cursor-pointer"
+            onClick={onCreateWallet}
+            role="button"
+          >
+            Don&apos;t see your wallet? Create one →
+          </span>
+        )}
+        {onViewWallet && selectedWalletId && (
+          <span
+            className="text-xs text-muted-foreground underline cursor-pointer"
+            onClick={() => onViewWallet(selectedWalletId)}
+            role="button"
+          >
+            View wallet details
+          </span>
+        )}
       </div>
 
       <div className="space-y-2">
@@ -116,9 +167,18 @@ export function TransactionForm({
           placeholder="e.g. Groceries"
           {...register('description')}
         />
+        {onCreateCategory && (
+          <span
+            className="text-xs text-muted-foreground underline cursor-pointer"
+            onClick={onCreateCategory}
+            role="button"
+          >
+            Don&apos;t see your category? Create one →
+          </span>
+        )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting}>
+      <Button type="submit" disabled={isSubmitting || wallets.length === 0}>
         {isSubmitting ? 'Adding…' : 'Add Transaction'}
       </Button>
     </form>

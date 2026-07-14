@@ -1,38 +1,55 @@
-# Security Review — Backend Auth Guard Cleanup
+# Security Review — e08 Guided User Experience
 
-**Branch:** ref/auth-guard-cleanup
+**Branch:** feat/e08-guided-ux
 **Date:** 2026-07-14
-**Reviewer:** agent (release-branch gate)
+**Reviewer:** agent (verify-work gate)
 
 ## Scope
 
-6 files changed (113 insertions, 54 deletions). Primary categories:
+34 files changed (2306 insertions, 104 deletions). Primary categories:
 
-- **Server controllers:** Removed 13 unreachable `if (!req.user) throw unauthorizedError()` guards from wallets, categories, and transactions controllers. Auth enforcement remains in the `authenticate` middleware (unchanged).
-- **Middleware:** Added `getUser()` helper — pure type narrowing, no runtime auth check.
-- **Spec files:** Updated planning-context.yaml, added verification evidence.
+- **Server:** Added LEFT JOIN on categories table in `findTransactionsByUserId`. Added `categoryName` field to `listByUser` response. No new routes, no new mutation endpoints.
+- **Client:** New components (OnboardingWizard, WalletDetailSheet, CategoryDetailSheet, context-menu UI). Modified Home.tsx, TransactionForm.tsx. Added `@radix-ui/react-context-menu` dependency.
 
 ## Findings
 
 ### Injection
-- ✅ No new queries — all DB access unchanged (Drizzle ORM)
-- ✅ No user input interpolated
+
+- ✅ No new queries — `leftJoin(categories, ...)` uses Drizzle ORM parameterized query builder
+- ✅ No user input interpolated into SQL
+- ✅ All existing queries use Drizzle ORM exclusively
 
 ### Broken Auth
-- ✅ Auth enforcement unchanged — `authenticate` middleware untouched, still applied via `router.use(authenticate)` on all protected routes
-- ✅ Guards removed were dead code (middleware always sets `req.user` or calls `next(error)`)
-- ✅ `getUser()` helper does not bypass auth — it's a pure type-narrowing `as` cast
+
+- ✅ Auth enforcement unchanged — `authenticate` middleware untouched
+- ✅ `getUser()` helper from previous refactor still used in controllers
+- ✅ LEFT JOIN on categories table scoped by `eq(wallets.userId, userId)` — no cross-user data access
 - ✅ All 11 existing unauthenticated-request tests (401) still pass
+- ✅ New OnboardingWizard calls authenticated APIs (createWallet, createCategory) — same auth flow
 
 ### Sensitive Data Exposure
-- ✅ No new fields, no response shape changes
+
+- ✅ `categoryName` field added to response — already public (category names are visible to the owning user)
+- ✅ No user emails, password hashes, or tokens added to new responses
+- ✅ localStorage key `budgeto:wizardDismissed` stores only boolean — no sensitive data
 
 ### Security Misconfiguration
-- ✅ No CORS, env, or dependency changes
 
-### Secrets
-- ✅ No secrets in diff
+- ✅ No CORS changes
+- ✅ No env configuration changes
+- ✅ ESLint config updated to exclude stale build artifacts only — no security impact
+
+### Dependency Review
+
+- ✅ `@radix-ui/react-context-menu` — Radix primitive, same ecosystem as existing shadcn dependencies. No known vulnerabilities.
+- ✅ No other new dependencies
+
+### Client-Side
+
+- ✅ localStorage wrapped in try/catch for private browsing compatibility
+- ✅ No XSS vectors introduced — all user data rendered via React JSX (auto-escaped)
+- ✅ Context menu actions trigger existing API calls with JWT auth
 
 ## Verdict
 
-**PASS** — No security concerns. Dead-code removal only. Auth enforcement path is unchanged.
+**PASS** — No security concerns. The only server change is a read-only LEFT JOIN on the categories table, already scoped by user ID. Client changes add UI components that reuse existing authenticated API calls. No new attack surface.

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getTransactions, type TransactionData } from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
+import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,8 +22,39 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
+import { OnboardingWizard } from '../components/OnboardingWizard';
+import { WalletDetailSheet } from '../components/WalletDetailSheet';
+import { CategoryDetailSheet } from '../components/CategoryDetailSheet';
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from '@/components/ui/context-menu';
 
 const PAGE_SIZE = 10;
+
+function useLongPress(
+  onLongPress: () => void,
+  ms = 500,
+): {
+  onTouchStart: () => void;
+  onTouchEnd: () => void;
+  onTouchMove: () => void;
+} {
+  const timerRef = { current: null as ReturnType<typeof setTimeout> | null };
+  return {
+    onTouchStart: () => {
+      timerRef.current = setTimeout(onLongPress, ms);
+    },
+    onTouchEnd: () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    onTouchMove: () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+  };
+}
 
 function formatAmount(amount: string): string {
   const n = Number(amount);
@@ -38,6 +70,7 @@ function formatDate(iso: string): string {
 export function Home(): JSX.Element {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [wallets, setWallets] = useState<WalletData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -49,14 +82,25 @@ export function Home(): JSX.Element {
   const [page, setPage] = useState(1);
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
+  const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
 
   const load = (): void => {
     setLoading(true);
     setError(null);
-    Promise.all([getTransactions(), getWallets()])
-      .then(([txResult, walletResult]) => {
+    Promise.all([getTransactions(), getWallets(), getCategories()])
+      .then(([txResult, walletResult, catResult]) => {
         setTransactions(txResult.transactions);
         setWallets(walletResult.wallets);
+        setCategories(catResult.categories);
+
+        if (
+          walletResult.wallets.length === 0 &&
+          localStorage.getItem('budgeto:wizardDismissed') !== 'true'
+        ) {
+          setWizardOpen(true);
+        }
       })
       .catch((err) => {
         setError(
@@ -74,6 +118,14 @@ export function Home(): JSX.Element {
 
   const walletName = (walletId: string): string =>
     wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
+
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, CategoryData>();
+    for (const c of categories) {
+      map.set(c.id, c);
+    }
+    return map;
+  }, [categories]);
 
   const filtered = useMemo(() => {
     return transactions.filter((tx) => {
@@ -102,6 +154,15 @@ export function Home(): JSX.Element {
 
   return (
     <div className="space-y-6">
+      <OnboardingWizard
+        open={wizardOpen}
+        onOpenChange={setWizardOpen}
+        onComplete={() => {
+          setWizardOpen(false);
+          load();
+        }}
+      />
+
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
         <div className="flex gap-2">
@@ -115,10 +176,23 @@ export function Home(): JSX.Element {
               </DialogHeader>
               <TransactionForm
                 wallets={wallets}
+                categoriesCount={categories.length}
                 onSuccess={() => {
                   setTxOpen(false);
                   setPage(1);
                   load();
+                }}
+                onCreateWallet={() => {
+                  setTxOpen(false);
+                  setWizardOpen(true);
+                }}
+                onCreateCategory={() => {
+                  setTxOpen(false);
+                  setWizardOpen(true);
+                }}
+                onViewWallet={(id) => {
+                  setTxOpen(false);
+                  setDetailWalletId(id);
                 }}
               />
             </DialogContent>
@@ -218,8 +292,33 @@ export function Home(): JSX.Element {
 
       {loading ? (
         <p className="text-muted-foreground">Loading…</p>
+      ) : !loading && wallets.length === 0 ? (
+        <div className="rounded-md border p-8 text-center">
+          <p className="text-lg font-medium">You have no wallets yet.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create your first wallet to start tracking transactions.
+          </p>
+          <Button className="mt-4" onClick={() => setWizardOpen(true)}>
+            Create your first wallet
+          </Button>
+        </div>
+      ) : !loading && categories.length === 0 ? (
+        <div className="rounded-md border p-8 text-center">
+          <p className="text-lg font-medium">You have no categories yet.</p>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Create your first category to organize spending.
+          </p>
+          <Button className="mt-4" onClick={() => setWizardOpen(true)}>
+            Create your first category
+          </Button>
+        </div>
       ) : filtered.length === 0 ? (
-        <p className="text-muted-foreground">No transactions found.</p>
+        <div className="rounded-md border p-8 text-center">
+          <p className="text-muted-foreground">No transactions found.</p>
+          <Button className="mt-4" onClick={() => setTxOpen(true)}>
+            Add your first transaction
+          </Button>
+        </div>
       ) : (
         <>
           <div className="rounded-md border">
@@ -228,6 +327,7 @@ export function Home(): JSX.Element {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Wallet</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
@@ -235,10 +335,58 @@ export function Home(): JSX.Element {
               <TableBody>
                 {pageItems.map((tx) => {
                   const amount = Number(tx.amount);
+                  const cat = tx.categoryId
+                    ? categoryMap.get(tx.categoryId)
+                    : null;
                   return (
                     <TableRow key={tx.id}>
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
-                      <TableCell>{walletName(tx.walletId)}</TableCell>
+                      <TableCell>
+                        <ContextMenu>
+                          <ContextMenuTrigger
+                            className="cursor-context-menu"
+                            {...useLongPress(() =>
+                              setDetailWalletId(tx.walletId),
+                            )}
+                          >
+                            {walletName(tx.walletId)}
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuItem
+                              onClick={() => setDetailWalletId(tx.walletId)}
+                            >
+                              View wallet details
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                        </ContextMenu>
+                      </TableCell>
+                      <TableCell>
+                        {cat ? (
+                          <ContextMenu>
+                            <ContextMenuTrigger
+                              className="cursor-context-menu inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                              style={{
+                                backgroundColor: cat.color + '20',
+                                color: cat.color,
+                              }}
+                              {...useLongPress(() =>
+                                setDetailCategoryId(cat.id),
+                              )}
+                            >
+                              {cat.name}
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                              <ContextMenuItem
+                                onClick={() => setDetailCategoryId(cat.id)}
+                              >
+                                View category details
+                              </ContextMenuItem>
+                            </ContextMenuContent>
+                          </ContextMenu>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell>{tx.description || '—'}</TableCell>
                       <TableCell
                         className={`text-right ${
@@ -280,6 +428,30 @@ export function Home(): JSX.Element {
           </div>
         </>
       )}
+
+      <WalletDetailSheet
+        walletId={detailWalletId ?? ''}
+        open={detailWalletId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailWalletId(null);
+        }}
+        onSuccess={() => {
+          setDetailWalletId(null);
+          load();
+        }}
+      />
+
+      <CategoryDetailSheet
+        categoryId={detailCategoryId ?? ''}
+        open={detailCategoryId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailCategoryId(null);
+        }}
+        onSuccess={() => {
+          setDetailCategoryId(null);
+          load();
+        }}
+      />
     </div>
   );
 }

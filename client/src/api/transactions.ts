@@ -5,6 +5,8 @@ export interface TransactionData {
   walletId: string;
   amount: string;
   description: string;
+  categoryId: string | null;
+  categoryName: string | null;
   createdAt: string;
 }
 
