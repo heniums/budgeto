@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getTransactions, type TransactionData } from '../api/transactions';
+import { getTransactions, type TransactionData, updateTransaction, deleteTransaction } from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
@@ -22,6 +22,7 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
+import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletDetailSheet } from '../components/WalletDetailSheet';
 import { CategoryDetailSheet } from '../components/CategoryDetailSheet';
@@ -82,6 +83,11 @@ export function Home(): JSX.Element {
   const [page, setPage] = useState(1);
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
+  const [detailTx, setDetailTx] = useState<TransactionData | null>(null);
+  const [editTx, setEditTx] = useState<TransactionData | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
+    null,
+  );
   const [wizardOpen, setWizardOpen] = useState(false);
   const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
   const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
@@ -352,7 +358,11 @@ export function Home(): JSX.Element {
                     ? categoryMap.get(tx.categoryId)
                     : null;
                   return (
-                    <TableRow key={tx.id}>
+                    <TableRow
+                      key={tx.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => setDetailTx(tx)}
+                    >
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>
                         <ContextMenu>
@@ -441,6 +451,109 @@ export function Home(): JSX.Element {
           </div>
         </>
       )}
+
+            <TransactionDetailDialog
+        open={detailTx !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailTx(null);
+        }}
+        transaction={detailTx ?? ({} as TransactionData)}
+        walletName={
+          detailTx ? walletName(detailTx.walletId) : ''
+        }
+        categoryColor={
+          detailTx?.categoryId
+            ? categoryMap.get(detailTx.categoryId)?.color
+            : undefined
+        }
+        onEdit={() => {
+          if (detailTx) {
+            setDetailTx(null);
+            setEditTx(detailTx);
+          }
+        }}
+        onDelete={() => {
+          if (detailTx) {
+            setDetailTx(null);
+            setDeleteConfirm(detailTx);
+          }
+        }}
+      />
+
+      <Dialog
+        open={editTx !== null}
+        onOpenChange={(open) => {
+          if (!open) setEditTx(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit transaction</DialogTitle>
+          </DialogHeader>
+          {editTx && (
+            <TransactionForm
+              wallets={wallets}
+              categories={categories.map((c) => ({
+                id: c.id,
+                name: c.name,
+                type: c.type,
+                color: c.color,
+              }))}
+              onSuccess={() => {
+                setEditTx(null);
+                setPage(1);
+                load();
+              }}
+              editMode
+              editTxId={editTx.id}
+              initialValues={{
+                walletId: editTx.walletId,
+                amount: editTx.amount,
+                description: editTx.description,
+                categoryId: editTx.categoryId ?? '',
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
+        open={deleteConfirm !== null}
+        onOpenChange={(open) => {
+          if (!open) setDeleteConfirm(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete transaction</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Are you sure you want to delete this transaction? This action
+            cannot be undone.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setDeleteConfirm(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={async () => {
+                if (deleteConfirm) {
+                  await deleteTransaction(deleteConfirm.id);
+                  setDeleteConfirm(null);
+                  setPage(1);
+                  load();
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <WalletDetailSheet
         walletId={detailWalletId ?? ''}

@@ -302,9 +302,15 @@ describe('Home transaction detail view', () => {
     expect(
       await screen.findByText('Transaction details'),
     ).toBeInTheDocument();
-    expect(screen.getByText('-$42.50')).toBeInTheDocument();
-    expect(screen.getByText('Cash')).toBeInTheDocument();
-    expect(screen.getByText('Food')).toBeInTheDocument();
+    // Amount appears in both the table and the dialog — check dialog shows it
+    const amounts = screen.getAllByText('-$42.50');
+    expect(amounts.length).toBeGreaterThanOrEqual(2);
+    // Cash wallet name also appears in both
+    const cashElements = screen.getAllByText('Cash');
+    expect(cashElements.length).toBeGreaterThanOrEqual(2);
+    // Food category badge also appears in both
+    const foodElements = screen.getAllByText('Food');
+    expect(foodElements.length).toBeGreaterThanOrEqual(2);
   });
 
   it('opens edit form when Edit is clicked in detail dialog', async () => {
