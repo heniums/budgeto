@@ -85,6 +85,8 @@ export function Home(): JSX.Element {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
   const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
+  const [createWalletOpen, setCreateWalletOpen] = useState(false);
+  const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
 
   const load = (): void => {
     setLoading(true);
@@ -183,15 +185,12 @@ export function Home(): JSX.Element {
                   load();
                 }}
                 onCreateWallet={() => {
-                  setTxOpen(false);
-                  setWizardOpen(true);
+                  setCreateWalletOpen(true);
                 }}
                 onCreateCategory={() => {
-                  setTxOpen(false);
-                  setWizardOpen(true);
+                  setCreateCategoryOpen(true);
                 }}
                 onViewWallet={(id) => {
-                  setTxOpen(false);
                   setDetailWalletId(id);
                 }}
               />
@@ -441,6 +440,16 @@ export function Home(): JSX.Element {
         }}
       />
 
+      <WalletDetailSheet
+        walletId=""
+        open={createWalletOpen}
+        onOpenChange={setCreateWalletOpen}
+        onSuccess={() => {
+          setCreateWalletOpen(false);
+          load();
+        }}
+      />
+
       <CategoryDetailSheet
         categoryId={detailCategoryId ?? ''}
         open={detailCategoryId !== null}
@@ -449,6 +458,16 @@ export function Home(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailCategoryId(null);
+          load();
+        }}
+      />
+
+      <CategoryDetailSheet
+        categoryId=""
+        open={createCategoryOpen}
+        onOpenChange={setCreateCategoryOpen}
+        onSuccess={() => {
+          setCreateCategoryOpen(false);
           load();
         }}
       />
