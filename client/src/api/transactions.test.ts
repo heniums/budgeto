@@ -38,6 +38,8 @@ describe('transactions API client', () => {
             walletId: 'w1',
             amount: '50.00',
             description: 'Groceries',
+            categoryId: 'c1',
+            categoryName: 'Food',
             createdAt: '2024-01-01',
           },
         ],
@@ -48,6 +50,8 @@ describe('transactions API client', () => {
     expect(mockGet).toHaveBeenCalledWith('/transactions');
     expect(result.transactions).toHaveLength(1);
     expect(result.total).toBe(1);
+    expect(result.transactions[0].categoryId).toBe('c1');
+    expect(result.transactions[0].categoryName).toBe('Food');
   });
 
   it('getTransaction sends GET for a single transaction', async () => {
