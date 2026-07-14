@@ -137,3 +137,31 @@ describe('Home transactions list', () => {
     expect(screen.getByText('—')).toBeInTheDocument();
   });
 });
+
+describe('Home onboarding wizard', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    localStorage.clear();
+    vi.mocked(getCategories).mockResolvedValue({ categories: [] });
+    vi.mocked(getTransactions).mockResolvedValue({
+      transactions: [],
+      total: 0,
+    });
+    cleanup();
+  });
+
+  it('shows onboarding wizard when user has no wallets', async () => {
+    vi.mocked(getWallets).mockResolvedValue({ wallets: [] });
+    renderHome();
+    expect(await screen.findByText('Step 1 of 3')).toBeInTheDocument();
+    expect(screen.getByLabelText('Wallet name')).toBeInTheDocument();
+  });
+
+  it('does not show wizard when wizardDismissed is set', async () => {
+    localStorage.setItem('budgeto:wizardDismissed', 'true');
+    vi.mocked(getWallets).mockResolvedValue({ wallets: [] });
+    renderHome();
+    await screen.findByText('No transactions found.');
+    expect(screen.queryByText('Step 1 of 3')).not.toBeInTheDocument();
+  });
+});
