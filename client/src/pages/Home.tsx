@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getTransactions, type TransactionData } from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
+import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -38,6 +39,7 @@ function formatDate(iso: string): string {
 export function Home(): JSX.Element {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [wallets, setWallets] = useState<WalletData[]>([]);
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,10 +55,11 @@ export function Home(): JSX.Element {
   const load = (): void => {
     setLoading(true);
     setError(null);
-    Promise.all([getTransactions(), getWallets()])
-      .then(([txResult, walletResult]) => {
+    Promise.all([getTransactions(), getWallets(), getCategories()])
+      .then(([txResult, walletResult, catResult]) => {
         setTransactions(txResult.transactions);
         setWallets(walletResult.wallets);
+        setCategories(catResult.categories);
       })
       .catch((err) => {
         setError(
@@ -74,6 +77,14 @@ export function Home(): JSX.Element {
 
   const walletName = (walletId: string): string =>
     wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
+
+  const categoryMap = useMemo(() => {
+    const map = new Map<string, CategoryData>();
+    for (const c of categories) {
+      map.set(c.id, c);
+    }
+    return map;
+  }, [categories]);
 
   const filtered = useMemo(() => {
     return transactions.filter((tx) => {
@@ -228,6 +239,7 @@ export function Home(): JSX.Element {
                 <TableRow>
                   <TableHead>Date</TableHead>
                   <TableHead>Wallet</TableHead>
+                  <TableHead>Category</TableHead>
                   <TableHead>Description</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
@@ -235,10 +247,28 @@ export function Home(): JSX.Element {
               <TableBody>
                 {pageItems.map((tx) => {
                   const amount = Number(tx.amount);
+                  const cat = tx.categoryId
+                    ? categoryMap.get(tx.categoryId)
+                    : null;
                   return (
                     <TableRow key={tx.id}>
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>{walletName(tx.walletId)}</TableCell>
+                      <TableCell>
+                        {cat ? (
+                          <span
+                            className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                            style={{
+                              backgroundColor: cat.color + '20',
+                              color: cat.color,
+                            }}
+                          >
+                            {cat.name}
+                          </span>
+                        ) : (
+                          <span className="text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
                       <TableCell>{tx.description || '—'}</TableCell>
                       <TableCell
                         className={`text-right ${
