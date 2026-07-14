@@ -30,9 +30,9 @@ metrics:
   bcp_per_hour: null
 
 git:
-  branch: main
-  hash: '289aba2'
-  pushed: true
+  branch: feat/e08-guided-ux
+  hash: 'b76c912'
+  pushed: false
 
 handoff:
   last_step_completed: 'plan-work for e08 Guided UX — 5 story specs written (e08s01-e08s05) with requirement delta tags, zoom-out mandates, slopchecks, and acceptance criteria. All task YAMLs carry allure blocks and status:failing per e45s06.'
@@ -44,7 +44,7 @@ handoff:
     - specs/tech-architecture/TECH_STACK_LATEST.md
     - specs/release-plan.yaml
     - specs/epics/e08-guided-ux/epic.yaml
-  next_skill: kickoff-branch
+  next_skill: develop-tdd
 
 two_pass_spec:
   journey_pass: pending
