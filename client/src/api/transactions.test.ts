@@ -1,19 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockGet, mockPost, mockPut, mockDelete } = vi.hoisted(() => {
+const { mockGet } = vi.hoisted(() => {
   const mockGet = vi.fn();
-  const mockPost = vi.fn();
-  const mockPut = vi.fn();
-  const mockDelete = vi.fn();
-  return { mockGet, mockPost, mockPut, mockDelete };
+  return { mockGet };
 });
 
 vi.mock('./client', () => ({
   apiClient: {
     get: mockGet,
-    post: mockPost,
-    put: mockPut,
-    delete: mockDelete,
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -27,11 +21,7 @@ vi.mock('./client', () => ({
   },
 }));
 
-import {
-  createTransaction,
-  getTransactions,
-  transferFunds,
-} from './transactions';
+import { getTransactions, getTransaction } from './transactions';
 import { ApiError } from './client';
 
 describe('transactions API client', () => {
@@ -39,30 +29,7 @@ describe('transactions API client', () => {
     vi.clearAllMocks();
   });
 
-  it('createTransaction sends POST and returns the transaction', async () => {
-    mockPost.mockResolvedValue({
-      data: {
-        id: 't1',
-        walletId: 'w1',
-        amount: '50.00',
-        description: 'Groceries',
-        categoryId: null,
-        createdAt: '2024-01-01',
-      },
-    });
-    const tx = await createTransaction('w1', {
-      amount: '50.00',
-      description: 'Groceries',
-    });
-    expect(mockPost).toHaveBeenCalledWith('/wallets/w1/transactions', {
-      amount: '50.00',
-      description: 'Groceries',
-    });
-    expect(tx.amount).toBe('50.00');
-    expect(tx.walletId).toBe('w1');
-  });
-
-  it('getTransactions sends GET and returns the transaction list', async () => {
+  it('getTransactions sends GET and returns the user-scoped list', async () => {
     mockGet.mockResolvedValue({
       data: {
         transactions: [
@@ -70,81 +37,39 @@ describe('transactions API client', () => {
             id: 't1',
             walletId: 'w1',
             amount: '50.00',
-            description: 'Test',
-            categoryId: null,
+            description: 'Groceries',
+            createdAt: '2024-01-01',
           },
         ],
+        total: 1,
       },
     });
-    const result = await getTransactions('w1');
-    expect(mockGet).toHaveBeenCalledWith('/wallets/w1/transactions');
+    const result = await getTransactions();
+    expect(mockGet).toHaveBeenCalledWith('/transactions');
     expect(result.transactions).toHaveLength(1);
+    expect(result.total).toBe(1);
   });
 
-  it('createTransaction sends categoryId when provided', async () => {
-    mockPost.mockResolvedValue({
+  it('getTransaction sends GET for a single transaction', async () => {
+    mockGet.mockResolvedValue({
       data: {
-        id: 't2',
+        id: 't1',
         walletId: 'w1',
-        amount: '10.00',
-        description: '',
-        categoryId: 'c1',
+        amount: '50.00',
+        description: 'Groceries',
         createdAt: '2024-01-01',
       },
     });
-    const tx = await createTransaction('w1', {
-      amount: '10.00',
-      categoryId: 'c1',
-    });
-    expect(mockPost).toHaveBeenCalledWith('/wallets/w1/transactions', {
-      amount: '10.00',
-      categoryId: 'c1',
-    });
-    expect(tx.categoryId).toBe('c1');
-  });
-
-  it('transferFunds sends POST with transfer details', async () => {
-    mockPost.mockResolvedValue({
-      data: {
-        sourceTransaction: {
-          id: 't1',
-          walletId: 'w1',
-          amount: '-25.00',
-          description: 'Transfer',
-          createdAt: '',
-        },
-        targetTransaction: {
-          id: 't2',
-          walletId: 'w2',
-          amount: '25.00',
-          description: 'Transfer',
-          createdAt: '',
-        },
-      },
-    });
-    const result = await transferFunds({
-      sourceId: 'w1',
-      targetId: 'w2',
-      amount: '25.00',
-    });
-    expect(mockPost).toHaveBeenCalledWith('/wallets/transfer', {
-      sourceId: 'w1',
-      targetId: 'w2',
-      amount: '25.00',
-    });
-    expect(result.sourceTransaction.amount).toBe('-25.00');
-    expect(result.targetTransaction.amount).toBe('25.00');
+    const tx = await getTransaction('t1');
+    expect(mockGet).toHaveBeenCalledWith('/transactions/t1');
+    expect(tx.amount).toBe('50.00');
   });
 
   it('throws ApiError on errors', async () => {
     const apiError = new ApiError('Not found', 404, 'NOT_FOUND');
-    mockPost.mockRejectedValue(apiError);
-    await expect(
-      createTransaction('w1', { amount: '1' }),
-    ).rejects.toBeInstanceOf(ApiError);
-    await expect(
-      createTransaction('w1', { amount: '1' }),
-    ).rejects.toMatchObject({
+    mockGet.mockRejectedValue(apiError);
+    await expect(getTransactions()).rejects.toBeInstanceOf(ApiError);
+    await expect(getTransactions()).rejects.toMatchObject({
       status: 404,
       code: 'NOT_FOUND',
     });

@@ -13,11 +13,11 @@ export function WalletDetail(): JSX.Element {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    Promise.all([getWallet(id), getTransactions(id)])
+    Promise.all([getWallet(id), getTransactions()])
       .then(([w, t]) => {
         if (!active) return;
         setWallet(w);
-        setTransactions(t.transactions);
+        setTransactions(t.transactions.filter((tx) => tx.walletId === id));
         setLoading(false);
       })
       .catch((err) => {

@@ -71,7 +71,6 @@ describe('WalletDetail page', () => {
         {
           id: 't1',
           walletId: 'w1',
-          categoryId: null,
           amount: '100.00',
           description: 'Deposit',
           createdAt: '2024-01-03',
@@ -79,12 +78,12 @@ describe('WalletDetail page', () => {
         {
           id: 't2',
           walletId: 'w1',
-          categoryId: null,
           amount: '-24.50',
           description: 'Expense',
           createdAt: '2024-01-02',
         },
       ],
+      total: 2,
     });
     window.localStorage.clear();
     cleanup();
