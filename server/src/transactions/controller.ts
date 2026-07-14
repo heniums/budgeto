@@ -4,6 +4,7 @@ import {
   transferSchema,
   create,
   list,
+  listByUser,
   transfer,
 } from './service';
 import { unauthorizedError } from '../errors';
@@ -35,6 +36,22 @@ export async function listTransactionsHandler(
       throw unauthorizedError();
     }
     const result = await list(req.user.sub, req.params.id);
+    res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function listAllTransactionsHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    if (!req.user) {
+      throw unauthorizedError();
+    }
+    const result = await listByUser(req.user.sub);
     res.status(200).json(result);
   } catch (error) {
     next(error);

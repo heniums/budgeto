@@ -1,6 +1,11 @@
 import { eq, desc } from 'drizzle-orm';
 import { db } from '../db/client';
-import { transactions, type Transaction, type NewTransaction } from '../db/schema';
+import {
+  transactions,
+  wallets,
+  type Transaction,
+  type NewTransaction,
+} from '../db/schema';
 
 export async function createTransaction(
   input: NewTransaction,
@@ -17,4 +22,22 @@ export async function findTransactionsByWalletId(
     .from(transactions)
     .where(eq(transactions.walletId, walletId))
     .orderBy(desc(transactions.createdAt));
+}
+
+export async function findTransactionsByUserId(
+  userId: string,
+): Promise<Transaction[]> {
+  const rows = await db
+    .select({
+      id: transactions.id,
+      walletId: transactions.walletId,
+      amount: transactions.amount,
+      description: transactions.description,
+      createdAt: transactions.createdAt,
+    })
+    .from(transactions)
+    .innerJoin(wallets, eq(transactions.walletId, wallets.id))
+    .where(eq(wallets.userId, userId))
+    .orderBy(desc(transactions.createdAt));
+  return rows as Transaction[];
 }

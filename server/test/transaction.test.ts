@@ -361,3 +361,61 @@ describe('balance in wallet endpoints', () => {
     expect(second.balance).toBe('0');
   });
 });
+
+describe('GET /transactions (user-scoped)', () => {
+  it("returns only the authenticated user's transactions (no cross-user leakage)", async () => {
+    await deleteAllUsers();
+    const tokenA = await createTestUser();
+    const walletA = await createWallet(tokenA, 'A Wallet');
+
+    const userB = await register({
+      name: 'User B',
+      email: 'b@example.com',
+      password: 'password123',
+    });
+    const tokenB = signToken({ sub: userB.id, email: userB.email });
+    const walletB = await createWallet(tokenB, 'B Wallet');
+
+    await request(app)
+      .post(`/wallets/${walletA}/transactions`)
+      .set('Authorization', `Bearer ${tokenA}`)
+      .send({ amount: '100.00', description: 'A only' });
+    await request(app)
+      .post(`/wallets/${walletB}/transactions`)
+      .set('Authorization', `Bearer ${tokenB}`)
+      .send({ amount: '50.00', description: 'B only' });
+
+    const response = await request(app)
+      .get('/transactions')
+      .set('Authorization', `Bearer ${tokenA}`);
+    expect(response.status).toBe(200);
+    expect(response.body.total).toBe(1);
+    expect(response.body.transactions).toHaveLength(1);
+    expect(response.body.transactions[0].description).toBe('A only');
+  });
+
+  it('rejects unauthenticated requests (401)', async () => {
+    const response = await request(app).get('/transactions');
+    expect(response.status).toBe(401);
+  });
+
+  it('returns transactions newest first', async () => {
+    await deleteAllUsers();
+    const token = await createTestUser();
+    const walletId = await createWallet(token);
+    await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '10', description: 'Old' });
+    await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '20', description: 'New' });
+
+    const response = await request(app)
+      .get('/transactions')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.transactions[0].description).toBe('New');
+  });
+});

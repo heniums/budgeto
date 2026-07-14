@@ -5,6 +5,7 @@ import { healthCheck } from './health';
 import authRouter from './auth/router';
 import walletsRouter from './wallets/router';
 import categoriesRouter from './categories/router';
+import { listRouter as transactionsListRouter } from './transactions/router';
 import { isAppError } from './errors';
 
 export function createApp(): Express {
@@ -16,6 +17,7 @@ export function createApp(): Express {
   app.use('/auth', authRouter);
   app.use('/wallets', walletsRouter);
   app.use('/categories', categoriesRouter);
+  app.use('/transactions', transactionsListRouter);
 
   app.use(
     (

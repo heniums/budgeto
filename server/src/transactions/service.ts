@@ -1,5 +1,9 @@
 import { z } from 'zod';
-import { createTransaction, findTransactionsByWalletId } from './repository';
+import {
+  createTransaction,
+  findTransactionsByWalletId,
+  findTransactionsByUserId,
+} from './repository';
 import { findWalletById } from '../wallets/repository';
 import { findCategoryById } from '../categories/repository';
 import { db } from '../db/client';
@@ -86,6 +90,33 @@ export async function list(userId: string, walletId: string) {
       categoryId: tx.categoryId ?? null,
       createdAt: tx.createdAt,
     })),
+  };
+}
+
+export type UserTransactionsResult = {
+  transactions: {
+    id: string;
+    walletId: string;
+    amount: string;
+    description: string;
+    createdAt: Date;
+  }[];
+  total: number;
+};
+
+export async function listByUser(
+  userId: string,
+): Promise<UserTransactionsResult> {
+  const rows = await findTransactionsByUserId(userId);
+  return {
+    transactions: rows.map((tx) => ({
+      id: tx.id,
+      walletId: tx.walletId,
+      amount: tx.amount,
+      description: tx.description ?? '',
+      createdAt: tx.createdAt,
+    })),
+    total: rows.length,
   };
 }
 
