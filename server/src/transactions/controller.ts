@@ -2,9 +2,11 @@ import type { Request, Response, NextFunction } from 'express';
 import { getUser } from '../auth/middleware';
 import {
   createTransactionSchema,
+  updateTransactionSchema,
   transferSchema,
   create,
   getById,
+  update,
   list,
   listByUser,
   transfer,
@@ -61,6 +63,21 @@ export async function getTransactionHandler(
   try {
     const user = getUser(req);
     const tx = await getById(user.sub, req.params.id);
+    res.status(200).json(tx);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function updateTransactionHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const input = updateTransactionSchema.parse(req.body);
+    const user = getUser(req);
+    const tx = await update(user.sub, req.params.id, input);
     res.status(200).json(tx);
   } catch (error) {
     next(error);

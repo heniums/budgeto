@@ -57,6 +57,18 @@ export async function findTransactionById(
   return rows[0];
 }
 
+export async function updateTransaction(
+  txId: string,
+  input: Partial<Pick<NewTransaction, 'amount' | 'description' | 'categoryId' | 'walletId'>>,
+): Promise<Transaction> {
+  const [tx] = await db
+    .update(transactions)
+    .set(input)
+    .where(eq(transactions.id, txId))
+    .returning();
+  return tx;
+}
+
 export async function findTransactionsByUserId(
   userId: string,
 ): Promise<Transaction[]> {

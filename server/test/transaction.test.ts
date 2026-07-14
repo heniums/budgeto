@@ -513,7 +513,7 @@ describe('PUT /transactions/:id', () => {
       .send({ amount: '200', description: 'Updated' });
 
     expect(response.status).toBe(200);
-    expect(response.body.amount).toBe('200');
+    expect(response.body.amount).toBe('200.00');
     expect(response.body.description).toBe('Updated');
   });
 

@@ -4,6 +4,7 @@ import {
   findTransactionById,
   findTransactionsByWalletId,
   findTransactionsByUserId,
+  updateTransaction,
 } from './repository';
 import { findWalletById } from '../wallets/repository';
 import { findCategoryById } from '../categories/repository';
@@ -32,7 +33,17 @@ export const transferSchema = z.object({
   description: z.string().max(512).optional().default(''),
 });
 
+export const updateTransactionSchema = z.object({
+  amount: z.string().refine((val) => val !== '0' && !isNaN(Number(val)), {
+    message: 'Amount must be a non-zero number',
+  }).optional(),
+  description: z.string().max(512).optional(),
+  categoryId: z.string().uuid().optional().nullable(),
+  walletId: z.string().uuid().optional(),
+});
+
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
+export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 export type TransferInput = z.infer<typeof transferSchema>;
 
 export async function create(
@@ -89,6 +100,47 @@ export async function getById(
     categoryId: tx.categoryId ?? null,
     categoryName: tx.categoryName ?? null,
     createdAt: tx.createdAt,
+  };
+}
+
+export async function update(
+  userId: string,
+  txId: string,
+  input: UpdateTransactionInput,
+) {
+  const existing = await findTransactionById(txId);
+  if (!existing || existing.userId !== userId) {
+    throw notFoundError('Transaction not found');
+  }
+
+  if (input.walletId) {
+    const wallet = await findWalletById(input.walletId);
+    if (!wallet || wallet.userId !== userId) {
+      throw notFoundError('Wallet not found');
+    }
+  }
+
+  if (input.categoryId) {
+    const category = await findCategoryById(input.categoryId);
+    if (!category || category.userId !== userId) {
+      throw notFoundError('Category not found');
+    }
+  }
+
+  const updated = await updateTransaction(txId, {
+    ...(input.amount !== undefined && { amount: input.amount }),
+    ...(input.description !== undefined && { description: input.description }),
+    ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
+    ...(input.walletId !== undefined && { walletId: input.walletId }),
+  });
+
+  return {
+    id: updated.id,
+    walletId: updated.walletId,
+    amount: updated.amount,
+    description: updated.description ?? '',
+    categoryId: updated.categoryId ?? null,
+    createdAt: updated.createdAt,
   };
 }
 
