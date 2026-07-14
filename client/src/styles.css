@@ -1,3 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 0 0% 100%;
+  --foreground: 150 20% 12%;
+  --card: 0 0% 100%;
+  --card-foreground: 150 20% 12%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 150 20% 12%;
+  --primary: 150 69% 32%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 150 16% 94%;
+  --secondary-foreground: 150 20% 12%;
+  --muted: 150 16% 94%;
+  --muted-foreground: 150 8% 42%;
+  --accent: 150 16% 94%;
+  --accent-foreground: 150 20% 12%;
+  --destructive: 0 72% 42%;
+  --destructive-foreground: 0 0% 100%;
+  --border: 150 12% 82%;
+  --input: 150 12% 82%;
+  --ring: 218 80% 58%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+}
+
 :root {
   --color-primary: #1f8a4c;
   --color-primary-dark: #176c3b;
@@ -25,7 +57,12 @@ body {
 }
 
 body {
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;

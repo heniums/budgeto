@@ -1,20 +1,20 @@
 story_id: e06s01
 title: Toolchain — Tailwind + shadcn/ui
-status: failing
+status: passing
 bcps: 3
 tasks:
   - id: 1
-    description: "Install Tailwind + shadcn deps (tailwindcss, postcss, autoprefixer, class-variance-authority, tailwind-merge, clsx, tailwindcss-animate) and init Tailwind config + @tailwind directives in styles.css"
-    verify: "npm run build 2>&1 | tail -5"
+    description: 'Install Tailwind + shadcn deps (tailwindcss, postcss, autoprefixer, class-variance-authority, tailwind-merge, clsx, tailwindcss-animate) and init Tailwind config + @tailwind directives in styles.css'
+    verify: 'npm run build 2>&1 | tail -5'
     risk: P1
-    status: failing
+    status: passing
   - id: 2
-    description: "Run shadcn init (components.json) and add base components (button, card, input, dialog, tabs, sheet, form, table, label, select) into client/src/components/ui"
-    verify: "test -d client/src/components/ui/button && test -f components.json && echo OK"
+    description: 'Run shadcn init (components.json) and add base components (button, card, input, dialog, tabs, sheet, form, table, label, select) into client/src/components/ui'
+    verify: 'test -f client/src/components/ui/button.tsx && test -f client/components.json && echo OK'
     risk: P1
-    status: failing
+    status: passing
   - id: 3
     description: "Update AGENTS.md: replace 'No CSS modules / Tailwind' rule with Tailwind + shadcn/ui convention; note design tokens in styles.css"
     verify: "grep -q 'shadcn' AGENTS.md && ! grep -q 'No CSS modules / Tailwind' AGENTS.md && echo OK"
     risk: P2
-    status: failing
+    status: passing

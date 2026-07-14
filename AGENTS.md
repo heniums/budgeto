@@ -35,13 +35,17 @@ budgeto/
       api/                 # Per-resource API modules (auth.ts, wallets.ts, categories.ts)
         client.ts          # Shared axios instance with JWT interceptor & ApiError class
       auth/                # AuthContext, ProtectedRoute
-      components/          # Shared UI (Layout, Sidebar)
+      components/          # Shared UI (Layout, Sidebar) + ui/ (shadcn base components)
+      lib/utils.ts         # shadcn cn() class-merge helper
       pages/               # One component per route, colocated with *.test.tsx
       router.tsx           # Central route definitions
-      styles.css           # Global CSS (no CSS modules or Tailwind)
+      styles.css           # Tailwind directives + design tokens (shadcn CSS vars + brand colors)
     test/setup.ts          # @testing-library/jest-dom import
     vite.config.ts         # Vite + React plugin + PWA plugin
     vitest.config.ts       # jsdom env, client test glob pattern
+    components.json        # shadcn/ui configuration
+    tailwind.config.cjs    # Tailwind CSS v3 config (content globs + shadcn theme tokens)
+    postcss.config.cjs     # PostCSS pipeline (tailwindcss + autoprefixer)
   server/
     src/
       app.ts               # Express app factory (createApp)
@@ -204,4 +208,4 @@ router.tsx       →  Flat route array, ProtectedRoute wraps authenticated route
 
 10. **`type` field in `categories` table** — Stored as freeform text (`text`), validated at the application layer by Zod as `z.enum(['income', 'expense'])`. No database-level CHECK constraint.
 
-11. **No CSS modules / Tailwind** — The project uses a single global `styles.css` with class-based selectors. No CSS-in-JS or utility framework.
+11. **Tailwind CSS + shadcn/ui** — The client uses Tailwind CSS v3 (PostCSS pipeline) with shadcn/ui base components in `client/src/components/ui`. `client/src/styles.css` holds the `@tailwind` directives plus design tokens (shadcn CSS variables themed with the brand green). New UI should use shadcn components and Tailwind utilities; the legacy class-based selectors in `styles.css` remain for pages not yet migrated.
