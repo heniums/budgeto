@@ -14,7 +14,12 @@ vi.mock('../api/transactions', async (importOriginal) => {
 });
 vi.mock('../api/wallets', async (importOriginal) => {
   const actual = await importOriginal<typeof WalletModule>();
-  return { ...actual, getWallets: vi.fn() };
+  return {
+    ...actual,
+    getWallets: vi.fn(),
+    getWallet: vi.fn(),
+    createWallet: vi.fn(),
+  };
 });
 vi.mock('../api/categories', async (importOriginal) => {
   const actual = await importOriginal<typeof CatModule>();
@@ -22,7 +27,7 @@ vi.mock('../api/categories', async (importOriginal) => {
 });
 
 import { getTransactions } from '../api/transactions';
-import { getWallets } from '../api/wallets';
+import { getWallets, getWallet, createWallet } from '../api/wallets';
 import { getCategories } from '../api/categories';
 
 const mockCategories = [
@@ -179,5 +184,65 @@ describe('Home onboarding wizard', () => {
     expect(
       await screen.findByText(/you have no categories yet/i),
     ).toBeInTheDocument();
+  });
+});
+
+describe('Home stacked modal — transaction dialog + wallet/category sheets', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
+    vi.mocked(getTransactions).mockResolvedValue({
+      transactions: [
+        {
+          id: 't1',
+          walletId: 'w1',
+          amount: '50.00',
+          description: 'Salary',
+          categoryId: 'c1',
+          categoryName: 'Food',
+          createdAt: '2026-01-02T10:00:00Z',
+        },
+      ],
+      total: 1,
+    });
+    vi.mocked(getWallet).mockResolvedValue(wallets[0]);
+    vi.mocked(createWallet).mockResolvedValue({
+      id: 'w-new',
+      name: 'New Wallet',
+      description: '',
+      color: '#1f8a4c',
+      balance: '0.00',
+      createdAt: '',
+      updatedAt: '',
+    });
+    cleanup();
+  });
+
+  it('keeps transaction dialog open when viewing wallet details from form', async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByText('Salary');
+
+    // Open Add Transaction dialog
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+    // Dialog title should be visible (there may also be the trigger button)
+    const txTitles = screen.getAllByText('Add transaction');
+    expect(txTitles.length).toBeGreaterThanOrEqual(2);
+
+    // Select a wallet to reveal "View wallet details" link
+    await user.selectOptions(screen.getByLabelText('Wallet'), 'w1');
+
+    // Click "View wallet details"
+    await user.click(screen.getByText(/view wallet details/i));
+
+    // Wallet detail sheet opens on top
+    await waitFor(() => {
+      expect(screen.getByText('Wallet Details')).toBeInTheDocument();
+    });
+
+    // Transaction dialog stays open behind the sheet
+    const txTitlesAfter = screen.getAllByText('Add transaction');
+    expect(txTitlesAfter.length).toBeGreaterThanOrEqual(2);
   });
 });
