@@ -397,6 +397,93 @@ describe('balance in wallet endpoints', () => {
   });
 });
 
+describe('GET /transactions/:id', () => {
+  let token: string;
+  let walletId: string;
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+    walletId = await createWallet(token);
+  });
+
+  it('returns a transaction by id (200)', async () => {
+    const createRes = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '42.50', description: 'Find me' });
+    const txId = createRes.body.id;
+
+    const response = await request(app)
+      .get(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.id).toBe(txId);
+    expect(response.body.amount).toBe('42.50');
+    expect(response.body.description).toBe('Find me');
+    expect(response.body.walletId).toBe(walletId);
+  });
+
+  it('returns 404 for non-existent transaction', async () => {
+    const response = await request(app)
+      .get('/transactions/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects unauthenticated requests (401)', async () => {
+    const response = await request(app).get(
+      '/transactions/00000000-0000-0000-0000-000000000000',
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it('returns 404 when transaction belongs to another user', async () => {
+    const createRes = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '99', description: 'Mine' });
+    const txId = createRes.body.id;
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-get@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .get(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('includes categoryName when transaction has a category', async () => {
+    const categoryId = await createCategory(token, 'Food');
+    const createRes = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        amount: '25.00',
+        description: 'Pizza',
+        categoryId,
+      });
+    const txId = createRes.body.id;
+
+    const response = await request(app)
+      .get(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.categoryId).toBe(categoryId);
+    expect(response.body.categoryName).toBe('Food');
+  });
+});
+
 describe('GET /transactions (user-scoped)', () => {
   it("returns only the authenticated user's transactions (no cross-user leakage)", async () => {
     await deleteAllUsers();
