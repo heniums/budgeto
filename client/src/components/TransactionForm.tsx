@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -17,26 +17,33 @@ const transactionSchema = z.object({
       message: 'Amount must be a non-zero number.',
     }),
   description: z.string().max(512),
+  categoryId: z.string().optional(),
 });
 
 type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
+  categories?: { id: string; name: string; type: string; color: string }[];
   categoriesCount?: number;
   onSuccess: () => void;
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
   onViewWallet?: (walletId: string) => void;
+  autoSelectWalletId?: string;
+  autoSelectCategoryId?: string;
 }
 
 export function TransactionForm({
   wallets,
+  categories,
   categoriesCount,
   onSuccess,
   onCreateWallet,
   onCreateCategory,
   onViewWallet,
+  autoSelectWalletId,
+  autoSelectCategoryId,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -46,12 +53,30 @@ export function TransactionForm({
     watch,
     formState: { errors, isSubmitting },
     reset,
+    setValue,
   } = useForm<TransactionValues>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: { walletId: '', amount: '', description: '' },
+    defaultValues: {
+      walletId: '',
+      amount: '',
+      description: '',
+      categoryId: '',
+    },
   });
 
   const selectedWalletId = watch('walletId');
+
+  useEffect(() => {
+    if (autoSelectWalletId) {
+      setValue('walletId', autoSelectWalletId);
+    }
+  }, [autoSelectWalletId, setValue]);
+
+  useEffect(() => {
+    if (autoSelectCategoryId) {
+      setValue('categoryId', autoSelectCategoryId);
+    }
+  }, [autoSelectCategoryId, setValue]);
 
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
@@ -59,6 +84,7 @@ export function TransactionForm({
       await createTransaction(values.walletId, {
         amount: values.amount,
         description: values.description,
+        categoryId: values.categoryId || undefined,
       });
       reset();
       onSuccess();
@@ -79,22 +105,43 @@ export function TransactionForm({
           className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
         >
           You need a wallet to add a transaction.{' '}
-          <span className="font-medium underline cursor-pointer">
-            Create one →
-          </span>
+          {onCreateWallet ? (
+            <span
+              className="font-medium underline cursor-pointer"
+              onClick={onCreateWallet}
+              role="button"
+            >
+              Create one →
+            </span>
+          ) : (
+            <span className="font-medium underline cursor-pointer">
+              Create one →
+            </span>
+          )}
         </div>
       )}
-      {wallets.length > 0 && categoriesCount === 0 && (
-        <div
-          role="alert"
-          className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-700"
-        >
-          You have no categories yet.{' '}
-          <span className="font-medium underline cursor-pointer">
-            Create one →
-          </span>
-        </div>
-      )}
+      {wallets.length > 0 &&
+        (categoriesCount ?? categories?.length ?? 0) === 0 && (
+          <div
+            role="alert"
+            className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-700"
+          >
+            You have no categories yet.{' '}
+            {onCreateCategory ? (
+              <span
+                className="font-medium underline cursor-pointer"
+                onClick={onCreateCategory}
+                role="button"
+              >
+                Create one →
+              </span>
+            ) : (
+              <span className="font-medium underline cursor-pointer">
+                Create one →
+              </span>
+            )}
+          </div>
+        )}
       {formError && (
         <div
           role="alert"
@@ -159,6 +206,34 @@ export function TransactionForm({
         )}
       </div>
 
+      {/* Category selector */}
+      {categories && categories.length > 0 && (
+        <div className="space-y-2">
+          <Label htmlFor="tx-category">Category</Label>
+          <select
+            id="tx-category"
+            {...register('categoryId')}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">No category</option>
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+          {onCreateCategory && (
+            <span
+              className="text-xs text-muted-foreground underline cursor-pointer"
+              onClick={onCreateCategory}
+              role="button"
+            >
+              Don&apos;t see your category? Create one →
+            </span>
+          )}
+        </div>
+      )}
+
       <div className="space-y-2">
         <Label htmlFor="tx-desc">Description</Label>
         <Input
@@ -167,7 +242,7 @@ export function TransactionForm({
           placeholder="e.g. Groceries"
           {...register('description')}
         />
-        {onCreateCategory && (
+        {!categories && onCreateCategory && (
           <span
             className="text-xs text-muted-foreground underline cursor-pointer"
             onClick={onCreateCategory}

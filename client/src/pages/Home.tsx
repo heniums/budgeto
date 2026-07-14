@@ -85,6 +85,12 @@ export function Home(): JSX.Element {
   const [wizardOpen, setWizardOpen] = useState(false);
   const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
   const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
+  const [createWalletOpen, setCreateWalletOpen] = useState(false);
+  const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
+  const [pendingWalletId, setPendingWalletId] = useState<string | null>(null);
+  const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(
+    null,
+  );
 
   const load = (): void => {
     setLoading(true);
@@ -176,22 +182,29 @@ export function Home(): JSX.Element {
               </DialogHeader>
               <TransactionForm
                 wallets={wallets}
+                categories={categories.map((c) => ({
+                  id: c.id,
+                  name: c.name,
+                  type: c.type,
+                  color: c.color,
+                }))}
                 categoriesCount={categories.length}
+                autoSelectWalletId={pendingWalletId ?? undefined}
+                autoSelectCategoryId={pendingCategoryId ?? undefined}
                 onSuccess={() => {
                   setTxOpen(false);
                   setPage(1);
+                  setPendingWalletId(null);
+                  setPendingCategoryId(null);
                   load();
                 }}
                 onCreateWallet={() => {
-                  setTxOpen(false);
-                  setWizardOpen(true);
+                  setCreateWalletOpen(true);
                 }}
                 onCreateCategory={() => {
-                  setTxOpen(false);
-                  setWizardOpen(true);
+                  setCreateCategoryOpen(true);
                 }}
                 onViewWallet={(id) => {
-                  setTxOpen(false);
                   setDetailWalletId(id);
                 }}
               />
@@ -441,6 +454,17 @@ export function Home(): JSX.Element {
         }}
       />
 
+      <WalletDetailSheet
+        walletId=""
+        open={createWalletOpen}
+        onOpenChange={setCreateWalletOpen}
+        onSuccess={(newWallet) => {
+          setCreateWalletOpen(false);
+          if (newWallet) setPendingWalletId(newWallet.id);
+          load();
+        }}
+      />
+
       <CategoryDetailSheet
         categoryId={detailCategoryId ?? ''}
         open={detailCategoryId !== null}
@@ -449,6 +473,17 @@ export function Home(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailCategoryId(null);
+          load();
+        }}
+      />
+
+      <CategoryDetailSheet
+        categoryId=""
+        open={createCategoryOpen}
+        onOpenChange={setCreateCategoryOpen}
+        onSuccess={(newCategory) => {
+          setCreateCategoryOpen(false);
+          if (newCategory) setPendingCategoryId(newCategory.id);
           load();
         }}
       />

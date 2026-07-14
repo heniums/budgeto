@@ -93,7 +93,7 @@ describe('TransactionForm — prerequisite warnings', () => {
         />
       </MemoryRouter>,
     );
-    const link = await screen.findByText(/create one/i);
+    const link = screen.getByText("Don't see your wallet? Create one →");
     link.click();
     expect(onCreateWallet).toHaveBeenCalled();
   });
@@ -111,8 +111,113 @@ describe('TransactionForm — prerequisite warnings', () => {
       </MemoryRouter>,
     );
     const links = await screen.findAllByText(/create one/i);
+    // Last link is under the description section
     const catLink = links[links.length - 1];
     catLink.click();
     expect(onCreateCategory).toHaveBeenCalled();
+  });
+
+  it('calls onCreateWallet when warning Create one is clicked (no wallets)', async () => {
+    const onCreateWallet = vi.fn();
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={[]}
+          onSuccess={vi.fn()}
+          onCreateWallet={onCreateWallet}
+        />
+      </MemoryRouter>,
+    );
+    const links = await screen.findAllByText(/create one/i);
+    // The warning span is the first one
+    const warnLink = links[0];
+    warnLink.click();
+    expect(onCreateWallet).toHaveBeenCalled();
+  });
+
+  it('calls onCreateCategory when warning Create one is clicked (no categories)', async () => {
+    const onCreateCategory = vi.fn();
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categoriesCount={0}
+          onSuccess={vi.fn()}
+          onCreateCategory={onCreateCategory}
+        />
+      </MemoryRouter>,
+    );
+    const links = await screen.findAllByText(/create one/i);
+    // The warning "Create one →" should be clickable
+    expect(onCreateCategory).not.toHaveBeenCalled();
+    links[0].click();
+    expect(onCreateCategory).toHaveBeenCalled();
+  });
+
+  it('auto-selects wallet when autoSelectWalletId prop is provided', async () => {
+    const walletsWithNew = [
+      ...wallets,
+      {
+        id: 'w-new',
+        name: 'Savings',
+        description: '',
+        color: '#2f6fed',
+        balance: '0.00',
+        createdAt: '',
+        updatedAt: '',
+      },
+    ];
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={walletsWithNew}
+          onSuccess={vi.fn()}
+          autoSelectWalletId="w-new"
+        />
+      </MemoryRouter>,
+    );
+
+    const select = screen.getByLabelText('Wallet') as HTMLSelectElement;
+    expect(select.value).toBe('w-new');
+  });
+
+  it('renders category dropdown when categories are provided', () => {
+    const categories = [
+      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
+      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c' },
+    ];
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+        />
+      </MemoryRouter>,
+    );
+
+    expect(screen.getByLabelText('Category')).toBeInTheDocument();
+    expect(screen.getByText('Food')).toBeInTheDocument();
+    expect(screen.getByText('Salary')).toBeInTheDocument();
+  });
+
+  it('auto-selects category when autoSelectCategoryId prop is provided', () => {
+    const categories = [
+      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
+      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c' },
+    ];
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+          autoSelectCategoryId="c2"
+        />
+      </MemoryRouter>,
+    );
+
+    const select = screen.getByLabelText('Category') as HTMLSelectElement;
+    expect(select.value).toBe('c2');
   });
 });

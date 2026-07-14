@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 
 import {
+  createCategory,
   getCategory,
   updateCategory,
   type CategoryData,
@@ -28,10 +29,10 @@ const editSchema = z.object({
 type EditValues = z.infer<typeof editSchema>;
 
 export interface CategoryDetailSheetProps {
-  categoryId: string;
+  categoryId?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess?: () => void;
+  onSuccess?: (newCategory?: CategoryData) => void;
 }
 
 export function CategoryDetailSheet({
@@ -54,8 +55,18 @@ export function CategoryDetailSheet({
     defaultValues: { name: '', type: 'expense', color: '#ff6b6b' },
   });
 
+  const isCreate = !categoryId;
+
   useEffect(() => {
-    if (!open || !categoryId) return;
+    if (!open) return;
+
+    if (isCreate) {
+      setLoading(false);
+      setCategory(null);
+      reset({ name: '', type: 'expense', color: '#ff6b6b' });
+      return;
+    }
+
     let active = true;
     setLoading(true);
     setFormError(null);
@@ -78,21 +89,31 @@ export function CategoryDetailSheet({
     return () => {
       active = false;
     };
-  }, [open, categoryId, reset]);
+  }, [open, categoryId, reset, isCreate]);
 
   const onSubmit = async (values: EditValues): Promise<void> => {
     setFormError(null);
     try {
-      await updateCategory(categoryId, {
-        name: values.name.trim(),
-        type: values.type,
-        color: values.color,
-        icon: category?.icon ?? 'Tag',
-      });
-      onSuccess?.();
+      if (isCreate) {
+        const newCategory = await createCategory({
+          name: values.name.trim(),
+          type: values.type,
+          color: values.color,
+          icon: 'Tag',
+        });
+        onSuccess?.(newCategory);
+      } else if (categoryId) {
+        await updateCategory(categoryId, {
+          name: values.name.trim(),
+          type: values.type,
+          color: values.color,
+          icon: category?.icon ?? 'Tag',
+        });
+        onSuccess?.();
+      }
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to update category.',
+        err instanceof ApiError ? err.message : 'Failed to save category.',
       );
     }
   };
@@ -101,12 +122,14 @@ export function CategoryDetailSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>Category Details</SheetTitle>
+          <SheetTitle>
+            {isCreate ? 'New Category' : 'Category Details'}
+          </SheetTitle>
         </SheetHeader>
 
         {loading ? (
           <p className="text-muted-foreground mt-4">Loading…</p>
-        ) : formError && !category ? (
+        ) : formError && !isCreate && !category ? (
           <p className="text-destructive mt-4">{formError}</p>
         ) : (
           <form
@@ -153,7 +176,13 @@ export function CategoryDetailSheet({
             </div>
 
             <Button type="submit" disabled={isSubmitting} className="w-full">
-              {isSubmitting ? 'Saving…' : 'Save'}
+              {isSubmitting && isCreate
+                ? 'Creating…'
+                : isSubmitting
+                  ? 'Saving…'
+                  : isCreate
+                    ? 'Create'
+                    : 'Save'}
             </Button>
           </form>
         )}

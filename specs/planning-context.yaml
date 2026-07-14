@@ -1,53 +1,39 @@
-# specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
-# Feature: Guided User Experience (Onboarding + Contextual Navigation). Elaborated 2026-07-14.
+# specs/planning-context.yaml — elaborated 2026-07-14
+# Feature: Stacked Modal Fix — Return to Transaction Form from Wallet/Category Actions
 
-feature_name: 'Guided User Experience — Onboarding Wizard & Contextual Navigation'
+feature_name: 'Stacked Modal Fix — Return to Transaction Form from Wallet/Category Actions'
 
 problem_statement: >
-  Budgeto's Home page shows a flat transaction table with no category column,
-  no contextual navigation to wallets/categories, and no guidance for new users.
-  A first-time user sees "No transactions found" with no path forward. When
-  filling out the Add Transaction form, there is no way to create or edit a
-  wallet/category inline — the user must abandon the form, navigate to Settings,
-  then start over. Transactions also lack the `categoryId` field at the client
-  layer (present in the DB but omitted from the server query and client type),
-  so the category column is missing entirely from the table.
+  The e08s04 "Stacked Modal Transitions" story was never fully implemented.
+  When the Add Transaction dialog is open and the user triggers a wallet or
+  category action from within the form (clicking "Don't see your wallet?
+  Create one →", "Don't see your category? Create one →", or "View wallet
+  details"), the Home component unconditionally closes the transaction dialog
+  (setTxOpen(false)) before opening the wallet/category sheet or wizard.
+  When that sheet closes, the transaction dialog stays closed and all form
+  field values (wallet, amount, description) are lost. The user must start
+  the transaction form from scratch.
 
 constraints:
-  - 'Left nav (Home + Settings) and Settings page (Wallets / Categories / User tabs) remain unchanged.'
-  - 'Auth pages (SignIn / SignUp) unchanged and absent from left nav.'
-  - 'All existing server APIs reused; category data added to existing transaction queries — no new endpoints required.'
-  - 'Wallet and category edit views are the SAME components rendered in Settings tabs; contextual access opens those components in a stacked modal, not a separate page.'
-  - 'Desktop: right-click context menu on wallet/category labels. Mobile: long-press (touch-hold).'
-  - 'Transaction form state must survive the wallet/category edit round-trip (modal slide-out → slide-in pattern).'
+  - 'Transaction form state (wallet dropdown, amount, description) must be preserved when returning from a wallet/category action.'
+  - 'Newly created wallets are auto-selected in the wallet dropdown on return.'
+  - 'Newly created categories are auto-selected in the category field on return.'
+  - 'Use existing WalletDetailSheet and CategoryDetailSheet components. Do not reuse the OnboardingWizard for this flow.'
+  - 'Transfer form dialog is unchanged (out of scope).'
+  - 'No CSS slide animation required — a simple dialog reopen is sufficient.'
   - 'npm test (>=80% coverage) and npm run type-check must remain green.'
-  - 'Responsive: context menu becomes action sheet on mobile; wizard works on all viewports.'
-  - 'Existing shadcn/ui component library used for modals, context menus, and wizard.'
+  - 'Existing shadcn/ui Dialogs and Sheets used — no new dependencies.'
 
 out_of_scope:
-  - 'Dashboard analytics / summary cards (balances, trends) — deferred to G-003.'
-  - 'Dark mode / theming — deferred.'
-  - 'Category budgeting (budgets per category, progress) — deferred to G-002.'
-  - 'Wallet or category hierarchy / nesting — deferred.'
-  - 'New backend endpoints beyond what exists.'
-  - 'Auth / SignIn / SignUp UI changes.'
-  - 'Removing or restructuring the Settings page or left nav.'
+  - 'Transfer form dialog.'
+  - 'Slide animations between dialog and sheet.'
+  - 'Context menu changes or long-press behavior.'
+  - 'Creating wallets/categories from the transfer form.'
 
 key_decisions:
-  - decision: 'Onboarding is a dismissable 3-step wizard overlay (Create Wallet → Create Category → Add Transaction) on first visit, re-triggerable from user menu.'
-    rationale: 'User chose wizard/overlay pattern. Provides a clear linear path without cluttering the permanent UI.'
-  - decision: 'Long-press on wallet/category labels in transaction rows opens a detail/edit view contextual to that resource.'
-    rationale: >
-      User wants wallets/categories easily accessible everywhere —
-      contextual access means the user does not need to leave the
-      transaction context to edit a related resource.
-  - decision: 'Desktop trigger is right-click context menu; mobile is long-press.'
-    rationale: 'Right-click is the desktop convention for contextual actions; long-press is the mobile equivalent.'
-  - decision: 'Transaction form and wallet/category edit use stacked modal transitions (slide-out / slide-in).'
-    rationale: 'User chose modal hide/show pattern over navigate-away. Preserves form state by keeping the transaction form mounted but hidden.'
-  - decision: 'Include categoryId + category name in server transaction queries and client TransactionData type.'
-    rationale: 'Currently missing — DB has categoryId but server SELECT omits it, and client type lacks it. Needed for the category column in the transaction table and for long-press interactions.'
-  - decision: 'Empty-state guidance shows conditional prompts: "No wallets yet — create one?" when wallets=0; "No categories yet — create one?" when categories=0 but wallets>0.'
-    rationale: >
-      Guided flow does not end at the wizard — returning users with
-      missing prerequisites still need clear direction.
+  - decision: 'Wallet/category creation from the transaction form uses a dedicated creation sheet (not the OnboardingWizard).'
+    rationale: 'The wizard is a first-visit onboarding tool. Inline creation should be focused and fast — a simple form in a Sheet that returns to the transaction dialog on completion.'
+  - decision: 'Form state preservation via keeping the Dialog mounted while the Sheet is open.'
+    rationale: 'The shadcn Dialog unmounts its content when closed. To preserve react-hook-form state, the dialog must stay open (mounted) while the Sheet overlays it.'
+  - decision: 'Auto-select newly created resource on return via ref or lifted state.'
+    rationale: 'The user should not need to re-select the wallet/category they just created. Pass the new resource id back to the transaction form.'
