@@ -349,4 +349,46 @@ describe('Home transaction detail view', () => {
 
     expect(deleteTransaction).toHaveBeenCalledWith('t1');
   });
+
+  it('prompts cascade when deleting a transfer leg', async () => {
+    vi.mocked(getTransactions).mockResolvedValue({
+      transactions: [
+        {
+          id: 't1',
+          walletId: 'w1',
+          amount: '50.00',
+          description: 'Transfer',
+          categoryId: null,
+          categoryName: null,
+          createdAt: '2026-01-02T10:00:00.000Z',
+        },
+        {
+          id: 't2',
+          walletId: 'w2',
+          amount: '-50.00',
+          description: 'Transfer',
+          categoryId: null,
+          categoryName: null,
+          createdAt: '2026-01-02T10:00:00.500Z',
+        },
+      ],
+      total: 2,
+    });
+
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByText('$50.00');
+
+    // Click the first transfer leg
+    const rows = screen.getAllByText('Transfer');
+    await user.click(rows[0]);
+    await screen.findByText('Transaction details');
+
+    await user.click(screen.getByRole('button', { name: /delete/i }));
+
+    // Cascade prompt should appear
+    expect(
+      await screen.findByText(/part of a transfer/i),
+    ).toBeInTheDocument();
+  });
 });
