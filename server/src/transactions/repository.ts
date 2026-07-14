@@ -3,6 +3,7 @@ import { db } from '../db/client';
 import {
   transactions,
   wallets,
+  categories,
   type Transaction,
   type NewTransaction,
 } from '../db/schema';
@@ -34,9 +35,12 @@ export async function findTransactionsByUserId(
       amount: transactions.amount,
       description: transactions.description,
       createdAt: transactions.createdAt,
+      categoryId: transactions.categoryId,
+      categoryName: categories.name,
     })
     .from(transactions)
     .innerJoin(wallets, eq(transactions.walletId, wallets.id))
+    .leftJoin(categories, eq(transactions.categoryId, categories.id))
     .where(eq(wallets.userId, userId))
     .orderBy(desc(transactions.createdAt));
   return rows as Transaction[];

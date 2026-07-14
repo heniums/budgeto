@@ -99,6 +99,8 @@ export type UserTransactionsResult = {
     walletId: string;
     amount: string;
     description: string;
+    categoryId: string | null;
+    categoryName: string | null;
     createdAt: Date;
   }[];
   total: number;
@@ -114,6 +116,8 @@ export async function listByUser(
       walletId: tx.walletId,
       amount: tx.amount,
       description: tx.description ?? '',
+      categoryId: (tx as Record<string, unknown>).categoryId ?? null,
+      categoryName: (tx as Record<string, unknown>).categoryName ?? null,
       createdAt: tx.createdAt,
     })),
     total: rows.length,
