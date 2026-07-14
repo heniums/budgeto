@@ -634,6 +634,75 @@ describe('PUT /transactions/:id', () => {
   });
 });
 
+describe('DELETE /transactions/:id', () => {
+  let token: string;
+  let walletId: string;
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+    walletId = await createWallet(token);
+  });
+
+  async function createTx(): Promise<string> {
+    const res = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '100', description: 'To delete' });
+    return res.body.id;
+  }
+
+  it('deletes a transaction (200)', async () => {
+    const txId = await createTx();
+
+    const response = await request(app)
+      .delete(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`);
+
+    expect(response.status).toBe(200);
+    expect(response.body.id).toBe(txId);
+
+    // Verify it's gone
+    const getRes = await request(app)
+      .get(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(getRes.status).toBe(404);
+  });
+
+  it('returns 404 for non-existent transaction', async () => {
+    const response = await request(app)
+      .delete('/transactions/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects unauthenticated requests (401)', async () => {
+    const response = await request(app).delete(
+      '/transactions/00000000-0000-0000-0000-000000000000',
+    );
+    expect(response.status).toBe(401);
+  });
+
+  it('returns 404 when transaction belongs to another user', async () => {
+    const txId = await createTx();
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-del@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .delete(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+    expect(response.status).toBe(404);
+  });
+});
+
 describe('GET /transactions (user-scoped)', () => {
   it("returns only the authenticated user's transactions (no cross-user leakage)", async () => {
     await deleteAllUsers();
