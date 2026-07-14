@@ -484,6 +484,156 @@ describe('GET /transactions/:id', () => {
   });
 });
 
+describe('PUT /transactions/:id', () => {
+  let token: string;
+  let walletId: string;
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+    walletId = await createWallet(token);
+  });
+
+  async function createTx(
+    overrides: Record<string, unknown> = {},
+  ): Promise<string> {
+    const res = await request(app)
+      .post(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '100', description: 'Original', ...overrides });
+    return res.body.id;
+  }
+
+  it('updates amount and description (200)', async () => {
+    const txId = await createTx();
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '200', description: 'Updated' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.amount).toBe('200');
+    expect(response.body.description).toBe('Updated');
+  });
+
+  it('updates walletId to another wallet owned by user (200)', async () => {
+    const txId = await createTx();
+    const otherWallet = await createWallet(token, 'Other Wallet');
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ walletId: otherWallet });
+
+    expect(response.status).toBe(200);
+    expect(response.body.walletId).toBe(otherWallet);
+  });
+
+  it('updates categoryId (200)', async () => {
+    const txId = await createTx();
+    const categoryId = await createCategory(token, 'Food');
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ categoryId });
+
+    expect(response.status).toBe(200);
+    expect(response.body.categoryId).toBe(categoryId);
+  });
+
+  it('clears categoryId when null is sent (200)', async () => {
+    const categoryId = await createCategory(token, 'Food');
+    const txId = await createTx({ categoryId });
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ categoryId: null });
+
+    expect(response.status).toBe(200);
+    expect(response.body.categoryId).toBeNull();
+  });
+
+  it('returns 404 for non-existent transaction', async () => {
+    const response = await request(app)
+      .put('/transactions/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ amount: '50' });
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects unauthenticated requests (401)', async () => {
+    const response = await request(app)
+      .put('/transactions/00000000-0000-0000-0000-000000000000')
+      .send({ amount: '50' });
+    expect(response.status).toBe(401);
+  });
+
+  it('returns 404 when transaction belongs to another user', async () => {
+    const txId = await createTx();
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-put@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ amount: '50' });
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 when new walletId belongs to another user', async () => {
+    const txId = await createTx();
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-wallet@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+    const otherWallet = await createWallet(otherToken, 'Their Wallet');
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ walletId: otherWallet });
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 when new categoryId belongs to another user', async () => {
+    const txId = await createTx();
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-cat@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+    const otherCategory = await createCategory(otherToken, 'Other Cat');
+
+    const response = await request(app)
+      .put(`/transactions/${txId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ categoryId: otherCategory });
+    expect(response.status).toBe(404);
+  });
+});
+
 describe('GET /transactions (user-scoped)', () => {
   it("returns only the authenticated user's transactions (no cross-user leakage)", async () => {
     await deleteAllUsers();
