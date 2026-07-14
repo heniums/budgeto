@@ -39,7 +39,7 @@ function renderSignUp(): void {
         <Routes>
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<div>Sign in page</div>} />
-          <Route path="/account/profile" element={<div>Profile home</div>} />
+          <Route path="/" element={<div>Profile home</div>} />
           <Route path="*" element={<LocationSpy />} />
         </Routes>
       </MemoryRouter>

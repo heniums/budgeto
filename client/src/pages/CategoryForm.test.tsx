@@ -31,11 +31,11 @@ const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 function renderCreate(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/account/categories/new']}>
+      <MemoryRouter initialEntries={['/settings/categories/new']}>
         <Routes>
-          <Route path="/account/categories/new" element={<CategoryForm />} />
+          <Route path="/settings/categories/new" element={<CategoryForm />} />
           <Route
-            path="/account/categories"
+            path="/settings/categories"
             element={<div>Categories List</div>}
           />
         </Routes>
@@ -47,14 +47,14 @@ function renderCreate(): void {
 function renderEdit(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/account/categories/c1/edit']}>
+      <MemoryRouter initialEntries={['/settings/categories/c1/edit']}>
         <Routes>
           <Route
-            path="/account/categories/:id/edit"
+            path="/settings/categories/:id/edit"
             element={<CategoryForm />}
           />
           <Route
-            path="/account/categories"
+            path="/settings/categories"
             element={<div>Categories List</div>}
           />
         </Routes>

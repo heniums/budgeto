@@ -39,14 +39,14 @@ const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 function renderDetail(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/account/wallets/w1']}>
+      <MemoryRouter initialEntries={['/settings/wallets/w1']}>
         <Routes>
-          <Route path="/account/wallets/:id" element={<WalletDetail />} />
+          <Route path="/settings/wallets/:id" element={<WalletDetail />} />
           <Route
-            path="/account/wallets/:id/edit"
+            path="/settings/wallets/:id/edit"
             element={<div>Edit Wallet</div>}
           />
-          <Route path="/account/wallets" element={<div>Wallet List</div>} />
+          <Route path="/settings/wallets" element={<div>Wallet List</div>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,

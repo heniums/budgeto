@@ -33,7 +33,7 @@ export function WalletDetail(): JSX.Element {
   if (!id) {
     return (
       <main>
-        <Link to="/account/wallets">Back to Wallets</Link>
+        <Link to="/settings/wallets">Back to Wallets</Link>
       </main>
     );
   }
@@ -52,14 +52,14 @@ export function WalletDetail(): JSX.Element {
         <div role="alert" className="form-error">
           {error}
         </div>
-        <Link to="/account/wallets">Back to Wallets</Link>
+        <Link to="/settings/wallets">Back to Wallets</Link>
       </main>
     );
   }
 
   return (
     <main>
-      <Link to="/account/wallets">Back</Link>
+      <Link to="/settings/wallets">Back</Link>
 
       {wallet && (
         <>
@@ -95,8 +95,7 @@ export function WalletDetail(): JSX.Element {
           </section>
 
           <div className="button-row">
-            <Link to={`/account/wallets/${id}/edit`}>Edit</Link>
-            <Link to={`/account/wallets/${id}/transactions`}>Transactions</Link>
+            <Link to={`/settings/wallets/${id}/edit`}>Edit</Link>
           </div>
 
           <section style={{ marginTop: '1.5rem' }}>

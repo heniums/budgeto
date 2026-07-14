@@ -22,8 +22,7 @@ export function SignIn(): JSX.Element {
   const location = useLocation();
   const { login: signIn } = useAuth();
   const from =
-    (location.state as { from?: { pathname: string } })?.from?.pathname ??
-    '/account/profile';
+    (location.state as { from?: { pathname: string } })?.from?.pathname ?? '/';
   const ids = {
     email: useId(),
     password: useId(),
@@ -52,8 +51,7 @@ export function SignIn(): JSX.Element {
         setError('root', { message: 'Invalid email or password.' });
       } else {
         setError('root', {
-          message:
-            err instanceof Error ? err.message : 'Something went wrong.',
+          message: err instanceof Error ? err.message : 'Something went wrong.',
         });
       }
     }
@@ -77,7 +75,11 @@ export function SignIn(): JSX.Element {
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
           />
           {errors.email && (
-            <span id={`${ids.email}-error`} role="alert" className="field-error">
+            <span
+              id={`${ids.email}-error`}
+              role="alert"
+              className="field-error"
+            >
               {errors.email.message}
             </span>
           )}

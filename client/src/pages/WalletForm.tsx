@@ -69,7 +69,7 @@ export function WalletForm(): JSX.Element {
             description: values.description.trim(),
             color: values.color,
           });
-      navigate(`/account/wallets/${wallet.id}`);
+      navigate(`/settings/wallets/${wallet.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError(err.message);
@@ -91,7 +91,7 @@ export function WalletForm(): JSX.Element {
     <main>
       <h1>{isEdit ? 'Edit Wallet' : 'New Wallet'}</h1>
 
-      <Link to={isEdit ? `/account/wallets/${id}` : '/account/wallets'}>
+      <Link to={isEdit ? `/settings/wallets/${id}` : '/settings/wallets'}>
         Back
       </Link>
 
@@ -137,7 +137,7 @@ export function WalletForm(): JSX.Element {
             {isSubmitting ? 'Saving…' : 'Save'}
           </button>
           <Link
-            to={isEdit ? `/account/wallets/${id}` : '/account/wallets'}
+            to={isEdit ? `/settings/wallets/${id}` : '/settings/wallets'}
             className="secondary"
           >
             Cancel
