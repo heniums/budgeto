@@ -1,0 +1,62 @@
+story_id: e08s03
+title: Contextual wallet/category access via long-press and right-click
+status: failing
+bcps: 4
+spec: e08s03-contextual-access.md
+tasks:
+  - id: 1
+    description: >
+      Add a shadcn ContextMenu (right-click) and a long-press handler (mobile)
+      to wallet name cells and category badge cells in the Home transaction
+      table. The context menu shows "View wallet details" or "View category
+      details". On selection, open the wallet/category detail view in a
+      stacked modal (wired to e08s04).
+    verify: 'npm test -- client/src/pages/Home.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'Client'
+        - 'Context Menu'
+  - id: 2
+    description: >
+      Add the same context menu / long-press behavior to the wallet selector
+      and category labels inside TransactionForm and TransferForm.
+    verify: 'npm test -- client/src/components/TransactionForm.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'Client'
+        - 'Context Menu'
+  - id: 3
+    description: >
+      Create reusable WalletDetailSheet and CategoryDetailSheet components
+      that wrap the existing Settings tab content (wallet edit form, category
+      edit form) for use in stacked modals. These receive a resource ID prop
+      and fetch the resource data on mount. On save, emit an onSuccess
+      callback so the parent can refresh its data.
+    verify: 'npm test -- client/src/components/WalletDetailSheet.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'Client'
+        - 'Detail Sheets'
+  - id: 4
+    description: >
+      On mobile, replace the right-click context menu with a long-press
+      (touch-hold) handler using onTouchStart/onTouchEnd with a 500ms
+      threshold, or a shadcn-compatible approach. Show the same actions in
+      a bottom sheet or popover.
+    verify: 'npm test -- client/src/pages/Home.test.tsx'
+    risk: P2
+    status: failing
+    allure:
+      severity: normal
+      categories:
+        - 'Client'
+        - 'Mobile'

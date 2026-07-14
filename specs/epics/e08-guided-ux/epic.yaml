@@ -1,0 +1,51 @@
+# Epic e08 — Guided User Experience
+# Created by slice-tasks on 2026-07-14.
+# Consumes specs/product/SCOPE_LATEST.yaml and specs/planning-context.yaml.
+
+id: e08
+title: 'Guided User Experience — Onboarding Wizard & Contextual Navigation'
+wsjf: 14
+total_bcps: 17
+status: planned
+created_at: '2026-07-14'
+
+description: >
+  Make Budgeto immediately usable for a first-time visitor by adding a 3-step
+  onboarding wizard (Create Wallet → Create Category → Add Transaction),
+  conditional empty-state guidance for returning users, contextual long-press /
+  right-click access to wallet/category details from any transaction row, and
+  stacked modal transitions that preserve form state. Also adds the missing
+  category column to the transaction table (data already in DB, omitted from
+  the server SELECT).
+
+stories:
+  - id: e08s01
+    title: 'Category data plumbing — column, type, and server JOIN'
+    bcps: 3
+    status: planned
+    tasks: e08s01-tasks.yaml
+    delta: MODIFIED
+  - id: e08s02
+    title: 'Onboarding wizard + empty-state guidance'
+    bcps: 5
+    status: planned
+    tasks: e08s02-tasks.yaml
+    delta: ADDED
+  - id: e08s03
+    title: 'Contextual wallet/category access via long-press and right-click'
+    bcps: 4
+    status: planned
+    tasks: e08s03-tasks.yaml
+    delta: ADDED
+  - id: e08s04
+    title: 'Stacked modal transitions with form state preservation'
+    bcps: 3
+    status: planned
+    tasks: e08s04-tasks.yaml
+    delta: MODIFIED
+  - id: e08s05
+    title: 'Tests and type-check coverage'
+    bcps: 2
+    status: planned
+    tasks: e08s05-tasks.yaml
+    delta: MODIFIED

@@ -1,34 +1,53 @@
 # specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
-# Feature: Backend Auth Error Handling Refactor. Elaborated 2026-07-14.
+# Feature: Guided User Experience (Onboarding + Contextual Navigation). Elaborated 2026-07-14.
 
-feature_name: 'Backend Auth Error Handling Refactor'
+feature_name: 'Guided User Experience — Onboarding Wizard & Contextual Navigation'
 
 problem_statement: >
-  Every protected controller handler (wallets, categories, transactions) contains
-  a redundant `if (!req.user) throw unauthorizedError()` guard, even though the
-  `authenticate` middleware applied via `router.use(authenticate)` already enforces
-  that `req.user` is set before any handler runs. Express skips handlers when
-  middleware calls `next(error)`, so these guards are unreachable dead code that
-  duplicates the middleware's responsibility and adds noise to every handler.
+  Budgeto's Home page shows a flat transaction table with no category column,
+  no contextual navigation to wallets/categories, and no guidance for new users.
+  A first-time user sees "No transactions found" with no path forward. When
+  filling out the Add Transaction form, there is no way to create or edit a
+  wallet/category inline — the user must abandon the form, navigate to Settings,
+  then start over. Transactions also lack the `categoryId` field at the client
+  layer (present in the DB but omitted from the server query and client type),
+  so the category column is missing entirely from the table.
 
 constraints:
-  - 'Only remove dead-code guards in controllers — do not change auth/service.ts business-logic unauthorizedError throws.'
-  - 'Use `as TokenPayload` type assertion (non-null `!` was blocked by ESLint `no-non-null-assertion` rule).'
-  - 'No API contract changes, no new dependencies, no test behavior changes.'
-  - 'TypeScript must compile clean after changes (tsc --noEmit).'
+  - 'Left nav (Home + Settings) and Settings page (Wallets / Categories / User tabs) remain unchanged.'
+  - 'Auth pages (SignIn / SignUp) unchanged and absent from left nav.'
+  - 'All existing server APIs reused; category data added to existing transaction queries — no new endpoints required.'
+  - 'Wallet and category edit views are the SAME components rendered in Settings tabs; contextual access opens those components in a stacked modal, not a separate page.'
+  - 'Desktop: right-click context menu on wallet/category labels. Mobile: long-press (touch-hold).'
+  - 'Transaction form state must survive the wallet/category edit round-trip (modal slide-out → slide-in pattern).'
+  - 'npm test (>=80% coverage) and npm run type-check must remain green.'
+  - 'Responsive: context menu becomes action sheet on mobile; wizard works on all viewports.'
+  - 'Existing shadcn/ui component library used for modals, context menus, and wizard.'
 
 out_of_scope:
-  - 'Introducing a forbiddenError (403) concept or role-based access control.'
-  - 'Changing auth/service.ts (login, register, profile, changePassword) error handling.'
-  - 'Modifying the authenticate middleware itself.'
-  - 'Changing test files beyond any type-level fixes needed after import cleanup.'
+  - 'Dashboard analytics / summary cards (balances, trends) — deferred to G-003.'
+  - 'Dark mode / theming — deferred.'
+  - 'Category budgeting (budgets per category, progress) — deferred to G-002.'
+  - 'Wallet or category hierarchy / nesting — deferred.'
+  - 'New backend endpoints beyond what exists.'
+  - 'Auth / SignIn / SignUp UI changes.'
+  - 'Removing or restructuring the Settings page or left nav.'
 
 key_decisions:
-  - decision: 'Remove `if (!req.user) throw unauthorizedError()` from all controller handlers.'
-    rationale: 'The authenticate middleware already enforces this; the guards are unreachable dead code.'
-  - decision: 'Use `as TokenPayload` type assertions (via centralized `getUser()` helper in auth/middleware.ts).'
-    rationale: 'ESLint blocks `!`; centralized helper avoids scattering `as TokenPayload` and `import type { TokenPayload }` across every controller.'
-  - decision: 'Remove `requireUserId` helper from categories/controller.ts.'
-    rationale: 'Its only purpose was wrapping the guard being removed; inline `req.user!.sub` at call sites.'
-  - decision: 'Keep auth/service.ts unauthorizedError throws as-is.'
-    rationale: 'Those are service-layer business logic (invalid credentials, wrong password) — not middleware concerns.'
+  - decision: 'Onboarding is a dismissable 3-step wizard overlay (Create Wallet → Create Category → Add Transaction) on first visit, re-triggerable from user menu.'
+    rationale: 'User chose wizard/overlay pattern. Provides a clear linear path without cluttering the permanent UI.'
+  - decision: 'Long-press on wallet/category labels in transaction rows opens a detail/edit view contextual to that resource.'
+    rationale: >
+      User wants wallets/categories easily accessible everywhere —
+      contextual access means the user does not need to leave the
+      transaction context to edit a related resource.
+  - decision: 'Desktop trigger is right-click context menu; mobile is long-press.'
+    rationale: 'Right-click is the desktop convention for contextual actions; long-press is the mobile equivalent.'
+  - decision: 'Transaction form and wallet/category edit use stacked modal transitions (slide-out / slide-in).'
+    rationale: 'User chose modal hide/show pattern over navigate-away. Preserves form state by keeping the transaction form mounted but hidden.'
+  - decision: 'Include categoryId + category name in server transaction queries and client TransactionData type.'
+    rationale: 'Currently missing — DB has categoryId but server SELECT omits it, and client type lacks it. Needed for the category column in the transaction table and for long-press interactions.'
+  - decision: 'Empty-state guidance shows conditional prompts: "No wallets yet — create one?" when wallets=0; "No categories yet — create one?" when categories=0 but wallets>0.'
+    rationale: >
+      Guided flow does not end at the wizard — returning users with
+      missing prerequisites still need clear direction.

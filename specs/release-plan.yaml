@@ -1,16 +1,21 @@
-# Budgeto — Release Plan v0.1.0
-# Migrated from conductor/tracks.md on 2026-07-13
+# Budgeto — Release Plan v0.2.0
+# Updated by slice-tasks on 2026-07-14.
 
-release: '0.1.0'
-codename: 'UI Remake'
+release: '0.2.0'
+codename: 'Guided UX'
 status: planning
 semantic_release: true
 bump_hint: minor
-created: '2026-07-13'
+created: '2026-07-14'
 description: >
-  Initial release: foundational auth, wallet management, category management,
-  plus a client UI remake on Tailwind + shadcn/ui.
+  Guided user experience: onboarding wizard, empty-state guidance, contextual
+  wallet/category access via long-press/right-click, stacked modal transitions,
+  and the missing category column in the transaction table.
   Epics ordered by WSJF (Weighted Shortest Job First).
+
+  Previous release (v0.1.0 'UI Remake'): foundational auth, wallet management,
+  category management, transactions, and shadcn/ui client rebuild — all 7 epics
+  completed and merged to main.
 
 epics:
   - id: e01
@@ -61,4 +66,8 @@ epics:
     completed_at: '2026-07-14'
     capsule_dir: 'specs/epics/e06-ui-remake/'
 
-source: conductor/tracks.md
+  - id: e08
+    title: 'Guided UX — Onboarding Wizard & Contextual Navigation'
+    wsjf: 14
+    status: planned
+    capsule_dir: 'specs/epics/e08-guided-ux/'

@@ -1,82 +1,129 @@
-# specs/product/SCOPE_LATEST.yaml — Bounded PRD for the UI Remake initiative.
-# Written by scope-work (planning spine step 1) on 2026-07-13.
+# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Guided UX initiative.
+# Written by scope-work (planning spine step 1) on 2026-07-14.
 # Consumes specs/planning-context.yaml (elaborate-spec output).
 
 core_value: >
-  Replace Budgeto's hand-rolled, wallet-centric client UI with a modern,
-  component-driven UI built on Tailwind CSS + shadcn/ui, centered on the
-  user's transactions and simplified to a two-item left nav (Home, Settings).
+  Make Budgeto immediately usable for a first-time visitor by guiding them
+  through wallet → category → transaction creation, and make wallets and
+  categories reachable from anywhere via contextual long-press/right-click.
 
 summary: >
-  The current client is a multi-page app whose Sidebar lists every wallet and
-  whose Dashboard is wallet-centric, with no unified transactions view. This
-  initiative rebuilds the client UI using shadcn/ui components (which require
-  Tailwind CSS + Radix), overriding the prior "no Tailwind" styling convention.
-  The left navigation is reduced to Home and Settings. Home becomes an
-  all-transactions list with filters, search, pagination, and quick
-  Add-transaction / Transfer actions. Settings becomes a single page with three
-  tabs — Wallets, Categories, User — reusing the existing management logic.
-  The Dashboard page is removed. Existing server APIs (wallets, categories,
-  transactions, auth) are reused; auth pages (SignIn/SignUp) are untouched.
+  The current Budgeto app (v0.1.0) shows a flat transaction table with no
+  category column, no contextual navigation to wallets/categories, and no
+  onboarding path. A new user lands on "No transactions found" with no clue
+  what to do next. The Add Transaction form blocks you from creating a missing
+  wallet or category inline — you must abandon the form, navigate to Settings,
+  then start over.
+
+  This initiative adds a 3-step dismissable onboarding wizard (Create Wallet →
+  Create Category → Add Transaction) that appears on first visit and can be
+  re-triggered from the user menu. Empty states throughout the app show
+  conditional guidance ("You have no wallets — create one?"). Transaction rows
+  gain a category column with colored badges, and both wallet and category
+  labels become interactive: long-press on mobile, right-click on desktop opens
+  the detail/edit view in a stacked modal. The transaction form state survives
+  the round-trip — the wallet/category view slides in over the form, and slides
+  back when done.
+
+  The server transaction query is updated to include category data (categoryId
+  + category name via a join), which is already present in the database schema
+  but omitted from the current SELECT. No new endpoints or database migrations
+  are required.
 
 in_scope:
   - id: SC-1
-    maps_to: e06s01
-    description: 'Adopt Tailwind CSS + shadcn/ui toolchain; update AGENTS.md styling convention.'
+    description: >
+      Category data plumbing — include categoryId and category name in the
+      server's GET /transactions response (join categories table), update the
+      client TransactionData type, and render a Category column in the
+      transaction table with a colored badge showing the category name.
   - id: SC-2
-    maps_to: e06s02
-    description: 'Rebuild Layout/Sidebar and router: left nav = Home + Settings only; mobile collapsible drawer.'
+    description: >
+      Onboarding wizard — a dismissable 3-step overlay (Create Wallet → Create
+      Category → Add Transaction) that appears on first visit for users with
+      zero wallets. Re-triggerable from the user menu. Responsive on all
+      viewports.
   - id: SC-3
-    maps_to: e06s03
-    description: 'Home = all-transactions list with filters (wallet/category/type/date), search, pagination, Add/Transfer buttons.'
+    description: >
+      Conditional empty-state guidance — Home page shows contextual prompts:
+      "You have no wallets yet — create your first wallet" when wallets=0;
+      "You have no categories yet — create your first category" when
+      categories=0 but wallets>0. Each prompt has a direct CTA button that
+      opens the appropriate creation flow.
   - id: SC-4
-    maps_to: e06s04
-    description: 'Settings page with Wallets / Categories / User tabs, reusing existing management UIs and APIs.'
+    description: >
+      Contextual wallet/category access — long-press (mobile touch-hold) or
+      right-click (desktop) on a wallet or category label in any transaction
+      row or in the transaction form opens the detail/edit view for that
+      resource. The edit view is the same component used in Settings tabs,
+      reached via a context menu or action sheet.
   - id: SC-5
-    maps_to: e06s05
-    description: 'Rework TransactionForm / TransferForm onto shadcn Form (react-hook-form), resolving pre-existing type errors.'
+    description: >
+      Stacked modal transitions — the Add Transaction dialog and the
+      wallet/category detail view use a slide-out / slide-in pattern so the
+      transaction form stays mounted with all field values preserved while the
+      user creates or edits a wallet/category, then resumes.
   - id: SC-6
-    maps_to: e06s06
-    description: 'Update/extend client tests and ensure npm test + npm run type-check pass cleanly.'
+    description: >
+      Tests and type-check — update existing client and server tests to cover
+      the category column, onboarding wizard, empty states, context menus, and
+      modal transitions. Ensure npm test (>=80% coverage) and npm run
+      type-check pass cleanly.
 
 out_of_scope:
   - id: OOS-1
     item: 'Dashboard analytics / summary cards (balances, trends).'
-    reason: 'Deferred — user wants a transaction-centered Home, not a dashboard. Revisit as a later track (G-003 Financial Insights).'
+    reason: 'Deferred to G-003 Financial Insights. Not part of the guided UX initiative.'
   - id: OOS-2
-    item: 'Dark mode / theming for v1.'
-    reason: 'Deferred — shadcn supports theming but it is not in the requested v1 scope; adds toggle + token work.'
+    item: 'Dark mode / theming.'
+    reason: 'Deferred. Not in scope for v0.2.0.'
   - id: OOS-3
-    item: 'Category budgeting (budgets per category, progress).'
-    reason: 'Deferred — separate future track (G-002 Manage Budgets). Not part of the UI remake.'
+    item: 'Category budgeting (budgets per category, progress tracking).'
+    reason: 'Deferred to G-002 Manage Budgets. Separate future initiative.'
   - id: OOS-4
     item: 'Wallet or category hierarchy / nesting.'
-    reason: 'Deferred — out of scope per existing category epic; categories remain flat per user.'
+    reason: 'Deferred. Categories remain flat per user as in v0.1.0.'
   - id: OOS-5
-    item: 'New backend endpoints beyond what exists.'
-    reason: 'Deferred — assumes a user-scoped, filterable transactions list API already exists. If missing, it becomes a sub-task of e06s03 (explicit verify step), not a new epic.'
+    item: 'New backend endpoints beyond the category-join enhancement to GET /transactions.'
+    reason: 'Out of scope. All existing endpoints are sufficient.'
   - id: OOS-6
     item: 'Auth / SignIn / SignUp UI changes.'
-    reason: 'Out of scope — auth pages are unchanged and not in the left nav.'
+    reason: 'Out of scope. Auth pages are unchanged and not in the left nav.'
+  - id: OOS-7
+    item: 'Changes to the left nav (Home + Settings) or Settings page structure.'
+    reason: 'Out of scope per explicit user decision — Settings and nav stay as-is.'
+  - id: OOS-8
+    item: 'Inline transaction editing from the table row.'
+    reason: 'Deferred. Editing an existing transaction is not part of the guided UX scope — the focus is on creation flow and contextual resource access.'
+  - id: OOS-9
+    item: 'Automatic category suggestions based on description.'
+    reason: 'Deferred to F-001 Expense Categorization. Requires a separate ML/suggestion feature.'
 
 constraints:
-  - 'Adopt Tailwind CSS + shadcn/ui; this OVERRIDES the AGENTS.md "No CSS modules / Tailwind" rule (convention to be updated in e06s01).'
-  - 'Reuse existing server APIs (wallets, categories, transactions, auth) and as much existing client logic/components as possible.'
-  - 'Left navigation contains ONLY Home and Settings.'
-  - 'Responsive: left sidebar collapses to a drawer on mobile (shadcn Sheet).'
-  - 'Transaction & transfer creation lives on Home (reusing TransactionForm / TransferForm reworked onto shadcn Form).'
-  - 'Auth pages (SignIn / SignUp) unchanged and absent from the left nav.'
-  - 'npm test (>=80% coverage) and npm run type-check must remain green; the prior WalletForm/TransferForm type errors are resolved, not masked.'
+  - 'Left nav (Home + Settings) and Settings page (Wallets / Categories / User tabs) remain unchanged.'
+  - 'Auth pages (SignIn / SignUp) unchanged and absent from left nav.'
+  - 'All existing server APIs reused; category data added to existing transaction queries via a JOIN — no new endpoints or DB migrations required.'
+  - 'Wallet and category edit views reuse the SAME components rendered in Settings tabs; contextual access opens them in a stacked modal, not a separate page.'
+  - 'Desktop: right-click context menu on wallet/category labels. Mobile: long-press (touch-hold).'
+  - 'Transaction form state must survive the wallet/category edit round-trip (modal slide-out → slide-in pattern).'
+  - 'npm test (>=80% coverage) and npm run type-check must remain green.'
+  - 'Responsive: context menu becomes action sheet on mobile; wizard works on all viewports.'
+  - 'Existing shadcn/ui component library used for modals, context menus, dropdown menus, and wizard steps.'
+  - 'No new npm dependencies unless a context-menu or wizard library is required and justifies the cost.'
 
 success_criteria:
-  - 'Authenticated user sees a left nav with only Home and Settings; on mobile it collapses to a drawer.'
-  - 'Home lists all of the user''s transactions with working filters (wallet/category/type/date), search, and pagination.'
-  - 'Add transaction and Transfer actions on Home open the (shadcn-reworked) forms and persist correctly.'
-  - 'Settings page shows Wallets, Categories, and User tabs; each manages its resource using existing APIs.'
-  - 'npm test passes (updated tests) and npm run type-check is clean (prior type errors resolved).'
+  - 'A first-time user with zero wallets sees the 3-step onboarding wizard on Home and can complete wallet → category → transaction creation without leaving the wizard.'
+  - 'A returning user with zero wallets sees "You have no wallets yet — create your first wallet" on Home with a working CTA.'
+  - 'A returning user with wallets but zero categories sees "You have no categories yet — create your first category" on Home with a working CTA.'
+  - 'The transaction table shows a Category column with colored badges for each transaction.'
+  - 'Right-clicking a wallet name in a transaction row opens a context menu; selecting "View details" opens the wallet detail/edit view.'
+  - 'Long-pressing a category badge on mobile opens an action sheet with "View details" → opens the category detail/edit view.'
+  - 'In the Add Transaction dialog, clicking a "Create wallet" or "Create category" link slides in the creation form; submitting it slides back to the transaction form with all fields preserved.'
+  - 'npm test passes with >=80% coverage and npm run type-check exits clean.'
 
 references:
   - specs/planning-context.yaml
-  - specs/tech-architecture/TECH_STACK_LATEST.md
   - specs/product/VISION_LATEST.yaml
+  - specs/release-plan.yaml
+  - specs/tech-architecture/TECH_STACK_LATEST.md
   - specs/epics/e06-ui-remake/epic.yaml

@@ -1,0 +1,50 @@
+story_id: e08s05
+title: Tests and type-check coverage
+status: failing
+bcps: 2
+spec: e08s05-tests-coverage.md
+tasks:
+  - id: 1
+    description: >
+      Update existing server tests (server/test/transaction.test.ts) to
+      verify the category fields are present in GET /transactions responses.
+      Update client API tests (client/src/api/transactions.test.ts) to assert
+      the new categoryId and categoryName fields.
+    verify: 'npm test 2>&1 | tail -10'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'Tests'
+        - 'Server'
+        - 'Client API'
+  - id: 2
+    description: >
+      Write new client tests: OnboardingWizard (renders 3 steps, dismisses,
+      localStorage flag), empty-state prompts on Home, context menu triggers
+      on wallet/category cells, stacked modal state preservation, and
+      long-press handler on mobile. Ensure npm test passes with >=80%
+      coverage.
+    verify: 'npm run test:coverage 2>&1 | tail -20'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'Tests'
+        - 'Client'
+        - 'Coverage'
+  - id: 3
+    description: >
+      Run npm run type-check (tsc --noEmit) and fix any type errors
+      introduced by the category field additions, new components, or
+      refactored modal props. Ensure clean exit.
+    verify: 'npm run type-check 2>&1 | tail -5'
+    risk: P0
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - 'Types'
+        - 'Quality Gate'
