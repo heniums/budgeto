@@ -101,8 +101,8 @@ export function CategoryDetailSheet({
           icon: 'Tag',
         });
         onSuccess?.(newCategory);
-      } else {
-        await updateCategory(categoryId!, {
+      } else if (categoryId) {
+        await updateCategory(categoryId, {
           name: values.name.trim(),
           type: values.type,
           color: values.color,

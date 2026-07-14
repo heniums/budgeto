@@ -100,8 +100,8 @@ export function WalletDetailSheet({
           color: values.color,
         });
         onSuccess?.(newWallet);
-      } else {
-        await updateWallet(walletId!, {
+      } else if (walletId) {
+        await updateWallet(walletId, {
           name: values.name.trim(),
           description: values.description.trim(),
           color: values.color,
