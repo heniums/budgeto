@@ -54,11 +54,10 @@ export function SignUp(): JSX.Element {
         password: data.password,
       });
       signIn(user, token);
-      navigate('/account/profile');
+      navigate('/');
     } catch (err) {
       setError('root', {
-        message:
-          err instanceof Error ? err.message : 'Something went wrong.',
+        message: err instanceof Error ? err.message : 'Something went wrong.',
       });
     }
   };
@@ -67,7 +66,8 @@ export function SignUp(): JSX.Element {
     <main className="auth-page">
       <h1>Create your account</h1>
       <p className="auth-lead">
-        Ready to take control of your budget? A few details and you&rsquo;re set.
+        Ready to take control of your budget? A few details and you&rsquo;re
+        set.
       </p>
 
       <form onSubmit={handleSubmit(onSubmit)} noValidate>
@@ -99,7 +99,11 @@ export function SignUp(): JSX.Element {
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
           />
           {errors.email && (
-            <span id={`${ids.email}-error`} role="alert" className="field-error">
+            <span
+              id={`${ids.email}-error`}
+              role="alert"
+              className="field-error"
+            >
               {errors.email.message}
             </span>
           )}

@@ -1,12 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-  useLocation,
-} from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { SignUp } from './SignUp';
 
@@ -39,7 +34,7 @@ function renderSignUp(): void {
         <Routes>
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<div>Sign in page</div>} />
-          <Route path="/account/profile" element={<div>Profile home</div>} />
+          <Route path="/" element={<div>Profile home</div>} />
           <Route path="*" element={<LocationSpy />} />
         </Routes>
       </MemoryRouter>

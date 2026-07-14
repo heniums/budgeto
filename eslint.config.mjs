@@ -10,6 +10,7 @@ export default [
       'client/dist',
       '*.config.ts',
       '*.config.mjs',
+      '**/*.config.cjs',
       'scripts/**',
     ],
   },

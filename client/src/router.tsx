@@ -3,14 +3,12 @@ import { ProtectedRoute } from './auth/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { SignUp } from './pages/SignUp';
 import { SignIn } from './pages/SignIn';
+import { Home } from './pages/Home';
+import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
-import { Dashboard } from './pages/Dashboard';
 import { WalletList } from './pages/WalletList';
 import { WalletForm } from './pages/WalletForm';
 import { WalletDetail } from './pages/WalletDetail';
-import { Transactions } from './pages/Transactions';
-import { TransactionForm } from './pages/TransactionForm';
-import { Transfer } from './pages/Transfer';
 import { Categories } from './pages/Categories';
 import { CategoryForm } from './pages/CategoryForm';
 
@@ -24,23 +22,22 @@ export const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
     children: [
-      { path: '/dashboard', element: <Dashboard /> },
-      { path: '/account/profile', element: <Profile /> },
-      { path: '/account/wallets', element: <WalletList /> },
-      { path: '/account/wallets/new', element: <WalletForm /> },
-      { path: '/account/wallets/:id/edit', element: <WalletForm /> },
-      { path: '/account/wallets/:id', element: <WalletDetail /> },
-      { path: '/account/wallets/:id/transactions', element: <Transactions /> },
+      { path: '/', element: <Home /> },
       {
-        path: '/account/wallets/:id/transactions/new',
-        element: <TransactionForm />,
+        path: '/settings',
+        element: <Settings />,
+        children: [
+          { index: true, element: <WalletList /> },
+          { path: 'wallets/new', element: <WalletForm /> },
+          { path: 'wallets/:id', element: <WalletDetail /> },
+          { path: 'wallets/:id/edit', element: <WalletForm /> },
+          { path: 'categories', element: <Categories /> },
+          { path: 'categories/new', element: <CategoryForm /> },
+          { path: 'categories/:id/edit', element: <CategoryForm /> },
+          { path: 'user', element: <Profile /> },
+        ],
       },
-      { path: '/account/wallets/:id/transfer', element: <Transfer /> },
-      { path: '/account/categories', element: <Categories /> },
-      { path: '/account/categories/new', element: <CategoryForm /> },
-      { path: '/account/categories/:id/edit', element: <CategoryForm /> },
     ],
   },
-  { path: '/', element: <Navigate to="/dashboard" replace /> },
-  { path: '*', element: <Navigate to="/dashboard" replace /> },
+  { path: '*', element: <Navigate to="/" replace /> },
 ];

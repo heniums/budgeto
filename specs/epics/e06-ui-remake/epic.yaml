@@ -1,0 +1,55 @@
+# Epic e06 — UI Remake with shadcn/ui
+# Created by plan-release on 2026-07-13.
+# Consumes specs/product/SCOPE_LATEST.yaml and specs/planning-context.yaml.
+
+id: e06
+title: 'UI Remake with shadcn/ui'
+wsjf: 12
+total_bcps: 20
+status: completed
+created_at: '2026-07-13'
+
+description: >
+  Rebuild the Budgeto client UI on Tailwind CSS + shadcn/ui. Reduce the left
+  nav to Home (all-transactions list) and Settings (Wallets / Categories / User
+  tabs). Remove the Dashboard. Reuse existing server APIs and management logic.
+  Reworking the transaction/transfer forms onto shadcn Form also resolves the
+  pre-existing WalletForm/TransferForm type errors.
+
+stories:
+  - id: e06s01
+    title: 'Toolchain — Tailwind + shadcn/ui'
+    bcps: 3
+    status: done
+    spec: e06s01-toolchain.md
+    tasks: e06s01-tasks.yaml
+  - id: e06s02
+    title: 'Layout & Router — Home/Settings nav + mobile drawer'
+    bcps: 3
+    status: done
+    spec: e06s02-layout-router.md
+    tasks: e06s02-tasks.yaml
+  - id: e06s03
+    title: 'Home — All-transactions list with filters'
+    bcps: 5
+    status: done
+    spec: e06s03-home-list.md
+    tasks: e06s03-tasks.yaml
+  - id: e06s04
+    title: 'Settings — Wallets / Categories / User tabs'
+    bcps: 4
+    status: done
+    spec: e06s04-settings.md
+    tasks: e06s04-tasks.yaml
+  - id: e06s05
+    title: 'Forms — TransactionForm / TransferForm on shadcn Form'
+    bcps: 3
+    status: done
+    spec: e06s05-forms.md
+    tasks: e06s05-tasks.yaml
+  - id: e06s06
+    title: 'Tests & type-check cleanup'
+    bcps: 2
+    status: done
+    spec: e06s06-tests.md
+    tasks: e06s06-tasks.yaml

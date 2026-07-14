@@ -9,8 +9,8 @@ import { ApiError } from '../api/client';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(128),
-  description: z.string().max(512).optional().default(''),
-  color: z.string().optional().default('#1f8a4c'),
+  description: z.string().max(512),
+  color: z.string(),
 });
 
 type WalletValues = z.infer<typeof walletSchema>;
@@ -59,17 +59,17 @@ export function WalletForm(): JSX.Element {
     setFormError(null);
     try {
       const wallet = isEdit
-        ? await updateWallet(id!, {
+        ? await updateWallet(id ?? '', {
             name: values.name.trim(),
-            description: values.description?.trim(),
+            description: values.description.trim(),
             color: values.color,
           })
         : await createWallet({
             name: values.name.trim(),
-            description: values.description?.trim(),
+            description: values.description.trim(),
             color: values.color,
           });
-      navigate(`/account/wallets/${wallet.id}`);
+      navigate(`/settings/wallets/${wallet.id}`);
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError(err.message);
@@ -91,7 +91,7 @@ export function WalletForm(): JSX.Element {
     <main>
       <h1>{isEdit ? 'Edit Wallet' : 'New Wallet'}</h1>
 
-      <Link to={isEdit ? `/account/wallets/${id}` : '/account/wallets'}>
+      <Link to={isEdit ? `/settings/wallets/${id}` : '/settings/wallets'}>
         Back
       </Link>
 
@@ -137,7 +137,7 @@ export function WalletForm(): JSX.Element {
             {isSubmitting ? 'Saving…' : 'Save'}
           </button>
           <Link
-            to={isEdit ? `/account/wallets/${id}` : '/account/wallets'}
+            to={isEdit ? `/settings/wallets/${id}` : '/settings/wallets'}
             className="secondary"
           >
             Cancel

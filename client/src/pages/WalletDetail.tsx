@@ -13,11 +13,11 @@ export function WalletDetail(): JSX.Element {
   useEffect(() => {
     if (!id) return;
     let active = true;
-    Promise.all([getWallet(id), getTransactions(id)])
+    Promise.all([getWallet(id), getTransactions()])
       .then(([w, t]) => {
         if (!active) return;
         setWallet(w);
-        setTransactions(t.transactions);
+        setTransactions(t.transactions.filter((tx) => tx.walletId === id));
         setLoading(false);
       })
       .catch((err) => {
@@ -33,7 +33,7 @@ export function WalletDetail(): JSX.Element {
   if (!id) {
     return (
       <main>
-        <Link to="/account/wallets">Back to Wallets</Link>
+        <Link to="/settings/wallets">Back to Wallets</Link>
       </main>
     );
   }
@@ -52,14 +52,14 @@ export function WalletDetail(): JSX.Element {
         <div role="alert" className="form-error">
           {error}
         </div>
-        <Link to="/account/wallets">Back to Wallets</Link>
+        <Link to="/settings/wallets">Back to Wallets</Link>
       </main>
     );
   }
 
   return (
     <main>
-      <Link to="/account/wallets">Back</Link>
+      <Link to="/settings/wallets">Back</Link>
 
       {wallet && (
         <>
@@ -95,8 +95,7 @@ export function WalletDetail(): JSX.Element {
           </section>
 
           <div className="button-row">
-            <Link to={`/account/wallets/${id}/edit`}>Edit</Link>
-            <Link to={`/account/wallets/${id}/transactions`}>Transactions</Link>
+            <Link to={`/settings/wallets/${id}/edit`}>Edit</Link>
           </div>
 
           <section style={{ marginTop: '1.5rem' }}>

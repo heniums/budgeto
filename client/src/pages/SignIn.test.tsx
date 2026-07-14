@@ -1,12 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  MemoryRouter,
-  Route,
-  Routes,
-  useLocation,
-} from 'react-router-dom';
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { SignIn } from './SignIn';
 
@@ -38,8 +33,8 @@ function renderSignIn(initialEntry: unknown = '/login'): void {
         <Routes>
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<div>Sign up page</div>} />
-          <Route path="/account/profile" element={<div>Profile home</div>} />
-          <Route path="/account/settings" element={<div>Settings</div>} />
+          <Route path="/" element={<div>Profile home</div>} />
+          <Route path="/settings" element={<div>Settings</div>} />
           <Route path="*" element={<LocationSpy />} />
         </Routes>
       </MemoryRouter>
@@ -111,7 +106,7 @@ describe('SignIn form', () => {
     const user = userEvent.setup();
     renderSignIn({
       pathname: '/login',
-      state: { from: { pathname: '/account/settings' } },
+      state: { from: { pathname: '/settings' } },
     });
     await user.type(screen.getByLabelText(/email address/i), 'ada@example.com');
     await user.type(screen.getByLabelText(/password/i), 'supersecret');

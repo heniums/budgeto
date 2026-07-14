@@ -7,3 +7,4 @@ coverage/
 .pgdata/
 .embedded-postgres/
 .DS_Store
+.pi-subagents/

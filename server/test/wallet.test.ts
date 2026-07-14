@@ -125,6 +125,29 @@ describe('GET /wallets/:id', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(response.status).toBe(404);
   });
+
+  it('returns 404 when wallet belongs to a different user', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'User A Wallet' });
+    const walletId = wallet.body.id;
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .get(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('PUT /wallets/:id', () => {
@@ -163,6 +186,30 @@ describe('PUT /wallets/:id', () => {
       .send({ name: '' });
     expect(response.status).toBe(400);
   });
+
+  it('returns 404 when updating a wallet owned by another user', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'User A Wallet' });
+    const walletId = wallet.body.id;
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other2@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ name: 'Hacked' });
+    expect(response.status).toBe(404);
+  });
 });
 
 describe('DELETE /wallets/:id', () => {
@@ -190,6 +237,29 @@ describe('DELETE /wallets/:id', () => {
     const response = await request(app)
       .delete('/wallets/00000000-0000-0000-0000-000000000000')
       .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('returns 404 when deleting a wallet owned by another user', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'User A Wallet' });
+    const walletId = wallet.body.id;
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other3@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .delete(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${otherToken}`);
     expect(response.status).toBe(404);
   });
 });

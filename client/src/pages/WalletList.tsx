@@ -54,7 +54,7 @@ export function WalletList(): JSX.Element {
       )}
 
       <div style={{ marginBottom: '1rem' }}>
-        <Link to="/account/wallets/new">New Wallet</Link>
+        <Link to="/settings/wallets/new">New Wallet</Link>
       </div>
 
       {loading ? (
@@ -73,7 +73,7 @@ export function WalletList(): JSX.Element {
                     aria-hidden
                   />
                   <Link
-                    to={`/account/wallets/${wallet.id}`}
+                    to={`/settings/wallets/${wallet.id}`}
                     className="wallet-name"
                   >
                     {wallet.name}

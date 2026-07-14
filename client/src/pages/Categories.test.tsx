@@ -53,15 +53,15 @@ const mockCategories = [
 function renderList(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/account/categories']}>
+      <MemoryRouter initialEntries={['/settings/categories']}>
         <Routes>
-          <Route path="/account/categories" element={<Categories />} />
+          <Route path="/settings/categories" element={<Categories />} />
           <Route
-            path="/account/categories/new"
+            path="/settings/categories/new"
             element={<div>Create Category</div>}
           />
           <Route
-            path="/account/categories/:id/edit"
+            path="/settings/categories/:id/edit"
             element={<div>Edit Category</div>}
           />
         </Routes>

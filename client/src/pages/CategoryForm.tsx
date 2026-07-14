@@ -91,7 +91,7 @@ export function CategoryForm(): JSX.Element {
           icon: values.icon,
         });
       }
-      navigate('/account/categories');
+      navigate('/settings/categories');
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError(err.message);
@@ -113,7 +113,7 @@ export function CategoryForm(): JSX.Element {
     <main>
       <h1>{isEdit ? 'Edit Category' : 'New Category'}</h1>
 
-      <Link to="/account/categories">Back</Link>
+      <Link to="/settings/categories">Back</Link>
 
       {formError && (
         <div role="alert" className="form-error">
@@ -229,7 +229,7 @@ export function CategoryForm(): JSX.Element {
           <button type="submit" disabled={isSubmitting}>
             {isSubmitting ? 'Saving…' : 'Save'}
           </button>
-          <Link to="/account/categories" className="secondary">
+          <Link to="/settings/categories" className="secondary">
             Cancel
           </Link>
         </div>

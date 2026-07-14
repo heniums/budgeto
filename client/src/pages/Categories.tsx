@@ -59,7 +59,7 @@ export function Categories(): JSX.Element {
       )}
 
       <div style={{ marginBottom: '1rem' }}>
-        <Link to="/account/categories/new">New Category</Link>
+        <Link to="/settings/categories/new">New Category</Link>
       </div>
 
       {loading ? (
@@ -87,7 +87,7 @@ export function Categories(): JSX.Element {
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
                     <Link
-                      to={`/account/categories/${category.id}/edit`}
+                      to={`/settings/categories/${category.id}/edit`}
                       className="wallet-delete"
                       style={{ color: 'var(--color-accent)' }}
                       aria-label={`Edit ${category.name}`}

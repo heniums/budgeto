@@ -8,6 +8,7 @@ import {
   update,
   remove,
 } from './service';
+import { unauthorizedError } from '../errors';
 
 export async function createHandler(
   req: Request,
@@ -15,8 +16,11 @@ export async function createHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
+    if (!req.user) {
+      throw unauthorizedError();
+    }
     const input = createWalletSchema.parse(req.body);
-    const wallet = await create(req.user!.sub, input);
+    const wallet = await create(req.user.sub, input);
     res.status(201).json(wallet);
   } catch (error) {
     next(error);
@@ -29,7 +33,10 @@ export async function listHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const result = await list(req.user!.sub);
+    if (!req.user) {
+      throw unauthorizedError();
+    }
+    const result = await list(req.user.sub);
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -42,7 +49,10 @@ export async function getHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    const wallet = await get(req.params.id, req.user!.sub);
+    if (!req.user) {
+      throw unauthorizedError();
+    }
+    const wallet = await get(req.params.id, req.user.sub);
     res.status(200).json(wallet);
   } catch (error) {
     next(error);
@@ -55,8 +65,11 @@ export async function updateHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
+    if (!req.user) {
+      throw unauthorizedError();
+    }
     const input = updateWalletSchema.parse(req.body);
-    const wallet = await update(req.params.id, req.user!.sub, input);
+    const wallet = await update(req.params.id, req.user.sub, input);
     res.status(200).json(wallet);
   } catch (error) {
     next(error);
@@ -69,7 +82,10 @@ export async function deleteHandler(
   next: NextFunction,
 ): Promise<void> {
   try {
-    await remove(req.params.id, req.user!.sub);
+    if (!req.user) {
+      throw unauthorizedError();
+    }
+    await remove(req.params.id, req.user.sub);
     res.status(204).send();
   } catch (error) {
     next(error);

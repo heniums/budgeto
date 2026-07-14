@@ -28,7 +28,7 @@ function renderAt(path: string, element: JSX.Element): void {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path={path} element={element} />
-          <Route path="/account/profile" element={<div>Profile home</div>} />
+          <Route path="/" element={<div>Profile home</div>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,

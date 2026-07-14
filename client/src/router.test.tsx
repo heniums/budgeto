@@ -33,13 +33,13 @@ describe('router guards', () => {
     cleanup();
   });
 
-  it('redirects an unauthenticated user from /account/profile to /login', async () => {
+  it('redirects an unauthenticated user from /settings/user to /login', async () => {
     render(
       <AuthProvider>
-        <MemoryRouter initialEntries={['/account/profile']}>
+        <MemoryRouter initialEntries={['/settings/user']}>
           <Routes>
             <Route
-              path="/account/profile"
+              path="/settings/user"
               element={
                 <ProtectedRoute>
                   <div>secret</div>
@@ -58,10 +58,10 @@ describe('router guards', () => {
   it('captures the intended destination for post-login redirect', async () => {
     render(
       <AuthProvider>
-        <MemoryRouter initialEntries={['/account/profile']}>
+        <MemoryRouter initialEntries={['/settings/user']}>
           <Routes>
             <Route
-              path="/account/profile"
+              path="/settings/user"
               element={
                 <ProtectedRoute>
                   <div>secret</div>
@@ -74,18 +74,18 @@ describe('router guards', () => {
       </AuthProvider>,
     );
     expect(
-      await screen.findByText('login spy: /account/profile'),
+      await screen.findByText('login spy: /settings/user'),
     ).toBeInTheDocument();
   });
 
-  it('lets an authenticated user reach /account/profile', async () => {
+  it('lets an authenticated user reach /settings/user', async () => {
     vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
-        <MemoryRouter initialEntries={['/account/profile']}>
+        <MemoryRouter initialEntries={['/settings/user']}>
           <Routes>
             <Route
-              path="/account/profile"
+              path="/settings/user"
               element={
                 <ProtectedRoute>
                   <div>secret</div>

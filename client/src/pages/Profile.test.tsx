@@ -25,9 +25,9 @@ import { ApiError } from '../api/client';
 function renderProfile(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/account/profile']}>
+      <MemoryRouter initialEntries={['/settings/user']}>
         <Routes>
-          <Route path="/account/profile" element={<Profile />} />
+          <Route path="/settings/user" element={<Profile />} />
           <Route path="/login" element={<div>Sign in page</div>} />
         </Routes>
       </MemoryRouter>

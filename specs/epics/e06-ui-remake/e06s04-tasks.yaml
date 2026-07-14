@@ -1,0 +1,25 @@
+story_id: e06s04
+title: Settings — Wallets / Categories / User tabs
+status: passing
+bcps: 4
+tasks:
+  - id: 1
+    description: "Create Settings page with shadcn Tabs (Wallets, Categories, User) at /settings"
+    verify: "npm test -- client/src/pages/Settings.test.tsx"
+    risk: P1
+    status: passing
+  - id: 2
+    description: "Wire Wallets tab to existing WalletList/WalletForm (reuse API + components); fix imports referencing removed routes"
+    verify: "npm test -- client/src/pages/Settings.test.tsx"
+    risk: P1
+    status: passing
+  - id: 3
+    description: "Wire Categories tab to existing Categories/CategoryForm (reuse API + components)"
+    verify: "npm test -- client/src/pages/Settings.test.tsx"
+    risk: P1
+    status: passing
+  - id: 4
+    description: "Wire User tab to existing Profile (name/email/password) logic/API"
+    verify: "npm test -- client/src/pages/Settings.test.tsx"
+    risk: P2
+    status: passing
