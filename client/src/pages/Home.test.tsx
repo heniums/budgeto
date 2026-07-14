@@ -161,7 +161,23 @@ describe('Home onboarding wizard', () => {
     localStorage.setItem('budgeto:wizardDismissed', 'true');
     vi.mocked(getWallets).mockResolvedValue({ wallets: [] });
     renderHome();
-    await screen.findByText('No transactions found.');
+    expect(
+      await screen.findByText(/you have no wallets yet/i),
+    ).toBeInTheDocument();
     expect(screen.queryByText('Step 1 of 3')).not.toBeInTheDocument();
+  });
+
+  it('shows empty-state prompt when no categories but wallets exist', async () => {
+    localStorage.setItem('budgeto:wizardDismissed', 'true');
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: [] });
+    vi.mocked(getTransactions).mockResolvedValue({
+      transactions: [],
+      total: 0,
+    });
+    renderHome();
+    expect(
+      await screen.findByText(/you have no categories yet/i),
+    ).toBeInTheDocument();
   });
 });
