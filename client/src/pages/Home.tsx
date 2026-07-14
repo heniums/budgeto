@@ -23,6 +23,14 @@ import {
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
 import { OnboardingWizard } from '../components/OnboardingWizard';
+import { WalletDetailSheet } from '../components/WalletDetailSheet';
+import { CategoryDetailSheet } from '../components/CategoryDetailSheet';
+import {
+  ContextMenu,
+  ContextMenuTrigger,
+  ContextMenuContent,
+  ContextMenuItem,
+} from '@/components/ui/context-menu';
 
 const PAGE_SIZE = 10;
 
@@ -53,6 +61,8 @@ export function Home(): JSX.Element {
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [wizardOpen, setWizardOpen] = useState(false);
+  const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
+  const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
 
   const load = (): void => {
     setLoading(true);
@@ -296,18 +306,40 @@ export function Home(): JSX.Element {
                   return (
                     <TableRow key={tx.id}>
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
-                      <TableCell>{walletName(tx.walletId)}</TableCell>
+                      <TableCell>
+                        <ContextMenu>
+                          <ContextMenuTrigger className="cursor-context-menu">
+                            {walletName(tx.walletId)}
+                          </ContextMenuTrigger>
+                          <ContextMenuContent>
+                            <ContextMenuItem
+                              onClick={() => setDetailWalletId(tx.walletId)}
+                            >
+                              View wallet details
+                            </ContextMenuItem>
+                          </ContextMenuContent>
+                        </ContextMenu>
+                      </TableCell>
                       <TableCell>
                         {cat ? (
-                          <span
-                            className="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                            style={{
-                              backgroundColor: cat.color + '20',
-                              color: cat.color,
-                            }}
-                          >
-                            {cat.name}
-                          </span>
+                          <ContextMenu>
+                            <ContextMenuTrigger
+                              className="cursor-context-menu inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                              style={{
+                                backgroundColor: cat.color + '20',
+                                color: cat.color,
+                              }}
+                            >
+                              {cat.name}
+                            </ContextMenuTrigger>
+                            <ContextMenuContent>
+                              <ContextMenuItem
+                                onClick={() => setDetailCategoryId(cat.id)}
+                              >
+                                View category details
+                              </ContextMenuItem>
+                            </ContextMenuContent>
+                          </ContextMenu>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -353,6 +385,30 @@ export function Home(): JSX.Element {
           </div>
         </>
       )}
+
+      <WalletDetailSheet
+        walletId={detailWalletId ?? ''}
+        open={detailWalletId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailWalletId(null);
+        }}
+        onSuccess={() => {
+          setDetailWalletId(null);
+          load();
+        }}
+      />
+
+      <CategoryDetailSheet
+        categoryId={detailCategoryId ?? ''}
+        open={detailCategoryId !== null}
+        onOpenChange={(open) => {
+          if (!open) setDetailCategoryId(null);
+        }}
+        onSuccess={() => {
+          setDetailCategoryId(null);
+          load();
+        }}
+      />
     </div>
   );
 }
