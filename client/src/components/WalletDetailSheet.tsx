@@ -58,14 +58,15 @@ export function WalletDetailSheet({
   const isCreate = !walletId;
 
   useEffect(() => {
-    if (!open || isCreate) {
-      if (isCreate && open) {
-        setLoading(false);
-        setWallet(null);
-        reset({ name: '', description: '', color: '#1f8a4c' });
-      }
+    if (!open) return;
+
+    if (isCreate) {
+      setLoading(false);
+      setWallet(null);
+      reset({ name: '', description: '', color: '#1f8a4c' });
       return;
     }
+
     let active = true;
     setLoading(true);
     setFormError(null);

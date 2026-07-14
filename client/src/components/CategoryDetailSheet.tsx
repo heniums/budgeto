@@ -58,14 +58,15 @@ export function CategoryDetailSheet({
   const isCreate = !categoryId;
 
   useEffect(() => {
-    if (!open || isCreate) {
-      if (isCreate && open) {
-        setLoading(false);
-        setCategory(null);
-        reset({ name: '', type: 'expense', color: '#ff6b6b' });
-      }
+    if (!open) return;
+
+    if (isCreate) {
+      setLoading(false);
+      setCategory(null);
+      reset({ name: '', type: 'expense', color: '#ff6b6b' });
       return;
     }
+
     let active = true;
     setLoading(true);
     setFormError(null);
