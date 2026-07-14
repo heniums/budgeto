@@ -1,6 +1,6 @@
 story_id: e08s01
 title: Category data plumbing — column, type, and server JOIN
-status: failing
+status: passing
 bcps: 3
 spec: e08s01-category-plumbing.md
 tasks:
