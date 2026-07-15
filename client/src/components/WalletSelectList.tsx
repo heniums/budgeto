@@ -18,7 +18,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { useLongPress } from '../hooks/use-long-press';
-import { updateWallet, createWallet } from '../api/wallets';
+import { updateWallet, createWallet, deleteWallet } from '../api/wallets';
 import { Plus, Grid3X3 } from 'lucide-react';
 
 interface WalletItem {
@@ -165,17 +165,34 @@ function WalletEditDialog({
               {error}
             </p>
           )}
-          <div className="flex justify-end gap-2">
+          <div className="flex justify-between gap-2">
             <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
+              variant="destructive"
+              onClick={async () => {
+                try {
+                  await deleteWallet(wallet.id);
+                  onSaved();
+                  onOpenChange(false);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Failed to delete wallet');
+                }
+              }}
               type="button"
             >
-              Cancel
+              Delete
             </Button>
-            <Button onClick={handleSave} disabled={saving || !name.trim()}>
-              {saving ? 'Saving…' : 'Save'}
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                type="button"
+              >
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving || !name.trim()}>
+                {saving ? 'Saving…' : 'Save'}
+              </Button>
+            </div>
           </div>
         </div>
       </DialogContent>

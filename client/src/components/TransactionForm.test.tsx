@@ -343,10 +343,15 @@ describe('TransactionForm — edit mode', () => {
       </MemoryRouter>,
     );
 
+    // Modify a field to enable Save (isDirty detection)
+    const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
+    await user.clear(amountInput);
+    await user.type(amountInput, '200');
+
     await user.click(screen.getByRole('button', { name: /save changes/i }));
 
     expect(updateTransaction).toHaveBeenCalledWith('t-edit', {
-      amount: '100',
+      amount: '200',
       description: 'Old',
       categoryId: undefined,
       walletId: 'w1',

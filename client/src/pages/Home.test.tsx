@@ -302,41 +302,20 @@ describe('Home transaction detail view', () => {
     cleanup();
   });
 
-  it('opens detail dialog when clicking a transaction row', async () => {
-    const user = userEvent.setup();
-    renderHome();
-    await screen.findByText('Groceries');
-
-    // Click the description cell (part of the row)
-    await user.click(screen.getByText('Groceries'));
-
-    expect(
-      await screen.findByText('Transaction details'),
-    ).toBeInTheDocument();
-    // Amount appears in both the table and the dialog — check dialog shows it
-    const amounts = screen.getAllByText('-$42.50');
-    expect(amounts.length).toBeGreaterThanOrEqual(2);
-    // Cash wallet name also appears in both
-    const cashElements = screen.getAllByText('Cash');
-    expect(cashElements.length).toBeGreaterThanOrEqual(2);
-    // Food category badge — chip uses aria-label, check via label
-    const foodChips = screen.getAllByLabelText('Food');
-    expect(foodChips.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it('opens edit form when Edit is clicked in detail dialog', async () => {
+  it('opens edit form when clicking a transaction row', async () => {
     const user = userEvent.setup();
     renderHome();
     await screen.findByText('Groceries');
 
     await user.click(screen.getByText('Groceries'));
-    await screen.findByText('Transaction details');
 
-    await user.click(screen.getByRole('button', { name: /edit/i }));
-
-    // Edit form should appear with pre-filled values
+    // Row click opens edit mode directly — Save changes button visible
     expect(
       await screen.findByRole('button', { name: /save changes/i }),
+    ).toBeInTheDocument();
+    // Delete button also visible in edit mode
+    expect(
+      screen.getByRole('button', { name: /delete/i }),
     ).toBeInTheDocument();
   });
 
@@ -346,7 +325,8 @@ describe('Home transaction detail view', () => {
     await screen.findByText('Groceries');
 
     await user.click(screen.getByText('Groceries'));
-    await screen.findByText('Transaction details');
+    // In edit mode, Delete button is visible
+    await screen.findByRole('button', { name: /save changes/i });
 
     await user.click(screen.getByRole('button', { name: /delete/i }));
 
@@ -393,7 +373,8 @@ describe('Home transaction detail view', () => {
     // Click the amount cell of the first transfer leg
     const amountCells = screen.getAllByText('$50.00');
     await user.click(amountCells[0]);
-    await screen.findByText('Transaction details');
+    // Row click opens edit mode
+    await screen.findByRole('button', { name: /save changes/i });
 
     await user.click(screen.getByRole('button', { name: /delete/i }));
 

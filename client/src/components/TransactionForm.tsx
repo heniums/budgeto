@@ -93,7 +93,7 @@ export function TransactionForm({
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
     reset,
     setValue,
   } = useForm<TransactionValues>({
@@ -418,15 +418,33 @@ export function TransactionForm({
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting || wallets.length === 0}>
-        {isSubmitting
-          ? editMode
-            ? 'Saving…'
-            : 'Adding…'
-          : editMode
-            ? 'Save changes'
-            : 'Add Transaction'}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          type="submit"
+          disabled={
+            isSubmitting ||
+            wallets.length === 0 ||
+            (editMode && !isDirty)
+          }
+        >
+          {isSubmitting
+            ? editMode
+              ? 'Saving…'
+              : 'Adding…'
+            : editMode
+              ? 'Save changes'
+              : 'Add Transaction'}
+        </Button>
+        {editMode && onDelete && (
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={onDelete}
+          >
+            Delete
+          </Button>
+        )}
+      </div>
     </form>
   );
 }

@@ -83,7 +83,6 @@ export function Home(): JSX.Element {
   const [page, setPage] = useState(1);
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
-  const [detailTx, setDetailTx] = useState<TransactionData | null>(null);
   const [editTx, setEditTx] = useState<TransactionData | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
     null,
@@ -369,7 +368,7 @@ export function Home(): JSX.Element {
                     <TableRow
                       key={tx.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setDetailTx(tx)}
+                      onClick={() => setEditTx(tx)}
                     >
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>
@@ -460,54 +459,6 @@ export function Home(): JSX.Element {
         </>
       )}
 
-      {detailTx && (
-        <Dialog open={detailTx !== null} onOpenChange={(open) => { if (!open) setDetailTx(null); }}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Transaction details</DialogTitle>
-            </DialogHeader>
-            <TransactionForm
-              wallets={wallets}
-              categories={categories.map((c) => ({
-                id: c.id,
-                name: c.name,
-                type: c.type,
-                color: c.color,
-                icon: c.icon,
-              }))}
-              viewMode
-              viewTxId={detailTx.id}
-              viewValues={{
-                walletId: detailTx.walletId,
-                amount: detailTx.amount,
-                description: detailTx.description,
-                categoryId: detailTx.categoryId ?? '',
-                walletName: walletName(detailTx.walletId),
-                categoryName: detailTx.categoryName ?? undefined,
-                categoryColor: detailTx.categoryId
-                  ? categoryMap.get(detailTx.categoryId)?.color
-                  : undefined,
-                createdAt: detailTx.createdAt,
-              }}
-              onSuccess={() => { setDetailTx(null); load(); }}
-              onQuickChange={load}
-              onRefreshWallets={load}
-              onRefreshCategories={load}
-              onEdit={() => { setDetailTx(null); setEditTx(detailTx); }}
-              onDelete={() => {
-                setDetailTx(null);
-                const pair = findTransferPair(detailTx, transactions);
-                if (pair) {
-                  setCascadeTx({ action: 'delete', tx: detailTx, pair });
-                } else {
-                  setDeleteConfirm(detailTx);
-                }
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      )}
-
       <Dialog
         open={editTx !== null}
         onOpenChange={(open) => {
@@ -535,6 +486,15 @@ export function Home(): JSX.Element {
               }}
               onRefreshWallets={load}
               onRefreshCategories={load}
+              onDelete={() => {
+                setEditTx(null);
+                const pair = findTransferPair(editTx, transactions);
+                if (pair) {
+                  setCascadeTx({ action: 'delete', tx: editTx, pair });
+                } else {
+                  setDeleteConfirm(editTx);
+                }
+              }}
               editMode
               editTxId={editTx.id}
               initialValues={{
