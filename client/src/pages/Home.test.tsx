@@ -319,9 +319,9 @@ describe('Home transaction detail view', () => {
     // Cash wallet name also appears in both
     const cashElements = screen.getAllByText('Cash');
     expect(cashElements.length).toBeGreaterThanOrEqual(2);
-    // Food category badge also appears in both
-    const foodElements = screen.getAllByText('Food');
-    expect(foodElements.length).toBeGreaterThanOrEqual(2);
+    // Food category badge — chip uses aria-label, check via label
+    const foodChips = screen.getAllByLabelText('Food');
+    expect(foodChips.length).toBeGreaterThanOrEqual(1);
   });
 
   it('opens edit form when Edit is clicked in detail dialog', async () => {

@@ -48,6 +48,20 @@ interface TransactionFormProps {
   editTxId?: string;
   onRefreshWallets?: () => void;
   onRefreshCategories?: () => void;
+  viewMode?: boolean;
+  viewTxId?: string;
+  viewValues?: {
+    walletId: string;
+    amount: string;
+    description: string;
+    categoryId: string;
+    walletName?: string;
+    categoryName?: string;
+    categoryColor?: string;
+    createdAt?: string;
+  };
+  onEdit?: () => void;
+  onDelete?: () => void;
 }
 
 export function TransactionForm({
@@ -65,6 +79,11 @@ export function TransactionForm({
   editTxId,
   onRefreshWallets,
   onRefreshCategories,
+  viewMode,
+  viewTxId,
+  viewValues,
+  onEdit,
+  onDelete,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -141,6 +160,117 @@ export function TransactionForm({
       }
     }
   };
+
+  const handleQuickWalletChange = async (id: string): Promise<void> => {
+    if (!viewTxId || !viewValues) return;
+    setFormError(null);
+    try {
+      await updateTransaction(viewTxId, {
+        walletId: id,
+        amount: viewValues.amount,
+        description: viewValues.description,
+        categoryId: viewValues.categoryId || undefined,
+      });
+      onSuccess();
+    } catch (err) {
+      if (err instanceof ApiError) setFormError(err.message);
+      else setFormError('Failed to update.');
+    }
+  };
+
+  const handleQuickCategoryChange = async (id: string): Promise<void> => {
+    if (!viewTxId || !viewValues) return;
+    setFormError(null);
+    try {
+      await updateTransaction(viewTxId, {
+        walletId: viewValues.walletId,
+        amount: viewValues.amount,
+        description: viewValues.description,
+        categoryId: id || undefined,
+      });
+      onSuccess();
+    } catch (err) {
+      if (err instanceof ApiError) setFormError(err.message);
+      else setFormError('Failed to update.');
+    }
+  };
+
+  // View mode: read-only display with interactive chip lists
+  if (viewMode && viewValues) {
+    return (
+      <div className="space-y-4">
+        {formError && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {formError}
+          </div>
+        )}
+
+        {viewValues.createdAt && (
+          <div>
+            <span className="text-sm text-muted-foreground">Date</span>
+            <p className="text-sm font-medium">
+              {new Date(viewValues.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label>Wallet</Label>
+          <WalletSelectList
+            wallets={wallets}
+            selectedId={viewValues.walletId || null}
+            onSelect={handleQuickWalletChange}
+            onRefresh={onRefreshWallets}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Amount</Label>
+          <p className={`text-lg font-semibold ${
+            Number(viewValues.amount) < 0 ? 'text-destructive' : 'text-foreground'
+          }`}>
+            {Number(viewValues.amount) < 0 ? '-' : ''}$
+            {Math.abs(Number(viewValues.amount)).toFixed(2)}
+          </p>
+        </div>
+
+        {categories && categories.length > 0 && (
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <CategorySelectList
+              categories={categories}
+              selectedId={viewValues.categoryId || null}
+              onSelect={handleQuickCategoryChange}
+              onRefresh={onRefreshCategories}
+            />
+          </div>
+        )}
+
+        <div>
+          <span className="text-sm text-muted-foreground">Description</span>
+          <p className="text-sm font-medium">
+            {viewValues.description || '—'}
+          </p>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          {onEdit && (
+            <Button onClick={onEdit} variant="default">
+              Edit
+            </Button>
+          )}
+          {onDelete && (
+            <Button onClick={onDelete} variant="destructive">
+              Delete
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">

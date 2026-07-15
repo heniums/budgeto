@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
-import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
 import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletDetailSheet } from '../components/WalletDetailSheet';
@@ -211,6 +210,8 @@ export function Home(): JSX.Element {
                   setPendingCategoryId(null);
                   load();
                 }}
+                onRefreshWallets={load}
+                onRefreshCategories={load}
                 onCreateWallet={() => {
                   setCreateWalletOpen(true);
                 }}
@@ -459,38 +460,52 @@ export function Home(): JSX.Element {
         </>
       )}
 
-            <TransactionDetailDialog
-        open={detailTx !== null}
-        onOpenChange={(open) => {
-          if (!open) setDetailTx(null);
-        }}
-        transaction={detailTx ?? ({} as TransactionData)}
-        walletName={
-          detailTx ? walletName(detailTx.walletId) : ''
-        }
-        categoryColor={
-          detailTx?.categoryId
-            ? categoryMap.get(detailTx.categoryId)?.color
-            : undefined
-        }
-        onEdit={() => {
-          if (detailTx) {
-            setDetailTx(null);
-            setEditTx(detailTx);
-          }
-        }}
-        onDelete={() => {
-          if (detailTx) {
-            setDetailTx(null);
-            const pair = findTransferPair(detailTx, transactions);
-            if (pair) {
-              setCascadeTx({ action: 'delete', tx: detailTx, pair });
-            } else {
-              setDeleteConfirm(detailTx);
-            }
-          }
-        }}
-      />
+      {detailTx && (
+        <Dialog open={detailTx !== null} onOpenChange={(open) => { if (!open) setDetailTx(null); }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Transaction details</DialogTitle>
+            </DialogHeader>
+            <TransactionForm
+              wallets={wallets}
+              categories={categories.map((c) => ({
+                id: c.id,
+                name: c.name,
+                type: c.type,
+                color: c.color,
+                icon: c.icon,
+              }))}
+              viewMode
+              viewTxId={detailTx.id}
+              viewValues={{
+                walletId: detailTx.walletId,
+                amount: detailTx.amount,
+                description: detailTx.description,
+                categoryId: detailTx.categoryId ?? '',
+                walletName: walletName(detailTx.walletId),
+                categoryName: detailTx.categoryName ?? undefined,
+                categoryColor: detailTx.categoryId
+                  ? categoryMap.get(detailTx.categoryId)?.color
+                  : undefined,
+                createdAt: detailTx.createdAt,
+              }}
+              onSuccess={() => { setDetailTx(null); load(); }}
+              onRefreshWallets={load}
+              onRefreshCategories={load}
+              onEdit={() => { setDetailTx(null); setEditTx(detailTx); }}
+              onDelete={() => {
+                setDetailTx(null);
+                const pair = findTransferPair(detailTx, transactions);
+                if (pair) {
+                  setCascadeTx({ action: 'delete', tx: detailTx, pair });
+                } else {
+                  setDeleteConfirm(detailTx);
+                }
+              }}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
 
       <Dialog
         open={editTx !== null}
@@ -517,6 +532,8 @@ export function Home(): JSX.Element {
                 setPage(1);
                 load();
               }}
+              onRefreshWallets={load}
+              onRefreshCategories={load}
               editMode
               editTxId={editTx.id}
               initialValues={{
