@@ -39,6 +39,19 @@ interface TransactionFormProps {
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
   onViewWallet?: (walletId: string) => void;
+  onEditWallet?: (wallet: {
+    id: string;
+    name: string;
+    color: string;
+    description: string;
+  }) => void;
+  onEditCategory?: (category: {
+    id: string;
+    name: string;
+    color: string;
+    icon: string;
+    type: 'income' | 'expense';
+  }) => void;
   autoSelectWalletId?: string;
   autoSelectCategoryId?: string;
   editMode?: boolean;
@@ -77,6 +90,8 @@ export function TransactionForm({
   onCreateWallet,
   onCreateCategory,
   onViewWallet,
+  onEditWallet,
+  onEditCategory,
   autoSelectWalletId,
   autoSelectCategoryId,
   editMode,
@@ -231,6 +246,7 @@ export function TransactionForm({
             selectedId={viewValues.walletId || null}
             onSelect={handleQuickWalletChange}
             onRefresh={onRefreshWallets}
+            onEdit={onEditWallet}
           />
         </div>
 
@@ -256,6 +272,7 @@ export function TransactionForm({
               selectedId={viewValues.categoryId || null}
               onSelect={handleQuickCategoryChange}
               onRefresh={onRefreshCategories}
+              onEdit={onEditCategory}
             />
           </div>
         )}
@@ -347,6 +364,7 @@ export function TransactionForm({
             })
           }
           onRefresh={onRefreshWallets}
+          onEdit={onEditWallet}
         />
         {errors.walletId && (
           <span role="alert" className="text-sm text-destructive">
@@ -403,6 +421,7 @@ export function TransactionForm({
               })
             }
             onRefresh={onRefreshCategories}
+            onEdit={onEditCategory}
           />
           {onCreateCategory && (
             <span

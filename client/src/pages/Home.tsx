@@ -230,6 +230,12 @@ export function Home(): JSX.Element {
                   onViewWallet={(id) => {
                     setDetailWalletId(id);
                   }}
+                  onEditWallet={(wallet) => {
+                    setDetailWalletId(wallet.id);
+                  }}
+                  onEditCategory={(category) => {
+                    setDetailCategoryId(category.id);
+                  }}
                 />
               </DialogContent>
             </Dialog>
@@ -504,6 +510,21 @@ export function Home(): JSX.Element {
               }}
               onRefreshWallets={load}
               onRefreshCategories={load}
+              onViewWallet={(id) => {
+                setDetailWalletId(id);
+              }}
+              onEditWallet={(wallet) => {
+                setDetailWalletId(wallet.id);
+              }}
+              onEditCategory={(category) => {
+                setDetailCategoryId(category.id);
+              }}
+              onCreateWallet={() => {
+                setCreateWalletOpen(true);
+              }}
+              onCreateCategory={() => {
+                setCreateCategoryOpen(true);
+              }}
               onDelete={() => {
                 setEditTx(null);
                 const pair = findTransferPair(editTx, transactions);
