@@ -490,6 +490,7 @@ export function Home(): JSX.Element {
                 createdAt: detailTx.createdAt,
               }}
               onSuccess={() => { setDetailTx(null); load(); }}
+              onQuickChange={load}
               onRefreshWallets={load}
               onRefreshCategories={load}
               onEdit={() => { setDetailTx(null); setEditTx(detailTx); }}

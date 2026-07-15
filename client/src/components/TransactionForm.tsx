@@ -62,6 +62,7 @@ interface TransactionFormProps {
   };
   onEdit?: () => void;
   onDelete?: () => void;
+  onQuickChange?: () => void;
 }
 
 export function TransactionForm({
@@ -84,6 +85,7 @@ export function TransactionForm({
   viewValues,
   onEdit,
   onDelete,
+  onQuickChange,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -171,7 +173,7 @@ export function TransactionForm({
         description: viewValues.description,
         categoryId: viewValues.categoryId || undefined,
       });
-      onSuccess();
+      onQuickChange?.();
     } catch (err) {
       if (err instanceof ApiError) setFormError(err.message);
       else setFormError('Failed to update.');
@@ -188,7 +190,7 @@ export function TransactionForm({
         description: viewValues.description,
         categoryId: id || undefined,
       });
-      onSuccess();
+      onQuickChange?.();
     } catch (err) {
       if (err instanceof ApiError) setFormError(err.message);
       else setFormError('Failed to update.');

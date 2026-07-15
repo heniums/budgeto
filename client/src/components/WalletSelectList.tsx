@@ -35,6 +35,63 @@ interface WalletSelectListProps {
   onRefresh?: () => void;
 }
 
+function LongPressWalletChip({
+  wallet,
+  index,
+  isSelected,
+  onSelect,
+  onEdit,
+  onKeyDown,
+}: {
+  wallet: WalletItem;
+  index: number;
+  isSelected: boolean;
+  onSelect: (id: string) => void;
+  onEdit: (wallet: WalletItem) => void;
+  onKeyDown: (e: React.KeyboardEvent, index: number, wallet: WalletItem) => void;
+}): JSX.Element {
+  const longPress = useLongPress({
+    onLongPress: () => onEdit(wallet),
+  });
+
+  return (
+    <ContextMenu>
+      <ContextMenuTrigger asChild>
+        <Badge
+          variant={isSelected ? 'default' : 'outline'}
+          data-testid="wallet-chip"
+          data-selected={isSelected ? 'true' : 'false'}
+          data-wallet-index={index}
+          role="option"
+          aria-selected={isSelected}
+          tabIndex={0}
+          style={
+            isSelected
+              ? {
+                  backgroundColor: wallet.color,
+                  borderColor: wallet.color,
+                }
+              : { borderColor: wallet.color, color: wallet.color }
+          }
+          className={cn(
+            'cursor-pointer whitespace-nowrap shrink-0 select-none',
+            isSelected && 'text-white',
+          )}
+          onClick={() => onSelect(wallet.id)}
+          onKeyDown={(e) => onKeyDown(e, index, wallet)}
+          {...longPress}
+        >
+          {wallet.name}
+        </Badge>
+      </ContextMenuTrigger>
+      <ContextMenuContent>
+        <ContextMenuItem onClick={() => onEdit(wallet)}>
+          Edit
+        </ContextMenuItem>
+      </ContextMenuContent>
+    </ContextMenu>
+  );
+}
 function WalletEditDialog({
   open,
   onOpenChange,
@@ -319,46 +376,16 @@ export function WalletSelectList({
         >
           {wallets.map((wallet, index) => {
             const isSelected = wallet.id === selectedId;
-            const longPress = useLongPress({
-              onLongPress: () => setEditWallet(wallet),
-            });
-
             return (
-              <ContextMenu key={wallet.id}>
-                <ContextMenuTrigger asChild>
-                  <Badge
-                    variant={isSelected ? 'default' : 'outline'}
-                    data-testid="wallet-chip"
-                    data-selected={isSelected ? 'true' : 'false'}
-                    data-wallet-index={index}
-                    role="option"
-                    aria-selected={isSelected}
-                    tabIndex={0}
-                    style={
-                      isSelected
-                        ? {
-                            backgroundColor: wallet.color,
-                            borderColor: wallet.color,
-                          }
-                        : { borderColor: wallet.color, color: wallet.color }
-                    }
-                    className={cn(
-                      'cursor-pointer whitespace-nowrap shrink-0 select-none',
-                      isSelected && 'text-white',
-                    )}
-                    onClick={() => onSelect(wallet.id)}
-                    onKeyDown={(e) => handleKeyDown(e, index, wallet)}
-                    {...longPress}
-                  >
-                    {wallet.name}
-                  </Badge>
-                </ContextMenuTrigger>
-                <ContextMenuContent>
-                  <ContextMenuItem onClick={() => setEditWallet(wallet)}>
-                    Edit
-                  </ContextMenuItem>
-                </ContextMenuContent>
-              </ContextMenu>
+              <LongPressWalletChip
+                key={wallet.id}
+                wallet={wallet}
+                index={index}
+                isSelected={isSelected}
+                onSelect={onSelect}
+                onEdit={setEditWallet}
+                onKeyDown={handleKeyDown}
+              />
             );
           })}
           {onRefresh && (
