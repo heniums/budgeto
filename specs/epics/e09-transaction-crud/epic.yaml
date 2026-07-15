@@ -3,7 +3,7 @@
 
 id: e09
 title: 'Transaction Detail View & Full CRUD'
-status: planned
+status: done
 wsjf: 10
 release: '0.3.0'
 description: >
@@ -14,7 +14,7 @@ description: >
 stories:
   - id: e09s01
     title: 'Transaction CRUD endpoints + detail view + edit + delete'
-    status: planned
+    status: done
     bcps: 8
     file: 'specs/epics/e09-transaction-crud/e09s01-full-crud.md'
     tasks_yaml: 'specs/epics/e09-transaction-crud/e09s01-tasks.yaml'

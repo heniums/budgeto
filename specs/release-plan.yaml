@@ -76,11 +76,13 @@ epics:
   - id: e09
     title: 'Transaction Detail View & Full CRUD'
     wsjf: 10
-    status: planned
+    status: done
+    completed_at: '2026-07-15'
     capsule_dir: 'specs/epics/e09-transaction-crud/'
 
   - id: e10
     title: 'Wallet & Category Chip-List Selectors'
     wsjf: 13
-    status: planned
+    status: done
+    completed_at: '2026-07-15'
     capsule_dir: 'specs/epics/e10-chip-selectors/'

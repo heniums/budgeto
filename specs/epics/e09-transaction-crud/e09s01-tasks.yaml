@@ -33,4 +33,4 @@ tasks:
     status: passing
   - id: t09
     title: 'Type-check and full test suite'
-    status: pending
+    status: passing
