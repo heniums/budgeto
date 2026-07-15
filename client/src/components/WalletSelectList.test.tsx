@@ -1,20 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WalletSelectList } from './WalletSelectList';
-
-import type * as WalletModule from '../api/wallets';
-
-vi.mock('../api/wallets', async (importOriginal) => {
-  const actual = await importOriginal<typeof WalletModule>();
-  return {
-    ...actual,
-    updateWallet: vi.fn(),
-    createWallet: vi.fn(),
-  };
-});
-
-import { updateWallet, createWallet } from '../api/wallets';
 
 beforeAll(() => {
   global.ResizeObserver = class ResizeObserver {
@@ -52,7 +39,7 @@ const wallets: WalletItem[] = [
   },
 ];
 
-describe('WalletSelectList', () => {
+describe('WalletSelectList — rendering', () => {
   it('renders all wallets as chips', () => {
     render(
       <WalletSelectList
@@ -76,8 +63,13 @@ describe('WalletSelectList', () => {
       />,
     );
 
-    const cashChip = screen.getByText('Cash').closest('[data-testid="wallet-chip"]');
-    expect(cashChip).toHaveStyle({ borderColor: '#1f8a4c', color: '#1f8a4c' });
+    const cashChip = screen
+      .getByText('Cash')
+      .closest('[data-testid="wallet-chip"]');
+    expect(cashChip).toHaveStyle({
+      borderColor: '#1f8a4c',
+      color: '#1f8a4c',
+    });
   });
 
   it('highlights the selected wallet chip', () => {
@@ -89,8 +81,9 @@ describe('WalletSelectList', () => {
       />,
     );
 
-    const bankChip = screen.getByText('Bank').closest('[data-testid="wallet-chip"]');
-    // Selected chip should have a solid background (not outline)
+    const bankChip = screen
+      .getByText('Bank')
+      .closest('[data-testid="wallet-chip"]');
     expect(bankChip).toHaveAttribute('data-selected', 'true');
   });
 
@@ -147,47 +140,88 @@ describe('WalletSelectList', () => {
       />,
     );
 
-    // Focus the first chip directly
-    const firstChip = screen.getByText('Cash').closest('[role="option"]') as HTMLElement;
+    const firstChip = screen
+      .getByText('Cash')
+      .closest('[role="option"]') as HTMLElement;
     firstChip.focus();
     expect(document.activeElement).toBe(firstChip);
 
-    // ArrowRight moves focus to second chip
     await user.keyboard('{ArrowRight}');
     const secondChip = screen.getByText('Bank').closest('[role="option"]');
     if (!secondChip) throw new Error('second chip not found');
     expect(document.activeElement).toBe(secondChip);
 
-    // Enter on second chip selects it
     await user.keyboard('{Enter}');
     expect(onSelect).toHaveBeenCalledWith('w2');
   });
 });
 
-describe('WalletSelectList — dialogs', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(updateWallet).mockResolvedValue({
+describe('WalletSelectList — callbacks', () => {
+  it('calls onCreate when "+" button is clicked', async () => {
+    const onCreate = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+        onCreate={onCreate}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('Add wallet'));
+    expect(onCreate).toHaveBeenCalled();
+  });
+
+  it('calls onViewAll when grid button is clicked', async () => {
+    const onViewAll = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+        onViewAll={onViewAll}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('View all wallets'));
+    expect(onViewAll).toHaveBeenCalled();
+  });
+
+  it('calls onEdit when Shift+Enter is pressed on a chip', async () => {
+    const onEdit = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+        onEdit={onEdit}
+      />,
+    );
+
+    const cashChip = screen
+      .getByText('Cash')
+      .closest('[role="option"]') as HTMLElement;
+    cashChip.focus();
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
+
+    expect(onEdit).toHaveBeenCalledWith({
       id: 'w1',
-      name: 'Cash Updated',
-      description: '',
+      name: 'Cash',
       color: '#1f8a4c',
-      balance: '100.00',
-      createdAt: '',
-      updatedAt: '',
-    });
-    vi.mocked(createWallet).mockResolvedValue({
-      id: 'w-new',
-      name: 'New Wallet',
-      description: '',
-      color: '#1f8a4c',
-      balance: '0.00',
-      createdAt: '',
-      updatedAt: '',
+      description: 'Physical cash',
     });
   });
 
-  it('shows "+" button at the end of the chip list', () => {
+  it('hides "+" button when onCreate is not provided', () => {
     render(
       <WalletSelectList
         wallets={wallets}
@@ -197,10 +231,12 @@ describe('WalletSelectList — dialogs', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Add wallet')).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Add wallet'),
+    ).not.toBeInTheDocument();
   });
 
-  it('shows "View All" button when there are wallets', () => {
+  it('hides "View All" button when onViewAll is not provided', () => {
     render(
       <WalletSelectList
         wallets={wallets}
@@ -210,49 +246,8 @@ describe('WalletSelectList — dialogs', () => {
       />,
     );
 
-    expect(screen.getByLabelText('View all wallets')).toBeInTheDocument();
-  });
-
-  it('opens edit dialog via Shift+Enter on a chip', async () => {
-    const user = userEvent.setup();
-    render(
-      <WalletSelectList
-        wallets={wallets}
-        selectedId={null}
-        onSelect={vi.fn()}
-        onRefresh={vi.fn()}
-      />,
-    );
-
-    const cashChip = screen.getByText('Cash').closest('[role="option"]') as HTMLElement;
-    cashChip.focus();
-
-    // Shift+Enter opens edit dialog
-    await user.keyboard('{Shift>}{Enter}{/Shift}');
-
-    await waitFor(() => {
-      expect(screen.getByText(/edit wallet/i)).toBeInTheDocument();
-    });
-  });
-
-  it('prefills edit dialog with wallet values via keyboard', async () => {
-    const user = userEvent.setup();
-    render(
-      <WalletSelectList
-        wallets={wallets}
-        selectedId={null}
-        onSelect={vi.fn()}
-        onRefresh={vi.fn()}
-      />,
-    );
-
-    const cashChip = screen.getByText('Cash').closest('[role="option"]') as HTMLElement;
-    cashChip.focus();
-    await user.keyboard('{Shift>}{Enter}{/Shift}');
-
-    await waitFor(() => {
-      const nameInput = screen.getByLabelText('Name') as HTMLInputElement;
-      expect(nameInput.value).toBe('Cash');
-    });
+    expect(
+      screen.queryByLabelText('View all wallets'),
+    ).not.toBeInTheDocument();
   });
 });
