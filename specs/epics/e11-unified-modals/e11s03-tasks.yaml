@@ -1,62 +1,58 @@
-# e11s03 tasks — Settings integration + route cleanup + removal
+# e11s03 tasks — Nested Dialogs & Settings Integration
+story_id: e11s03
+title: 'Nested Dialogs & Settings Integration'
+status: planned
+bcps: 5
 tasks:
   - id: '1'
-    desc: 'Integrate WalletModal into WalletList page'
+    desc: 'Wire nested dialog orchestration in Home page'
     story: e11s03
-    verify: 'npm run type-check -- --noEmit'
+    verify: 'npx vitest run client/src/pages/Home.test.tsx'
     details: >
-      Replace route-based navigation in WalletList with state-driven
-      WalletModal. Add modalMode state (create/edit/view/null) and
-      selectedWalletId state. "New Wallet" button opens create mode.
-      Tapping a wallet row opens view mode. Edit button in view mode
-      switches to edit mode. Remove Link imports for /settings/wallets/*
-      routes. Remove inline delete button (handled by WalletModal).
+      Update Home.tsx to use refactored WalletModal/CategoryModal without
+      mode prop. The nested dialog stacking works naturally via Radix.
+      Update pendingWalletId/pendingCategoryId logic: after creating a
+      wallet/category from the nested dialog, auto-select the new item
+      in the transaction form. Wire onViewWallet callback from
+      TransactionForm to open WalletModal for the selected wallet ID
+      (unified view, all fields editable).
 
   - id: '2'
-    desc: 'Integrate CategoryModal into Categories page'
+    desc: 'Wire chip-selector onEdit to open unified modals from Home'
     story: e11s03
     verify: 'npm run type-check -- --noEmit'
     details: >
-      Replace route-based navigation in Categories with state-driven
-      CategoryModal. Add modalMode state (create/edit/null) and
-      selectedCategoryId state. "New Category" button opens create mode.
-      "Edit" link opens edit mode. Remove inline delete button
-      (handled by CategoryModal). Remove Link imports for
-      /settings/categories/* routes.
+      TransactionForm already passes onViewWallet. Since the unified modal
+      has no separate view mode, reuse this for editing — clicking "View
+      wallet details" opens the unified Dialog with fields editable.
+      The existing WalletSelectList/CategorySelectList onEdit context menu
+      callbacks already work through the parent. No changes needed to the
+      chip selectors themselves.
 
   - id: '3'
-    desc: 'Clean up router: remove old wallet/category routes'
+    desc: 'Update WalletList page for Dialog-based WalletModal'
     story: e11s03
-    verify: 'npm run type-check -- --noEmit'
+    verify: 'npx vitest run client/src/pages/WalletList.test.tsx'
     details: >
-      Remove from router.tsx: /settings/wallets/new, /settings/wallets/:id,
-      /settings/wallets/:id/edit, /settings/categories/new,
-      /settings/categories/:id/edit routes. Remove WalletForm, WalletDetail,
-      CategoryForm imports.
+      Update WalletList.tsx: remove mode prop from WalletModal. The
+      modalMode state still drives open/close and walletId. When
+      modalMode is 'create', walletId is null (create mode). When
+      modalMode is 'view', walletId is set (unified editable mode).
+      Update tests for new props and behavior.
 
   - id: '4'
-    desc: 'Delete old components and their test files'
+    desc: 'Update Categories page for Dialog-based CategoryModal'
     story: e11s03
-    verify: 'npm run type-check -- --noEmit'
+    verify: 'npx vitest run client/src/pages/Categories.test.tsx'
     details: >
-      Delete: WalletDetailSheet.tsx, WalletDetailSheet.test.tsx,
-      CategoryDetailSheet.tsx, CategoryDetailSheet.test.tsx,
-      WalletForm.tsx, WalletForm.test.tsx, CategoryForm.tsx,
-      CategoryForm.test.tsx, WalletDetail.tsx, WalletDetail.test.tsx.
+      Same as WalletList: remove mode prop from CategoryModal. Update
+      tests for new props and behavior.
 
   - id: '5'
-    desc: 'Update WalletList and Categories tests for modal flow'
+    desc: 'Full integration test: type-check + full test suite'
     story: e11s03
-    verify: 'npx vitest run client/src/pages/WalletList.test.tsx client/src/pages/Categories.test.tsx'
+    verify: 'npm run type-check && npm test'
     details: >
-      Update WalletList tests: mock WalletModal, test that clicking
-      "New Wallet" opens create modal, clicking a wallet opens view modal.
-      Update Categories tests: mock CategoryModal, test create/edit flows.
-
-  - id: '6'
-    desc: 'Run full test suite and fix any failures'
-    story: e11s03
-    verify: 'npm test'
-    details: >
-      Run npm test. Fix any remaining test failures from integration
-      changes. Ensure coverage >= 80%.
+      Run the complete test suite and type-check. Ensure no regressions
+      across all components. Verify coverage >= 80%. Check for no new
+      orphans or dead code.

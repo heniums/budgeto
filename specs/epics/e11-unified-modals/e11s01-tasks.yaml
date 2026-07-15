@@ -1,48 +1,119 @@
-# e11s01 tasks — WalletModal + CategoryModal Components
+# e11s01 tasks — Dialog-based Unified WalletModal & CategoryModal
+story_id: e11s01
+title: 'Dialog-based Unified WalletModal & CategoryModal'
+status: failing
+bcps: 6
 tasks:
   - id: '1'
-    desc: 'Create client/src/components/WalletModal.tsx'
-    story: e11s01
+    description: 'Refactor WalletModal — replace Sheet imports with Dialog, remove mode/internalMode, always-editable form fields'
     verify: 'npm run type-check -- --noEmit'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'WalletModal'
+        - 'Refactor'
     details: >
-      Build WalletModal with Sheet (side="right"), three modes: create/edit/view.
-      Create mode: empty form with name, description, color. Submits via
-      createWallet(). Edit mode: fetches wallet by ID, prefills form, submits
-      via updateWallet(), delete via deleteWallet(). View mode: fetches wallet
-      + filtered transactions, shows read-only with Edit button.
-      Handle loading, empty, error states. Use useState for form fields.
+      Replace Sheet/SheetContent/SheetHeader/SheetTitle imports with
+      Dialog/DialogContent/DialogHeader/DialogTitle from ui/dialog.tsx.
+      Remove mode prop and internalMode state. Replace isCreate/isEdit/isView
+      with simple !!walletId check. Always render form fields (remove
+      read-only view conditional). Remove transaction list fetching
+      (form-only layout). Remove SHEET_SIDE/SHEET_WIDTH constants usage.
 
   - id: '2'
-    desc: 'Create client/src/components/WalletModal.test.tsx'
-    story: e11s01
+    description: 'Refactor WalletModal — form logic: Save on dirty, Delete always visible, unified create/edit'
     verify: 'npx vitest run client/src/components/WalletModal.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'WalletModal'
+        - 'Form Logic'
     details: >
-      Test create mode: renders form, submits, calls onSuccess.
-      Test edit mode: fetches and prefills, updates, handles delete.
-      Test view mode: fetches and displays wallet + transactions.
-      Test error states: API failure shows error message.
-      Test loading state: shows "Loading…" initially.
+      Create mode (no walletId): submit calls createWallet(), button "Create".
+      Edit mode (walletId present): fetch on open, submit calls updateWallet(),
+      button "Save Changes" enabled only when formState.isDirty. Delete button
+      always visible in edit mode, calls deleteWallet(). Cancel/Close always
+      visible. Remove onOpenChange internalMode-reset wrapper.
 
   - id: '3'
-    desc: 'Create client/src/components/CategoryModal.tsx'
-    story: e11s01
-    verify: 'npm run type-check -- --noEmit'
+    description: 'Update WalletModal tests for Dialog-based unified view'
+    verify: 'npx vitest run client/src/components/WalletModal.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'WalletModal'
+        - 'Tests'
     details: >
-      Build CategoryModal with Sheet (side="right"), three modes:
-      create/edit/view. Create mode: empty form with name, type radio,
-      color, icon grid. Submits via createCategory(). Edit mode: fetches
-      category by ID, prefills form including icon, submits via
-      updateCategory(), delete via deleteCategory(). View mode: fetches
-      category, shows read-only with icon, type badge, Edit button.
-      Handle loading, empty, error states. Use useState for form fields.
+      Remove mode prop from all test renders. Update Sheet→Dialog DOM
+      assertions. Test unified view: fields always editable. Test isDirty:
+      Save disabled until field change. Test Delete always visible when
+      walletId provided. Test Cancel closes without saving. Test loading
+      state. Test error state. Test create flow (no walletId). Test edit
+      flow (walletId provided).
 
   - id: '4'
-    desc: 'Create client/src/components/CategoryModal.test.tsx'
-    story: e11s01
-    verify: 'npx vitest run client/src/components/CategoryModal.test.tsx'
+    description: 'Refactor CategoryModal — replace Sheet imports with Dialog, remove mode/internalMode'
+    verify: 'npm run type-check -- --noEmit'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'CategoryModal'
+        - 'Refactor'
     details: >
-      Test create mode: renders form with icon grid, submits, calls onSuccess.
-      Test edit mode: fetches and prefills including icon, updates, handles delete.
-      Test view mode: fetches and displays category details.
-      Test error states: API failure shows error message.
-      Test loading state.
+      Same mechanical Sheet→Dialog conversion as WalletModal. Replace imports.
+      Remove mode prop and internalMode. Always render form fields (name, type
+      radio, color, icon grid). Remove SHEET_SIDE/SHEET_WIDTH usage.
+
+  - id: '5'
+    description: 'Refactor CategoryModal — form logic: Save on dirty, Delete always visible, unified create/edit'
+    verify: 'npx vitest run client/src/components/CategoryModal.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'CategoryModal'
+        - 'Form Logic'
+    details: >
+      Same behavioral changes as WalletModal. Create mode: submit calls
+      createCategory(), button "Create". Edit mode: fetch on open, submit
+      calls updateCategory(), Save enabled on dirty. Delete always visible.
+      Icon grid always interactive.
+
+  - id: '6'
+    description: 'Update CategoryModal tests for Dialog-based unified view'
+    verify: 'npx vitest run client/src/components/CategoryModal.test.tsx'
+    risk: P1
+    status: failing
+    allure:
+      severity: high
+      categories:
+        - 'CategoryModal'
+        - 'Tests'
+    details: >
+      Remove mode prop from all test renders. Update Sheet→Dialog DOM
+      assertions. Test unified view: fields always editable, icon grid
+      interactive. Test isDirty behavior. Test Delete visible. Test
+      create/edit flows. Test loading/error states.
+
+  - id: '7'
+    description: 'Full integration check — type-check + full test suite'
+    verify: 'npm run type-check && npm test'
+    risk: P0
+    status: failing
+    allure:
+      severity: critical
+      categories:
+        - 'Integration'
+        - 'Regression'
+    details: >
+      Run complete test suite and type-check. Ensure no regressions.
+      Verify coverage >= 80%. Check for no new orphans or dead code.
