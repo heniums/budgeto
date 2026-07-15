@@ -199,6 +199,7 @@ export function Home(): JSX.Element {
                   name: c.name,
                   type: c.type,
                   color: c.color,
+                  icon: c.icon,
                 }))}
                 categoriesCount={categories.length}
                 autoSelectWalletId={pendingWalletId ?? undefined}
@@ -509,6 +510,7 @@ export function Home(): JSX.Element {
                 name: c.name,
                 type: c.type,
                 color: c.color,
+                icon: c.icon,
               }))}
               onSuccess={() => {
                 setEditTx(null);

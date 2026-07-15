@@ -1,10 +1,16 @@
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import { getIcon } from '../lib/icons';
-import type { CategoryData } from '../api/categories';
+
+interface CategoryItem {
+  id: string;
+  name: string;
+  color: string;
+  icon: string;
+}
 
 interface CategorySelectListProps {
-  categories: CategoryData[];
+  categories: CategoryItem[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
@@ -53,7 +59,7 @@ export function CategorySelectList({
   };
 
   return (
-    <ScrollArea orientation="horizontal" className="w-full" role="listbox">
+    <ScrollArea className="w-full" role="listbox">
       <div
         className="flex gap-2 px-0.5 py-1"
         data-testid="category-select-list"

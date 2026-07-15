@@ -1,8 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Home } from './Home';
+
+beforeAll(() => {
+  global.ResizeObserver = class ResizeObserver {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
+});
 
 import type * as TxModule from '../api/transactions';
 import type * as WalletModule from '../api/wallets';
@@ -235,8 +243,10 @@ describe('Home stacked modal — transaction dialog + wallet/category sheets', (
     const txTitles = screen.getAllByText('Add transaction');
     expect(txTitles.length).toBeGreaterThanOrEqual(2);
 
-    // Select a wallet to reveal "View wallet details" link
-    await user.selectOptions(screen.getByLabelText('Wallet'), 'w1');
+    // Select a wallet by clicking its chip to reveal "View wallet details" link
+    const walletOptions = screen.getAllByRole('option', { name: 'Cash' });
+    // Click the wallet chip inside the dialog's WalletSelectList
+    await user.click(walletOptions[0]);
 
     // Click "View wallet details"
     await user.click(screen.getByText(/view wallet details/i));

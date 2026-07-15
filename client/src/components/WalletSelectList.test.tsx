@@ -139,7 +139,7 @@ describe('WalletSelectList', () => {
     );
 
     // Focus the first chip directly
-    const firstChip = screen.getByText('Cash').closest('[role="option"]')!;
+    const firstChip = screen.getByText('Cash').closest('[role="option"]') as HTMLElement;
     firstChip.focus();
     expect(document.activeElement).toBe(firstChip);
 

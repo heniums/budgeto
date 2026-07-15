@@ -1,10 +1,15 @@
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import type { WalletData } from '../api/wallets';
+
+interface WalletItem {
+  id: string;
+  name: string;
+  color: string;
+}
 
 interface WalletSelectListProps {
-  wallets: WalletData[];
+  wallets: WalletItem[];
   selectedId: string | null;
   onSelect: (id: string) => void;
 }
@@ -53,7 +58,7 @@ export function WalletSelectList({
   };
 
   return (
-    <ScrollArea orientation="horizontal" className="w-full" role="listbox">
+    <ScrollArea className="w-full" role="listbox">
       <div className="flex gap-2 px-0.5 py-1" data-testid="wallet-select-list">
         {wallets.map((wallet, index) => {
           const isSelected = wallet.id === selectedId;

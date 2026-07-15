@@ -11,6 +11,8 @@ import { ApiError } from '../api/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { WalletSelectList } from './WalletSelectList';
+import { CategorySelectList } from './CategorySelectList';
 
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
@@ -28,7 +30,7 @@ type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
-  categories?: { id: string; name: string; type: string; color: string }[];
+  categories?: { id: string; name: string; type: string; color: string; icon: string }[];
   categoriesCount?: number;
   onSuccess: () => void;
   onCreateWallet?: () => void;
@@ -191,19 +193,12 @@ export function TransactionForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="tx-wallet">Wallet</Label>
-        <select
-          id="tx-wallet"
-          {...register('walletId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="">Select a wallet…</option>
-          {wallets.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.name}
-            </option>
-          ))}
-        </select>
+        <Label>Wallet</Label>
+        <WalletSelectList
+          wallets={wallets}
+          selectedId={selectedWalletId || null}
+          onSelect={(id) => setValue('walletId', id, { shouldValidate: true })}
+        />
         {errors.walletId && (
           <span role="alert" className="text-sm text-destructive">
             {errors.walletId.message}
@@ -248,19 +243,12 @@ export function TransactionForm({
       {/* Category selector */}
       {categories && categories.length > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="tx-category">Category</Label>
-          <select
-            id="tx-category"
-            {...register('categoryId')}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="">No category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Label>Category</Label>
+          <CategorySelectList
+            categories={categories}
+            selectedId={watch('categoryId') || null}
+            onSelect={(id) => setValue('categoryId', id, { shouldValidate: true })}
+          />
           {onCreateCategory && (
             <span
               className="text-xs text-muted-foreground underline cursor-pointer"
