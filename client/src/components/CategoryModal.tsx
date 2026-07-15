@@ -147,7 +147,6 @@ export function CategoryModal({
 
   const handleSubmit = isCreate ? handleCreate : handleUpdate;
 
-  const FormIcon = getIcon(icon);
   const ViewIcon = category ? getIcon(category.icon) : undefined;
 
   return (
