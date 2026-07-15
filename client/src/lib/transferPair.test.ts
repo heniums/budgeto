@@ -78,7 +78,9 @@ describe('findTransferPair', () => {
     });
     const result = findTransferPair(tx, [tx, other]);
     expect(result).not.toBeNull();
-    expect(result!.id).toBe('t2');
+    if (result) {
+      expect(result.id).toBe('t2');
+    }
   });
 
   it('returns null when description is empty', () => {
