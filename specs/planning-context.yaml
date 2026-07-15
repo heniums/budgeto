@@ -1,39 +1,44 @@
-# specs/planning-context.yaml — elaborated 2026-07-14
-# Feature: Stacked Modal Fix — Return to Transaction Form from Wallet/Category Actions
+# specs/planning-context.yaml — elaborated 2026-07-15
+# Feature: Transaction Detail View & Full CRUD
 
-feature_name: 'Stacked Modal Fix — Return to Transaction Form from Wallet/Category Actions'
+feature_name: 'Transaction Detail View & Full CRUD'
 
 problem_statement: >
-  The e08s04 "Stacked Modal Transitions" story was never fully implemented.
-  When the Add Transaction dialog is open and the user triggers a wallet or
-  category action from within the form (clicking "Don't see your wallet?
-  Create one →", "Don't see your category? Create one →", or "View wallet
-  details"), the Home component unconditionally closes the transaction dialog
-  (setTxOpen(false)) before opening the wallet/category sheet or wizard.
-  When that sheet closes, the transaction dialog stays closed and all form
-  field values (wallet, amount, description) are lost. The user must start
-  the transaction form from scratch.
+  Users can create transactions and view them in a table, but there is no way
+  to view transaction details, edit fields, or delete a transaction. The
+  server has only POST and GET (list) endpoints — GET /:id, PUT /:id, and
+  DELETE /:id are missing. The client transaction table shows rows with
+  contextual wallet/category menus, but the row itself is inert. To correct
+  a typo or remove an erroneous entry, the user has no path other than
+  re-creating from scratch.
 
 constraints:
-  - 'Transaction form state (wallet dropdown, amount, description) must be preserved when returning from a wallet/category action.'
-  - 'Newly created wallets are auto-selected in the wallet dropdown on return.'
-  - 'Newly created categories are auto-selected in the category field on return.'
-  - 'Use existing WalletDetailSheet and CategoryDetailSheet components. Do not reuse the OnboardingWizard for this flow.'
-  - 'Transfer form dialog is unchanged (out of scope).'
-  - 'No CSS slide animation required — a simple dialog reopen is sufficient.'
+  - 'Server: new GET /transactions/:id, PUT /transactions/:id, DELETE /transactions/:id endpoints following the existing 4-layer pattern (router → controller → service → repository).'
+  - 'Edit reuses the existing TransactionForm component with an editMode prop. "Save changes" replaces "Add transaction". All fields (amount, description, categoryId, walletId) are editable.'
+  - 'Wallet and category ownership validated on update, same as create.'
+  - 'Detail view is a shadcn/ui Dialog triggered by clicking a transaction table row.'
+  - 'Delete shows a confirmation dialog before sending the DELETE request. Hard delete — no soft-delete or undo.'
+  - 'Transfer leg handling: when the target transaction is part of a transfer pair (same description, opposite sign, near-identical timestamp), prompt the user whether to also update/delete the paired leg. Cascade only on explicit user consent.'
+  - 'No new npm dependencies. Use existing shadcn/ui Dialog, Button, and components.'
   - 'npm test (>=80% coverage) and npm run type-check must remain green.'
-  - 'Existing shadcn/ui Dialogs and Sheets used — no new dependencies.'
+  - 'Transfer form dialog is unchanged (out of scope).'
 
 out_of_scope:
-  - 'Transfer form dialog.'
-  - 'Slide animations between dialog and sheet.'
-  - 'Context menu changes or long-press behavior.'
-  - 'Creating wallets/categories from the transfer form.'
+  - 'Transfer form dialog changes.'
+  - 'Inline table editing.'
+  - 'Bulk operations (multi-select, batch delete).'
+  - 'Soft delete or undo.'
+  - 'New database migrations (all fields exist on the transactions table).'
+  - 'Changes to transaction creation flow or the onboarding wizard.'
 
 key_decisions:
-  - decision: 'Wallet/category creation from the transaction form uses a dedicated creation sheet (not the OnboardingWizard).'
-    rationale: 'The wizard is a first-visit onboarding tool. Inline creation should be focused and fast — a simple form in a Sheet that returns to the transaction dialog on completion.'
-  - decision: 'Form state preservation via keeping the Dialog mounted while the Sheet is open.'
-    rationale: 'The shadcn Dialog unmounts its content when closed. To preserve react-hook-form state, the dialog must stay open (mounted) while the Sheet overlays it.'
-  - decision: 'Auto-select newly created resource on return via ref or lifted state.'
-    rationale: 'The user should not need to re-select the wallet/category they just created. Pass the new resource id back to the transaction form.'
+  - decision: 'Row click opens a detail dialog, not an inline edit or separate page.'
+    rationale: 'Matches the existing wallet/category detail sheet pattern. Keeps the user on the Home page without navigation. A dialog is a natural container for view + action buttons (Edit, Delete).'
+  - decision: 'Edit reuses TransactionForm via an editMode prop.'
+    rationale: 'Avoids a duplicate form component. TransactionForm already handles wallet/category selection, validation, and submission. Adding editMode (pre-fill fields, change button label, call PUT instead of POST) is the smallest surface change.'
+  - decision: 'All fields including walletId are editable.'
+    rationale: 'Users should be able to correct a transaction assigned to the wrong wallet without deleting and re-creating it. Wallet ownership is validated server-side.'
+  - decision: 'Transfer legs are treated independently by default, with an opt-in cascade prompt.'
+    rationale: 'Keeps the simple case simple (edit/delete one transaction = one request). When a transfer pair is detected, the prompt gives the user control without forcing cascading behavior on every edit.'
+  - decision: 'Transfer pair detection happens client-side by matching opposite-signed transactions with identical descriptions and timestamps within a small window.'
+    rationale: 'No schema changes or migration needed. The server already returns all transactions for the user, so the client can find the paired leg without an extra API call.'
