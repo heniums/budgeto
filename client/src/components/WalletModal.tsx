@@ -1,4 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -21,6 +24,14 @@ import {
 } from '../api/transactions';
 import { ApiError } from '../api/client';
 
+const walletSchema = z.object({
+  name: z.string().min(1, 'Name is required.').max(128),
+  description: z.string().max(512),
+  color: z.string(),
+});
+
+type WalletFormValues = z.infer<typeof walletSchema>;
+
 export interface WalletModalProps {
   mode: 'create' | 'edit' | 'view';
   open: boolean;
@@ -36,14 +47,20 @@ export function WalletModal({
   walletId,
   onSuccess,
 }: WalletModalProps): JSX.Element {
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [color, setColor] = useState('#1f8a4c');
   const [wallet, setWallet] = useState<WalletData | null>(null);
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
-  const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isSubmitting },
+  } = useForm<WalletFormValues>({
+    resolver: zodResolver(walletSchema),
+    defaultValues: { name: '', description: '', color: '#1f8a4c' },
+  });
 
   const isCreate = mode === 'create';
   const isEdit = mode === 'edit';
@@ -55,10 +72,8 @@ export function WalletModal({
     if (isCreate) {
       setLoading(false);
       setWallet(null);
-      setName('');
-      setDescription('');
-      setColor('#1f8a4c');
-      setError(null);
+      reset({ name: '', description: '', color: '#1f8a4c' });
+      setFormError(null);
       return;
     }
 
@@ -66,15 +81,17 @@ export function WalletModal({
 
     let active = true;
     setLoading(true);
-    setError(null);
+    setFormError(null);
 
     const fetches: Promise<void>[] = [
       getWallet(walletId).then((w) => {
         if (!active) return;
         setWallet(w);
-        setName(w.name);
-        setDescription(w.description);
-        setColor(w.color);
+        reset({
+          name: w.name,
+          description: w.description,
+          color: w.color,
+        });
       }),
     ];
 
@@ -96,94 +113,91 @@ export function WalletModal({
       })
       .catch(() => {
         if (!active) return;
-        setError('Failed to load wallet.');
+        setFormError('Failed to load wallet.');
         setLoading(false);
       });
     return () => {
       active = false;
     };
-  }, [open, walletId, isCreate, isView]);
+  }, [open, walletId, isCreate, isView, reset]);
 
-  const handleCreate = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
-    setError(null);
-    setSaving(true);
+  const onCreate = async (values: WalletFormValues): Promise<void> => {
+    setFormError(null);
     try {
-      const wallet = await createWallet({
-        name: name.trim(),
-        description: description.trim(),
-        color,
+      const w = await createWallet({
+        name: values.name.trim(),
+        description: values.description.trim(),
+        color: values.color,
       });
-      onSuccess?.(wallet);
+      onSuccess?.(w);
     } catch (err) {
-      setError(
+      setFormError(
         err instanceof ApiError ? err.message : 'Failed to save wallet.',
       );
-    } finally {
-      setSaving(false);
     }
   };
 
-  const handleUpdate = async (e: React.FormEvent): Promise<void> => {
-    e.preventDefault();
+  const onUpdate = async (values: WalletFormValues): Promise<void> => {
     if (!walletId) return;
-    setError(null);
-    setSaving(true);
+    setFormError(null);
     try {
       await updateWallet(walletId, {
-        name: name.trim(),
-        description: description.trim(),
-        color,
+        name: values.name.trim(),
+        description: values.description.trim(),
+        color: values.color,
       });
       onSuccess?.();
     } catch (err) {
-      setError(
+      setFormError(
         err instanceof ApiError ? err.message : 'Failed to save wallet.',
       );
-    } finally {
-      setSaving(false);
     }
   };
 
+  const onSubmit = isCreate ? onCreate : onUpdate;
+
   const handleDelete = async (): Promise<void> => {
     if (!walletId) return;
-    setError(null);
-    setSaving(true);
+    setFormError(null);
     try {
       await deleteWallet(walletId);
       onSuccess?.();
     } catch (err) {
-      setError(
+      setFormError(
         err instanceof ApiError ? err.message : 'Failed to delete wallet.',
       );
-    } finally {
-      setSaving(false);
     }
   };
 
-  const handleSubmit = isCreate ? handleCreate : handleUpdate;
+  const title = isCreate
+    ? 'New Wallet'
+    : isEdit
+      ? 'Edit Wallet'
+      : 'Wallet Details';
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="right" className="sm:max-w-md">
         <SheetHeader>
-          <SheetTitle>
-            {isCreate ? 'New Wallet' : mode === 'edit' ? 'Edit Wallet' : 'Wallet Details'}
-          </SheetTitle>
+          <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
 
         {loading && (
           <p className="text-muted-foreground mt-4">Loading…</p>
         )}
 
-        {!loading && isCreate && (
-          <form onSubmit={handleSubmit} noValidate className="space-y-4 mt-6">
-            {error && (
+        {!loading && (isCreate || isEdit) && (
+          <form
+            onSubmit={handleSubmit(onSubmit)}
+            noValidate
+            className="space-y-4 mt-6"
+          >
+            {formError && (
               <div
                 role="alert"
                 className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
               >
-                {error}
+                {formError}
               </div>
             )}
 
@@ -192,9 +206,13 @@ export function WalletModal({
               <Input
                 id="wallet-modal-name"
                 type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
+                {...register('name')}
               />
+              {errors.name && (
+                <span role="alert" className="text-sm text-destructive">
+                  {errors.name.message}
+                </span>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -202,78 +220,32 @@ export function WalletModal({
               <Input
                 id="wallet-modal-desc"
                 type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                {...register('description')}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-color">Color</Label>
-              <input
+              <Input
                 id="wallet-modal-color"
                 type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-full h-10 rounded-md border border-input cursor-pointer"
+                {...register('color')}
               />
             </div>
 
-            <Button type="submit" disabled={saving || !name.trim()}>
-              {saving ? 'Creating…' : 'Create'}
-            </Button>
-          </form>
-        )}
-
-        {!loading && isEdit && (
-          <form onSubmit={handleSubmit} noValidate className="space-y-4 mt-6">
-            {error && (
-              <div
-                role="alert"
-                className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-              >
-                {error}
-              </div>
-            )}
-
-            <div className="space-y-2">
-              <Label htmlFor="wallet-modal-name">Name</Label>
-              <Input
-                id="wallet-modal-name"
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="wallet-modal-desc">Description</Label>
-              <Input
-                id="wallet-modal-desc"
-                type="text"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="wallet-modal-color">Color</Label>
-              <input
-                id="wallet-modal-color"
-                type="color"
-                value={color}
-                onChange={(e) => setColor(e.target.value)}
-                className="w-full h-10 rounded-md border border-input cursor-pointer"
-              />
-            </div>
-
-            <div className="flex justify-between gap-2">
-              <Button
-                variant="destructive"
-                onClick={handleDelete}
-                type="button"
-              >
-                Delete
-              </Button>
+            <div
+              className={`flex ${isEdit ? 'justify-between' : 'justify-end'} gap-2`}
+            >
+              {isEdit && (
+                <Button
+                  variant="destructive"
+                  onClick={handleDelete}
+                  type="button"
+                  disabled={isSubmitting}
+                >
+                  Delete
+                </Button>
+              )}
               <div className="flex gap-2">
                 <Button
                   variant="outline"
@@ -284,9 +256,15 @@ export function WalletModal({
                 </Button>
                 <Button
                   type="submit"
-                  disabled={saving || !name.trim()}
+                  disabled={isSubmitting}
                 >
-                  {saving ? 'Saving…' : 'Save'}
+                  {isSubmitting
+                    ? isCreate
+                      ? 'Creating…'
+                      : 'Saving…'
+                    : isCreate
+                      ? 'Create'
+                      : 'Save'}
                 </Button>
               </div>
             </div>
@@ -359,8 +337,8 @@ export function WalletModal({
           </div>
         )}
 
-        {!loading && isView && error && (
-          <p className="text-destructive mt-4">{error}</p>
+        {!loading && isView && formError && (
+          <p className="text-destructive mt-4">{formError}</p>
         )}
       </SheetContent>
     </Sheet>
