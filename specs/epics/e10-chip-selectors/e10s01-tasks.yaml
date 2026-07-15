@@ -3,7 +3,7 @@
 
 story_id: e10s01
 title: 'Wallet & Category Chip-List Selectors in TransactionForm'
-status: failing
+status: passing
 bcps: 5
 
 tasks:
@@ -17,7 +17,7 @@ tasks:
       `onSelect: (id: string) => void` props. Renders inside a ScrollArea
       with horizontal orientation. Selected chip shows a filled/ring variant.
       Handles empty state gracefully ("No wallets yet").
-    status: failing
+    status: passing
     risk: P1
     allure:
       severity: high
@@ -37,7 +37,7 @@ tasks:
       props. Renders inside a ScrollArea with horizontal orientation.
       Selected chip shows a filled/ring variant. Shows all categories
       regardless of type. Handles empty state gracefully.
-    status: failing
+    status: passing
     risk: P1
     allure:
       severity: high
@@ -57,7 +57,7 @@ tasks:
       <label>/<option> markup. Form validation and submit logic remain
       unchanged. Keep existing onCreateWallet/onCreateCategory/onViewWallet
       props as supplementary links below the chip lists.
-    status: failing
+    status: passing
     risk: P1
     allure:
       severity: high
@@ -76,7 +76,7 @@ tasks:
       works, form submits with selected IDs, empty states render correctly.
       Remove tests specific to the old <select> elements. Add keyboard
       navigation tests for the chip lists.
-    status: failing
+    status: passing
     risk: P2
     allure:
       severity: normal
@@ -91,7 +91,7 @@ tasks:
       Run npm run type-check and npm test. Ensure no regressions in
       existing tests. Coverage must remain at >=80%. Verify all new
       component tests and updated TransactionForm tests pass.
-    status: failing
+    status: passing
     risk: P2
     security: none
     allure:
