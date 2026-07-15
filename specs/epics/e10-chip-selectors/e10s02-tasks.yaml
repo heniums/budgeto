@@ -3,7 +3,7 @@
 
 story_id: e10s02
 title: 'Inline Dialogs for Chip-List Management'
-status: failing
+status: passing
 bcps: 6
 
 tasks:
@@ -15,7 +15,7 @@ tasks:
       edit form fields (name, description, color) prefilled from the chip's
       wallet data. On submit, call updateWallet() and trigger list refresh.
       TransactionForm state preserved. Use react-hook-form inside the dialog.
-    status: failing
+    status: passing
     risk: P1
     allure:
       severity: high
@@ -32,7 +32,7 @@ tasks:
       (name, description, color — all empty, default color). On submit,
       call createWallet() and trigger list refresh. New wallet appears
       immediately.
-    status: failing
+    status: passing
     risk: P1
     allure:
       severity: high
@@ -49,7 +49,7 @@ tasks:
       containing a compact CSS grid of wallet badges. Tapping a wallet
       selects it via onSelect and closes the modal. Pure selection — no edit
       or create controls inside the grid modal.
-    status: failing
+    status: passing
     risk: P2
     allure:
       severity: normal
@@ -66,7 +66,7 @@ tasks:
       icon picker) prefilled. On submit, call updateCategory() and trigger
       list refresh. Icon picker renders the existing ICONS grid from
       CategoryForm.
-    status: failing
+    status: passing
     risk: P1
     allure:
       severity: high
@@ -82,7 +82,7 @@ tasks:
       dialog (full category form, empty defaults). "View All" opens grid
       modal showing all category icons for selection (same icon grid as
       CategoryForm but read-only for picking).
-    status: failing
+    status: passing
     risk: P2
     allure:
       severity: normal
@@ -100,7 +100,7 @@ tasks:
       This coexists with touch long-press on mobile — use pointer device
       detection or simply provide both interactions and let the platform
       filter naturally.
-    status: failing
+    status: passing
     risk: P2
     allure:
       severity: normal
@@ -117,7 +117,7 @@ tasks:
       WalletSelectList, or CategorySelectList tests. Manual verification
       of dialog workflows (edit, create, view-all) on both mobile viewport
       and desktop.
-    status: failing
+    status: passing
     risk: P2
     security: none
     allure:
