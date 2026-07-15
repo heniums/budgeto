@@ -1,8 +1,17 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WalletSelectList } from './WalletSelectList';
 import type { WalletData } from '../api/wallets';
+
+beforeAll(() => {
+  // jsdom does not implement ResizeObserver (used by ScrollArea)
+  global.ResizeObserver = class ResizeObserver {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
+});
 
 const wallets: WalletData[] = [
   {
@@ -129,14 +138,18 @@ describe('WalletSelectList', () => {
       />,
     );
 
-    const listbox = screen.getByRole('listbox');
-    listbox.focus();
+    // Focus the first chip directly
+    const firstChip = screen.getByText('Cash').closest('[role="option"]')!;
+    firstChip.focus();
+    expect(document.activeElement).toBe(firstChip);
 
-    // ArrowRight to move to next option
+    // ArrowRight moves focus to second chip
     await user.keyboard('{ArrowRight}');
-    await user.keyboard('{Enter}');
+    const secondChip = screen.getByText('Bank').closest('[role="option"]')!;
+    expect(document.activeElement).toBe(secondChip);
 
-    // Should have selected the second wallet (after moving right once)
+    // Enter on second chip selects it
+    await user.keyboard('{Enter}');
     expect(onSelect).toHaveBeenCalledWith('w2');
   });
 });
