@@ -333,7 +333,7 @@ export function TransactionForm({
         <WalletSelectList
           wallets={wallets}
           selectedId={selectedWalletId || null}
-          onSelect={(id) => setValue('walletId', id, { shouldValidate: true })}
+          onSelect={(id) => setValue('walletId', id, { shouldValidate: true, shouldDirty: true })}
           onRefresh={onRefreshWallets}
         />
         {errors.walletId && (
@@ -384,7 +384,7 @@ export function TransactionForm({
           <CategorySelectList
             categories={categories}
             selectedId={watch('categoryId') || null}
-            onSelect={(id) => setValue('categoryId', id, { shouldValidate: true })}
+            onSelect={(id) => setValue('categoryId', id, { shouldValidate: true, shouldDirty: true })}
             onRefresh={onRefreshCategories}
           />
           {onCreateCategory && (
