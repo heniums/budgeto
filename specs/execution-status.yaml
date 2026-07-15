@@ -12,6 +12,9 @@ e08s02: done
 e08s03: done
 e08s04: done
 e08s05: done
-e11s01: done
+e11s01:
+  status: done
+  started_at: '2026-07-15T18:00:00-03:00'
+  completed_at: '2026-07-15T18:08:00-03:00'
 e11s02: todo
 e11s03: todo
