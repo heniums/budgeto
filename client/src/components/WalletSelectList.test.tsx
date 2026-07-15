@@ -1,11 +1,22 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor, fireEvent } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WalletSelectList } from './WalletSelectList';
-import type { WalletData } from '../api/wallets';
+
+import type * as WalletModule from '../api/wallets';
+
+vi.mock('../api/wallets', async (importOriginal) => {
+  const actual = await importOriginal<typeof WalletModule>();
+  return {
+    ...actual,
+    updateWallet: vi.fn(),
+    createWallet: vi.fn(),
+  };
+});
+
+import { updateWallet, createWallet } from '../api/wallets';
 
 beforeAll(() => {
-  // jsdom does not implement ResizeObserver (used by ScrollArea)
   global.ResizeObserver = class ResizeObserver {
     observe(): void {}
     unobserve(): void {}
@@ -13,33 +24,31 @@ beforeAll(() => {
   };
 });
 
-const wallets: WalletData[] = [
+interface WalletItem {
+  id: string;
+  name: string;
+  color: string;
+  description: string;
+}
+
+const wallets: WalletItem[] = [
   {
     id: 'w1',
     name: 'Cash',
-    description: '',
+    description: 'Physical cash',
     color: '#1f8a4c',
-    balance: '100.00',
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 'w2',
     name: 'Bank',
-    description: '',
+    description: 'Main bank account',
     color: '#3b82f6',
-    balance: '500.00',
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 'w3',
     name: 'Savings',
     description: '',
     color: '#f59e0b',
-    balance: '1000.00',
-    createdAt: '',
-    updatedAt: '',
   },
 ];
 
@@ -151,5 +160,102 @@ describe('WalletSelectList', () => {
     // Enter on second chip selects it
     await user.keyboard('{Enter}');
     expect(onSelect).toHaveBeenCalledWith('w2');
+  });
+});
+
+describe('WalletSelectList — dialogs', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(updateWallet).mockResolvedValue({
+      id: 'w1',
+      name: 'Cash Updated',
+      description: '',
+      color: '#1f8a4c',
+      balance: '100.00',
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(createWallet).mockResolvedValue({
+      id: 'w-new',
+      name: 'New Wallet',
+      description: '',
+      color: '#1f8a4c',
+      balance: '0.00',
+      createdAt: '',
+      updatedAt: '',
+    });
+  });
+
+  it('shows "+" button at the end of the chip list', () => {
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText('Add wallet')).toBeInTheDocument();
+  });
+
+  it('shows "View All" button when there are wallets', () => {
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText('View all wallets')).toBeInTheDocument();
+  });
+
+  it('opens edit dialog on long-press', async () => {
+    vi.useFakeTimers();
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    const cashChip = screen.getByText('Cash').closest('[role="option"]')!;
+    fireEvent.pointerDown(cashChip);
+    vi.advanceTimersByTime(600);
+    fireEvent.pointerUp(cashChip);
+
+    await waitFor(() => {
+      expect(screen.getByText(/edit wallet/i)).toBeInTheDocument();
+    });
+
+    vi.useRealTimers();
+  });
+
+  it('prefills edit dialog with wallet values', async () => {
+    vi.useFakeTimers();
+    render(
+      <WalletSelectList
+        wallets={wallets}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    const cashChip = screen.getByText('Cash').closest('[role="option"]')!;
+    fireEvent.pointerDown(cashChip);
+    vi.advanceTimersByTime(600);
+    fireEvent.pointerUp(cashChip);
+
+    await waitFor(() => {
+      const nameInput = screen.getByLabelText('Name') as HTMLInputElement;
+      expect(nameInput.value).toBe('Cash');
+    });
+
+    vi.useRealTimers();
   });
 });

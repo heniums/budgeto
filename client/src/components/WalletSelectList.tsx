@@ -6,12 +6,14 @@ interface WalletItem {
   id: string;
   name: string;
   color: string;
+  description: string;
 }
 
 interface WalletSelectListProps {
   wallets: WalletItem[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onRefresh?: () => void;
 }
 
 export function WalletSelectList({
