@@ -30,7 +30,7 @@ type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
-  categories?: { id: string; name: string; type: string; color: string; icon: string }[];
+  categories?: { id: string; name: string; type: 'income' | 'expense'; color: string; icon: string }[];
   categoriesCount?: number;
   onSuccess: () => void;
   onCreateWallet?: () => void;
@@ -46,6 +46,8 @@ interface TransactionFormProps {
     categoryId: string;
   };
   editTxId?: string;
+  onRefreshWallets?: () => void;
+  onRefreshCategories?: () => void;
 }
 
 export function TransactionForm({
@@ -61,6 +63,8 @@ export function TransactionForm({
   editMode,
   initialValues,
   editTxId,
+  onRefreshWallets,
+  onRefreshCategories,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -198,6 +202,7 @@ export function TransactionForm({
           wallets={wallets}
           selectedId={selectedWalletId || null}
           onSelect={(id) => setValue('walletId', id, { shouldValidate: true })}
+          onRefresh={onRefreshWallets}
         />
         {errors.walletId && (
           <span role="alert" className="text-sm text-destructive">
@@ -248,6 +253,7 @@ export function TransactionForm({
             categories={categories}
             selectedId={watch('categoryId') || null}
             onSelect={(id) => setValue('categoryId', id, { shouldValidate: true })}
+            onRefresh={onRefreshCategories}
           />
           {onCreateCategory && (
             <span

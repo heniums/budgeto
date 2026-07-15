@@ -1,8 +1,20 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CategorySelectList } from './CategorySelectList';
-import type { CategoryData } from '../api/categories';
+
+import type * as CategoryModule from '../api/categories';
+
+vi.mock('../api/categories', async (importOriginal) => {
+  const actual = await importOriginal<typeof CategoryModule>();
+  return {
+    ...actual,
+    updateCategory: vi.fn(),
+    createCategory: vi.fn(),
+  };
+});
+
+import { updateCategory, createCategory } from '../api/categories';
 
 beforeAll(() => {
   global.ResizeObserver = class ResizeObserver {
@@ -12,12 +24,12 @@ beforeAll(() => {
   };
 });
 
-const categories: CategoryData[] = [
+const categories = [
   {
     id: 'c1',
     userId: 'u1',
     name: 'Food',
-    type: 'expense',
+    type: 'expense' as const,
     color: '#ef4444',
     icon: 'UtensilsCrossed',
     createdAt: '',
@@ -27,7 +39,7 @@ const categories: CategoryData[] = [
     id: 'c2',
     userId: 'u1',
     name: 'Salary',
-    type: 'income',
+    type: 'income' as const,
     color: '#22c55e',
     icon: 'BriefcaseBusiness',
     createdAt: '',
@@ -37,7 +49,7 @@ const categories: CategoryData[] = [
     id: 'c3',
     userId: 'u1',
     name: 'Car',
-    type: 'expense',
+    type: 'expense' as const,
     color: '#3b82f6',
     icon: 'Car',
     createdAt: '',
@@ -153,5 +165,86 @@ describe('CategorySelectList', () => {
     // Enter selects it
     await user.keyboard('{Enter}');
     expect(onSelect).toHaveBeenCalledWith('c2');
+  });
+});
+
+describe('CategorySelectList — dialogs', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(updateCategory).mockResolvedValue({
+      id: 'c1',
+      userId: 'u1',
+      name: 'Food Updated',
+      type: 'expense' as const,
+      color: '#ef4444',
+      icon: 'UtensilsCrossed',
+      createdAt: '',
+      updatedAt: '',
+    });
+    vi.mocked(createCategory).mockResolvedValue({
+      id: 'c-new',
+      userId: 'u1',
+      name: 'New Category',
+      type: 'expense' as const,
+      color: '#1f8a4c',
+      icon: 'Tag',
+      createdAt: '',
+      updatedAt: '',
+    });
+  });
+
+  it('shows "+" and "View All" buttons', () => {
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByLabelText('Add category')).toBeInTheDocument();
+    expect(screen.getByLabelText('View all categories')).toBeInTheDocument();
+  });
+
+  it('opens edit dialog via Shift+Enter', async () => {
+    const user = userEvent.setup();
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    const foodChip = screen.getByLabelText('Food');
+    foodChip.focus();
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
+
+    await waitFor(() => {
+      expect(screen.getByText(/edit category/i)).toBeInTheDocument();
+    });
+  });
+
+  it('prefills edit dialog with category values', async () => {
+    const user = userEvent.setup();
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+      />,
+    );
+
+    const foodChip = screen.getByLabelText('Food');
+    foodChip.focus();
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
+
+    await waitFor(() => {
+      const nameInput = screen.getByLabelText('Name') as HTMLInputElement;
+      expect(nameInput.value).toBe('Food');
+    });
   });
 });

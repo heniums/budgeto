@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WalletSelectList } from './WalletSelectList';
 
@@ -212,8 +212,8 @@ describe('WalletSelectList — dialogs', () => {
     expect(screen.getByLabelText('View all wallets')).toBeInTheDocument();
   });
 
-  it('opens edit dialog on long-press', async () => {
-    vi.useFakeTimers();
+  it('opens edit dialog via Shift+Enter on a chip', async () => {
+    const user = userEvent.setup();
     render(
       <WalletSelectList
         wallets={wallets}
@@ -223,20 +223,19 @@ describe('WalletSelectList — dialogs', () => {
       />,
     );
 
-    const cashChip = screen.getByText('Cash').closest('[role="option"]')!;
-    fireEvent.pointerDown(cashChip);
-    vi.advanceTimersByTime(600);
-    fireEvent.pointerUp(cashChip);
+    const cashChip = screen.getByText('Cash').closest('[role="option"]') as HTMLElement;
+    cashChip.focus();
+
+    // Shift+Enter opens edit dialog
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
 
     await waitFor(() => {
       expect(screen.getByText(/edit wallet/i)).toBeInTheDocument();
     });
-
-    vi.useRealTimers();
   });
 
-  it('prefills edit dialog with wallet values', async () => {
-    vi.useFakeTimers();
+  it('prefills edit dialog with wallet values via keyboard', async () => {
+    const user = userEvent.setup();
     render(
       <WalletSelectList
         wallets={wallets}
@@ -246,16 +245,13 @@ describe('WalletSelectList — dialogs', () => {
       />,
     );
 
-    const cashChip = screen.getByText('Cash').closest('[role="option"]')!;
-    fireEvent.pointerDown(cashChip);
-    vi.advanceTimersByTime(600);
-    fireEvent.pointerUp(cashChip);
+    const cashChip = screen.getByText('Cash').closest('[role="option"]') as HTMLElement;
+    cashChip.focus();
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
 
     await waitFor(() => {
       const nameInput = screen.getByLabelText('Name') as HTMLInputElement;
       expect(nameInput.value).toBe('Cash');
     });
-
-    vi.useRealTimers();
   });
 });
