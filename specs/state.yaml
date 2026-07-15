@@ -7,12 +7,12 @@ active_story_id: e11s01
 completed_epic: false
 
 epic_cycle:
-  current_step: 3
-  next_skill: develop-tdd
+  current_step: 5
+  next_skill: verify-work
   story_bcps: 6
-  completed_steps: ['0', '1', '2']
+  completed_steps: ['0', '1', '2', '3', '4']
   audit_result: null
-  note: 'Rewritten from Sheet-based to Dialog-based approach 2026-07-15. Old PR #13 superseded. Steps 0-2 complete.'
+  note: 'e11s01 done: 159/159 tests pass, type-check clean. WalletModal + CategoryModal refactored to Dialog.'
 
 bug_cycle:
   current_step: null

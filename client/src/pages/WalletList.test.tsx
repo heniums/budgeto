@@ -97,7 +97,7 @@ describe('WalletList page', () => {
     await user.click(screen.getByText('Cash'));
 
     await waitFor(() => {
-      const titles = screen.getAllByText('Wallet Details');
+      const titles = screen.getAllByText('Edit Wallet');
       expect(titles.length).toBeGreaterThanOrEqual(1);
     });
   });

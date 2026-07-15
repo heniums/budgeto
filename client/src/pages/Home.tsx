@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getTransactions, type TransactionData, deleteTransaction } from '../api/transactions';
+import {
+  getTransactions,
+  type TransactionData,
+  deleteTransaction,
+} from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
@@ -521,14 +525,11 @@ export function Home(): JSX.Element {
             <DialogTitle>Delete transaction</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete this transaction? This action
-            cannot be undone.
+            Are you sure you want to delete this transaction? This action cannot
+            be undone.
           </p>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteConfirm(null)}
-            >
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Cancel
             </Button>
             <Button
@@ -548,7 +549,7 @@ export function Home(): JSX.Element {
         </DialogContent>
       </Dialog>
 
-            <Dialog
+      <Dialog
         open={cascadeTx !== null}
         onOpenChange={(open) => {
           if (!open) setCascadeTx(null);
@@ -604,7 +605,6 @@ export function Home(): JSX.Element {
       </Dialog>
 
       <WalletModal
-        mode="view"
         walletId={detailWalletId ?? undefined}
         open={detailWalletId !== null}
         onOpenChange={(open) => {
@@ -617,7 +617,6 @@ export function Home(): JSX.Element {
       />
 
       <WalletModal
-        mode="create"
         open={createWalletOpen}
         onOpenChange={setCreateWalletOpen}
         onSuccess={(newWallet) => {
@@ -628,7 +627,6 @@ export function Home(): JSX.Element {
       />
 
       <CategoryModal
-        mode="view"
         categoryId={detailCategoryId ?? undefined}
         open={detailCategoryId !== null}
         onOpenChange={(open) => {
@@ -641,7 +639,6 @@ export function Home(): JSX.Element {
       />
 
       <CategoryModal
-        mode="create"
         open={createCategoryOpen}
         onOpenChange={setCreateCategoryOpen}
         onSuccess={(newCategory) => {

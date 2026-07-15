@@ -7,9 +7,9 @@ export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalMode, setModalMode] = useState<
-    'create' | 'edit' | 'view' | null
-  >(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(
+    null,
+  );
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
 
   const load = (): void => {
@@ -87,7 +87,6 @@ export function WalletList(): JSX.Element {
       )}
 
       <WalletModal
-        mode={modalMode ?? 'view'}
         open={modalMode !== null}
         onOpenChange={(open) => {
           if (!open) {
@@ -95,7 +94,9 @@ export function WalletList(): JSX.Element {
             setSelectedWalletId(null);
           }
         }}
-        walletId={selectedWalletId ?? undefined}
+        walletId={
+          modalMode === 'create' ? undefined : (selectedWalletId ?? undefined)
+        }
         onSuccess={() => {
           setModalMode(null);
           setSelectedWalletId(null);

@@ -16,11 +16,7 @@ vi.mock('../api/categories', async (importOriginal) => {
   };
 });
 
-import {
-  createCategory,
-  getCategory,
-  updateCategory,
-} from '../api/categories';
+import { createCategory, getCategory, updateCategory } from '../api/categories';
 
 const mockCategory = {
   id: 'c1',
@@ -33,7 +29,7 @@ const mockCategory = {
   updatedAt: '',
 };
 
-describe('CategoryModal — create mode', () => {
+describe('CategoryModal — create mode (no categoryId)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     cleanup();
@@ -41,19 +37,16 @@ describe('CategoryModal — create mode', () => {
 
   it('renders create form with name, type, color, and icon grid', () => {
     render(
-      <CategoryModal
-        mode="create"
-        open={true}
-        onOpenChange={vi.fn()}
-        onSuccess={vi.fn()}
-      />,
+      <CategoryModal open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
     );
 
     expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
-    // Should have icon grid buttons
     expect(screen.getByLabelText('Tag')).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Delete' }),
+    ).not.toBeInTheDocument();
   });
 
   it('calls createCategory and onSuccess on submit', async () => {
@@ -62,7 +55,6 @@ describe('CategoryModal — create mode', () => {
 
     render(
       <CategoryModal
-        mode="create"
         open={true}
         onOpenChange={vi.fn()}
         onSuccess={onSuccess}
@@ -87,17 +79,31 @@ describe('CategoryModal — create mode', () => {
   });
 });
 
-describe('CategoryModal — edit mode', () => {
+describe('CategoryModal — edit mode (categoryId provided)', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getCategory).mockResolvedValue(mockCategory);
     cleanup();
   });
 
+  it('renders loading state while fetching', () => {
+    vi.mocked(getCategory).mockImplementation(() => new Promise(() => {}));
+
+    render(
+      <CategoryModal
+        open={true}
+        onOpenChange={vi.fn()}
+        categoryId="c1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
   it('fetches category and prefills form fields', async () => {
     render(
       <CategoryModal
-        mode="edit"
         open={true}
         onOpenChange={vi.fn()}
         categoryId="c1"
@@ -111,13 +117,50 @@ describe('CategoryModal — edit mode', () => {
     expect(await screen.findByDisplayValue('Groceries')).toBeInTheDocument();
   });
 
+  it('renders Save Changes disabled when form is not dirty', async () => {
+    render(
+      <CategoryModal
+        open={true}
+        onOpenChange={vi.fn()}
+        categoryId="c1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await screen.findByDisplayValue('Groceries');
+
+    const saveButton = screen.getByRole('button', { name: 'Save Changes' });
+    expect(saveButton).toBeInTheDocument();
+    expect(saveButton).toBeDisabled();
+  });
+
+  it('enables Save Changes when form becomes dirty', async () => {
+    render(
+      <CategoryModal
+        open={true}
+        onOpenChange={vi.fn()}
+        categoryId="c1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await screen.findByDisplayValue('Groceries');
+
+    const user = userEvent.setup();
+    await user.clear(screen.getByLabelText('Name'));
+    await user.type(screen.getByLabelText('Name'), 'Food');
+
+    expect(
+      screen.getByRole('button', { name: 'Save Changes' }),
+    ).not.toBeDisabled();
+  });
+
   it('calls updateCategory and onSuccess on save', async () => {
     vi.mocked(updateCategory).mockResolvedValue(mockCategory);
     const onSuccess = vi.fn();
 
     render(
       <CategoryModal
-        mode="edit"
         open={true}
         onOpenChange={vi.fn()}
         categoryId="c1"
@@ -130,7 +173,7 @@ describe('CategoryModal — edit mode', () => {
     const user = userEvent.setup();
     await user.clear(screen.getByLabelText('Name'));
     await user.type(screen.getByLabelText('Name'), 'Food');
-    await user.click(screen.getByRole('button', { name: 'Save' }));
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
 
     await waitFor(() => {
       expect(updateCategory).toHaveBeenCalledWith('c1', {
@@ -145,10 +188,9 @@ describe('CategoryModal — edit mode', () => {
     });
   });
 
-  it('renders Delete button in edit mode', async () => {
+  it('renders Delete button when categoryId is provided', async () => {
     render(
       <CategoryModal
-        mode="edit"
         open={true}
         onOpenChange={vi.fn()}
         categoryId="c1"
@@ -162,56 +204,12 @@ describe('CategoryModal — edit mode', () => {
       ).toBeInTheDocument();
     });
   });
-});
-
-describe('CategoryModal — view mode', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(getCategory).mockResolvedValue(mockCategory);
-    cleanup();
-  });
-
-  it('shows loading state while fetching', () => {
-    vi.mocked(getCategory).mockImplementation(
-      () => new Promise(() => {}),
-    );
-
-    render(
-      <CategoryModal
-        mode="view"
-        open={true}
-        onOpenChange={vi.fn()}
-        categoryId="c1"
-        onSuccess={vi.fn()}
-      />,
-    );
-
-    expect(screen.getByText('Loading…')).toBeInTheDocument();
-  });
-
-  it('shows category details in view mode', async () => {
-    render(
-      <CategoryModal
-        mode="view"
-        open={true}
-        onOpenChange={vi.fn()}
-        categoryId="c1"
-        onSuccess={vi.fn()}
-      />,
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('Groceries')).toBeInTheDocument();
-    });
-    expect(screen.getByText('expense')).toBeInTheDocument();
-  });
 
   it('shows error when category fetch fails', async () => {
     vi.mocked(getCategory).mockRejectedValue(new Error('Not found'));
 
     render(
       <CategoryModal
-        mode="view"
         open={true}
         onOpenChange={vi.fn()}
         categoryId="c1"
@@ -220,9 +218,7 @@ describe('CategoryModal — view mode', () => {
     );
 
     await waitFor(() => {
-      expect(
-        screen.getByText('Failed to load category.'),
-      ).toBeInTheDocument();
+      expect(screen.getByText('Failed to load category.')).toBeInTheDocument();
     });
   });
 });
