@@ -1,47 +1,34 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { getWallets, deleteWallet, type WalletData } from '../api/wallets';
+import { getWallets, type WalletData } from '../api/wallets';
+import { Button } from '@/components/ui/button';
+import { WalletModal } from '../components/WalletModal';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalMode, setModalMode] = useState<
+    'create' | 'edit' | 'view' | null
+  >(null);
+  const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
 
-  useEffect(() => {
-    let active = true;
+  const load = (): void => {
+    setLoading(true);
+    setError(null);
     getWallets()
       .then((res) => {
-        if (!active) return;
         setWallets(res.wallets);
         setLoading(false);
       })
       .catch((err) => {
-        if (!active) return;
         setError(err.message);
         setLoading(false);
       });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const handleDelete = async (wallet: WalletData): Promise<void> => {
-    if (
-      !window.confirm(
-        `Delete wallet "${wallet.name}"? This cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteWallet(wallet.id);
-      setWallets((prev) => prev.filter((w) => w.id !== wallet.id));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to delete wallet.',
-      );
-    }
   };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
     <main>
@@ -54,7 +41,7 @@ export function WalletList(): JSX.Element {
       )}
 
       <div style={{ marginBottom: '1rem' }}>
-        <Link to="/settings/wallets/new">New Wallet</Link>
+        <Button onClick={() => setModalMode('create')}>New Wallet</Button>
       </div>
 
       {loading ? (
@@ -72,27 +59,49 @@ export function WalletList(): JSX.Element {
                     style={{ background: wallet.color }}
                     aria-hidden
                   />
-                  <Link
-                    to={`/settings/wallets/${wallet.id}`}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSelectedWalletId(wallet.id);
+                      setModalMode('view');
+                    }}
                     className="wallet-name"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      color: 'inherit',
+                      textDecoration: 'underline',
+                      padding: 0,
+                      font: 'inherit',
+                    }}
                   >
                     {wallet.name}
-                  </Link>
+                  </button>
                   <span className="wallet-balance">{wallet.balance}</span>
                 </div>
-                <button
-                  type="button"
-                  className="wallet-delete"
-                  onClick={() => handleDelete(wallet)}
-                  aria-label={`Delete ${wallet.name}`}
-                >
-                  Delete
-                </button>
               </div>
             </li>
           ))}
         </ul>
       )}
+
+      <WalletModal
+        mode={modalMode ?? 'view'}
+        open={modalMode !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setModalMode(null);
+            setSelectedWalletId(null);
+          }
+        }}
+        walletId={selectedWalletId ?? undefined}
+        onSuccess={() => {
+          setModalMode(null);
+          setSelectedWalletId(null);
+          load();
+        }}
+      />
     </main>
   );
 }

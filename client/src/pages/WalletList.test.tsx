@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { WalletList } from './WalletList';
 
@@ -18,27 +18,19 @@ vi.mock('../api/wallets', async (importOriginal) => {
   return {
     ...actual,
     getWallets: vi.fn(),
-    deleteWallet: vi.fn(),
   };
 });
 
 import { getMe } from '../api/auth';
-import { getWallets, deleteWallet } from '../api/wallets';
+import { getWallets } from '../api/wallets';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 function renderList(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/settings/wallets']}>
-        <Routes>
-          <Route path="/settings/wallets" element={<WalletList />} />
-          <Route path="/settings/wallets/new" element={<div>Create Wallet</div>} />
-          <Route
-            path="/settings/wallets/:id"
-            element={<div>Wallet Detail</div>}
-          />
-        </Routes>
+      <MemoryRouter initialEntries={['/settings']}>
+        <WalletList />
       </MemoryRouter>
     </AuthProvider>,
   );
@@ -70,7 +62,6 @@ describe('WalletList page', () => {
         },
       ],
     });
-    vi.mocked(deleteWallet).mockResolvedValue(undefined);
     window.localStorage.clear();
     cleanup();
   });
@@ -87,28 +78,27 @@ describe('WalletList page', () => {
     expect(screen.getByText('150.00')).toBeInTheDocument();
   });
 
-  it('navigates to create wallet page', async () => {
+  it('opens WalletModal in create mode when clicking New Wallet', async () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Wallets');
-    await user.click(screen.getByRole('link', { name: /new wallet/i }));
-    expect(screen.getByText('Create Wallet')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /new wallet/i }));
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('New Wallet');
+      expect(titles.length).toBeGreaterThanOrEqual(2);
+    });
   });
 
-  it('deletes an empty wallet after confirmation', async () => {
+  it('opens WalletModal in view mode when clicking a wallet name', async () => {
     const user = userEvent.setup();
-
-    window.confirm = vi.fn(() => true);
-
     renderList();
-    await screen.findByText('Savings');
+    await screen.findByText('Cash');
+    await user.click(screen.getByText('Cash'));
 
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    await user.click(deleteButtons[1]);
-
-    expect(window.confirm).toHaveBeenCalled();
     await waitFor(() => {
-      expect(vi.mocked(deleteWallet)).toHaveBeenCalledWith('w2');
+      const titles = screen.getAllByText('Wallet Details');
+      expect(titles.length).toBeGreaterThanOrEqual(1);
     });
   });
 });

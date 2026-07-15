@@ -30,12 +30,12 @@ metrics:
   bcp_per_hour: null
 
 git:
-  branch: main
-  hash: 'b487b49'
-  pushed: true
+  branch: e11-unified-modals
+  hash: '8dd23df'
+  pushed: false
 
 handoff:
-  last_step_completed: 'slice-tasks: e11 (Unified Wallet & Category Modals) planned with 3 stories'
+  last_step_completed: 'kickoff-branch: e11-unified-modals worktree created, preflight green'
   open_decisions: []
   required_reading:
     - specs/product/VISION_LATEST.yaml

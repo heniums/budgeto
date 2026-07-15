@@ -1,52 +1,37 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import {
-  getCategories,
-  deleteCategory,
-  type CategoryData,
-} from '../api/categories';
+import { getCategories, type CategoryData } from '../api/categories';
+import { Button } from '@/components/ui/button';
 import { getIcon } from '../lib/icons';
+import { CategoryModal } from '../components/CategoryModal';
 
 export function Categories(): JSX.Element {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [modalMode, setModalMode] = useState<
+    'create' | 'edit' | 'view' | null
+  >(null);
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    null,
+  );
 
-  useEffect(() => {
-    let active = true;
+  const load = (): void => {
+    setLoading(true);
+    setError(null);
     getCategories()
       .then((res) => {
-        if (!active) return;
         setCategories(res.categories);
         setLoading(false);
       })
       .catch((err) => {
-        if (!active) return;
         setError(err.message);
         setLoading(false);
       });
-    return () => {
-      active = false;
-    };
-  }, []);
-
-  const handleDelete = async (category: CategoryData): Promise<void> => {
-    if (
-      !window.confirm(
-        `Delete category "${category.name}"? This cannot be undone.`,
-      )
-    ) {
-      return;
-    }
-    try {
-      await deleteCategory(category.id);
-      setCategories((prev) => prev.filter((c) => c.id !== category.id));
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to delete category.',
-      );
-    }
   };
+
+  useEffect(() => {
+    load();
+  }, []);
 
   return (
     <main>
@@ -59,7 +44,7 @@ export function Categories(): JSX.Element {
       )}
 
       <div style={{ marginBottom: '1rem' }}>
-        <Link to="/settings/categories/new">New Category</Link>
+        <Button onClick={() => setModalMode('create')}>New Category</Button>
       </div>
 
       {loading ? (
@@ -82,25 +67,39 @@ export function Categories(): JSX.Element {
                       style={{ background: category.color }}
                       aria-hidden
                     />
-                    <span className="wallet-name">{category.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategoryId(category.id);
+                        setModalMode('view');
+                      }}
+                      className="wallet-name"
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer',
+                        color: 'inherit',
+                        textDecoration: 'underline',
+                        padding: 0,
+                        font: 'inherit',
+                      }}
+                    >
+                      {category.name}
+                    </button>
                     <span className="wallet-balance">{category.type}</span>
                   </div>
                   <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <Link
-                      to={`/settings/categories/${category.id}/edit`}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedCategoryId(category.id);
+                        setModalMode('edit');
+                      }}
                       className="wallet-delete"
                       style={{ color: 'var(--color-accent)' }}
                       aria-label={`Edit ${category.name}`}
                     >
                       Edit
-                    </Link>
-                    <button
-                      type="button"
-                      className="wallet-delete"
-                      onClick={() => handleDelete(category)}
-                      aria-label={`Delete ${category.name}`}
-                    >
-                      Delete
                     </button>
                   </div>
                 </div>
@@ -109,6 +108,23 @@ export function Categories(): JSX.Element {
           })}
         </ul>
       )}
+
+      <CategoryModal
+        mode={modalMode ?? 'view'}
+        open={modalMode !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            setModalMode(null);
+            setSelectedCategoryId(null);
+          }
+        }}
+        categoryId={selectedCategoryId ?? undefined}
+        onSuccess={() => {
+          setModalMode(null);
+          setSelectedCategoryId(null);
+          load();
+        }}
+      />
     </main>
   );
 }
