@@ -18,11 +18,12 @@ vi.mock('../api/categories', async (importOriginal) => {
   return {
     ...actual,
     getCategories: vi.fn(),
+    deleteCategory: vi.fn(),
   };
 });
 
 import { getMe } from '../api/auth';
-import { getCategories } from '../api/categories';
+import { getCategories, deleteCategory } from '../api/categories';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
@@ -34,7 +35,7 @@ const mockCategories = [
     type: 'expense' as const,
     color: '#ff5733',
     icon: 'ShoppingCart',
-    createdAt: '',
+    createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '',
   },
   {
@@ -44,7 +45,7 @@ const mockCategories = [
     type: 'income' as const,
     color: '#33ff57',
     icon: 'BriefcaseBusiness',
-    createdAt: '',
+    createdAt: '2025-03-01T10:00:00Z',
     updatedAt: '',
   },
 ];
@@ -66,6 +67,7 @@ describe('Categories page', () => {
     vi.mocked(getCategories).mockResolvedValue({
       categories: mockCategories,
     });
+    vi.mocked(deleteCategory).mockResolvedValue(undefined);
     window.localStorage.clear();
     cleanup();
   });
@@ -75,13 +77,24 @@ describe('Categories page', () => {
     expect(await screen.findByText('Categories')).toBeInTheDocument();
   });
 
-  it('lists categories with name and type', async () => {
+  it('lists categories in a table with name, type, color, and date', async () => {
     renderList();
     expect(await screen.findByText('Groceries')).toBeInTheDocument();
     expect(screen.getByText('Salary')).toBeInTheDocument();
+    // Type badges
     expect(screen.getByText('expense')).toBeInTheDocument();
     expect(screen.getByText('income')).toBeInTheDocument();
+    // Color hex values
+    expect(screen.getByText('#ff5733')).toBeInTheDocument();
+    // Icons (2 categories, each has an SVG icon)
     expect(document.querySelectorAll('svg')).toHaveLength(2);
+    // Action buttons
+    expect(
+      screen.getByRole('button', { name: 'Edit Groceries' }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Delete Groceries' }),
+    ).toBeInTheDocument();
   });
 
   it('shows empty state when no categories exist', async () => {
@@ -91,6 +104,47 @@ describe('Categories page', () => {
       expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
     });
     expect(screen.getByText('No categories yet.')).toBeInTheDocument();
+  });
+
+  it('filters categories by name via search input', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Groceries');
+
+    const searchInput = screen.getByLabelText('Search categories');
+    await user.type(searchInput, 'sal');
+
+    await waitFor(() => {
+      expect(screen.queryByText('Groceries')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Salary')).toBeInTheDocument();
+  });
+
+  it('filters categories by type via search input', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Groceries');
+
+    const searchInput = screen.getByLabelText('Search categories');
+    await user.type(searchInput, 'income');
+
+    await waitFor(() => {
+      expect(screen.queryByText('Groceries')).not.toBeInTheDocument();
+    });
+    expect(screen.getByText('Salary')).toBeInTheDocument();
+  });
+
+  it('shows no-match message when search yields nothing', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Groceries');
+
+    const searchInput = screen.getByLabelText('Search categories');
+    await user.type(searchInput, 'zzznotfound');
+
+    expect(
+      await screen.findByText('No categories match your search.'),
+    ).toBeInTheDocument();
   });
 
   it('opens CategoryModal in create mode when clicking New Category', async () => {
@@ -105,15 +159,56 @@ describe('Categories page', () => {
     });
   });
 
-  it('opens CategoryModal in edit mode when clicking Edit', async () => {
+  it('opens CategoryModal in edit mode when clicking Edit button', async () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Groceries');
-    await user.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+    await user.click(screen.getByRole('button', { name: 'Edit Groceries' }));
 
     await waitFor(() => {
       const titles = screen.getAllByText('Edit Category');
       expect(titles.length).toBeGreaterThanOrEqual(1);
     });
+  });
+
+  it('opens CategoryModal in view mode when clicking a category name', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Groceries');
+    await user.click(screen.getByText('Groceries'));
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('Edit Category');
+      expect(titles.length).toBeGreaterThanOrEqual(1);
+    });
+  });
+
+  it('deletes a category after confirmation', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+    renderList();
+    await screen.findByText('Groceries');
+
+    await user.click(screen.getByRole('button', { name: 'Delete Groceries' }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(deleteCategory).toHaveBeenCalledWith('c1');
+    await waitFor(() => {
+      expect(getCategories).toHaveBeenCalledTimes(2); // initial + reload
+    });
+    confirmSpy.mockRestore();
+  });
+
+  it('does not delete when confirmation is cancelled', async () => {
+    const user = userEvent.setup();
+    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
+    renderList();
+    await screen.findByText('Groceries');
+
+    await user.click(screen.getByRole('button', { name: 'Delete Groceries' }));
+
+    expect(confirmSpy).toHaveBeenCalled();
+    expect(deleteCategory).not.toHaveBeenCalled();
+    confirmSpy.mockRestore();
   });
 });

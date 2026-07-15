@@ -1,10 +1,10 @@
 # Budgeto — Session State
 # Standardized 2026-07-15
 
-active_flow: build_epic
-active_epic_id: e11
+active_flow: develop_tdd
+active_epic_id: null
 active_story_id: null
-completed_epic: true
+completed_epic: false
 
 epic_cycle:
   current_step: 2
@@ -31,9 +31,9 @@ metrics:
   bcp_per_hour: null
 
 git:
-  branch: main
+  branch: richer-list-views
   hash: 'f6ab1d1'
-  pushed: true
+  pushed: false
 
 handoff:
   last_step_completed: 'organize-workspace: standardized specs/ layout (removed archive, added adr/bugs/requirements, fixed epic naming)'
