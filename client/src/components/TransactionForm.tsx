@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import dayjs from 'dayjs';
 import { createTransaction, type WalletData } from '../api/wallets';
 import { updateTransaction, type TransactionData } from '../api/transactions';
 import { ApiError } from '../api/client';
@@ -234,7 +235,7 @@ export function TransactionForm({
           <div>
             <span className="text-sm text-muted-foreground">Date</span>
             <p className="text-sm font-medium">
-              {new Date(viewValues.createdAt).toLocaleDateString()}
+              {dayjs(viewValues.createdAt).format('M/D/YYYY')}
             </p>
           </div>
         )}
