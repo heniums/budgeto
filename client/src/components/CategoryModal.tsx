@@ -50,6 +50,9 @@ export function CategoryModal({
   const [category, setCategory] = useState<CategoryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [internalMode, setInternalMode] = useState<
+    'edit' | null
+  >(null);
 
   const {
     register,
@@ -66,9 +69,10 @@ export function CategoryModal({
   const selectedColor = watch('color');
   const selectedIcon = watch('icon');
 
-  const isCreate = mode === 'create';
-  const isEdit = mode === 'edit';
-  const isView = mode === 'view';
+  const effectiveMode = internalMode ?? mode;
+  const isCreate = effectiveMode === 'create';
+  const isEdit = effectiveMode === 'edit';
+  const isView = effectiveMode === 'view';
 
   useEffect(() => {
     if (!open) return;
@@ -76,6 +80,7 @@ export function CategoryModal({
     if (isCreate) {
       setLoading(false);
       setCategory(null);
+      setInternalMode(null);
       reset({
         name: '',
         type: 'expense',
@@ -123,6 +128,7 @@ export function CategoryModal({
         icon: values.icon,
       });
       onSuccess?.(cat);
+      setInternalMode(null);
     } catch (err) {
       setFormError(
                 err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
@@ -141,6 +147,7 @@ export function CategoryModal({
         icon: values.icon,
       });
       onSuccess?.();
+      setInternalMode(null);
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
@@ -172,7 +179,7 @@ export function CategoryModal({
       : 'Category Details';
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={(o) => { if (!o) setInternalMode(null); onOpenChange(o); }}>
       <SheetContent side={SHEET_SIDE} className={SHEET_WIDTH}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
@@ -289,7 +296,13 @@ export function CategoryModal({
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => {
+                    if (internalMode === 'edit' && mode === 'view') {
+                      setInternalMode(null);
+                    } else {
+                      onOpenChange(false);
+                    }
+                  }}
                   type="button"
                 >
                   Cancel
@@ -333,14 +346,22 @@ export function CategoryModal({
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              onClick={() => {
-                onOpenChange(false);
-              }}
-            >
-              Close
-            </Button>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  onOpenChange(false);
+                }}
+              >
+                Close
+              </Button>
+              <Button
+                variant="default"
+                onClick={() => setInternalMode('edit')}
+              >
+                Edit
+              </Button>
+            </div>
           </div>
         )}
 

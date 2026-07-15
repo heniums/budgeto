@@ -52,6 +52,9 @@ export function WalletModal({
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [internalMode, setInternalMode] = useState<
+    'edit' | null
+  >(null);
 
   const {
     register,
@@ -63,9 +66,10 @@ export function WalletModal({
     defaultValues: { name: '', description: '', color: DEFAULT_COLOR },
   });
 
-  const isCreate = mode === 'create';
-  const isEdit = mode === 'edit';
-  const isView = mode === 'view';
+  const effectiveMode = internalMode ?? mode;
+  const isCreate = effectiveMode === 'create';
+  const isEdit = effectiveMode === 'edit';
+  const isView = effectiveMode === 'view';
 
   useEffect(() => {
     if (!open) return;
@@ -73,6 +77,7 @@ export function WalletModal({
     if (isCreate) {
       setLoading(false);
       setWallet(null);
+      setInternalMode(null);
       reset({ name: '', description: '', color: DEFAULT_COLOR });
       setFormError(null);
       return;
@@ -131,6 +136,7 @@ export function WalletModal({
         color: values.color,
       });
       onSuccess?.(w);
+      setInternalMode(null);
     } catch (err) {
       setFormError(
                 err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('wallet'),
@@ -148,6 +154,7 @@ export function WalletModal({
         color: values.color,
       });
       onSuccess?.();
+      setInternalMode(null);
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('wallet'),
@@ -177,7 +184,7 @@ export function WalletModal({
       : 'Wallet Details';
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
+    <Sheet open={open} onOpenChange={(o) => { if (!o) setInternalMode(null); onOpenChange(o); }}>
       <SheetContent side={SHEET_SIDE} className={SHEET_WIDTH}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
@@ -250,7 +257,13 @@ export function WalletModal({
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => onOpenChange(false)}
+                  onClick={() => {
+                    if (internalMode === 'edit' && mode === 'view') {
+                      setInternalMode(null);
+                    } else {
+                      onOpenChange(false);
+                    }
+                  }}
                   type="button"
                 >
                   Cancel
@@ -334,6 +347,12 @@ export function WalletModal({
               }}
             >
               Close
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => setInternalMode('edit')}
+            >
+              Edit
             </Button>
           </div>
         )}
