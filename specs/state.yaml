@@ -35,16 +35,14 @@ git:
   pushed: false
 
 handoff:
-  last_step_completed: 'verify-work: e11 (Unified Wallet & Category Modals) verified, 16 commits, 156 tests'
+  last_step_completed: 'release-branch: PR #13 created for e11 (Unified Modals)'
   open_decisions: []
   required_reading:
     - specs/product/VISION_LATEST.yaml
     - specs/product/SCOPE_LATEST.yaml
-    - specs/planning-context.yaml
-    - specs/tech-architecture/TECH_STACK_LATEST.md
-    - specs/release-plan.yaml
-    - specs/verifications/e11s03-verify.yaml
-  next_skill: audit-code
+    - specs/verifications/AUDIT-e11.md
+  next_skill: null
+  pr_url: 'https://github.com/heniums/budgeto/pull/13'
 
 two_pass_spec:
   journey_pass: pending
