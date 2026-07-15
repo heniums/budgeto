@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup } from '@testing-library/react';
+import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { WalletModal } from './WalletModal';
 
 import type * as WalletModule from '../api/wallets';
@@ -14,6 +15,8 @@ vi.mock('../api/wallets', async (importOriginal) => {
     deleteWallet: vi.fn(),
   };
 });
+
+import { createWallet } from '../api/wallets';
 
 describe('WalletModal — create mode', () => {
   beforeEach(() => {
@@ -35,5 +38,42 @@ describe('WalletModal — create mode', () => {
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
     expect(screen.getByLabelText('Color')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
+  });
+
+  it('calls createWallet and onSuccess on submit', async () => {
+    vi.mocked(createWallet).mockResolvedValue({
+      id: 'w-new',
+      name: 'Savings',
+      description: '',
+      color: '#2f6fed',
+      balance: '0.00',
+      createdAt: '',
+      updatedAt: '',
+    });
+    const onSuccess = vi.fn();
+
+    render(
+      <WalletModal
+        mode="create"
+        open={true}
+        onOpenChange={vi.fn()}
+        onSuccess={onSuccess}
+      />,
+    );
+
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText('Name'), 'Savings');
+    await user.click(screen.getByRole('button', { name: 'Create' }));
+
+    await waitFor(() => {
+      expect(createWallet).toHaveBeenCalledWith({
+        name: 'Savings',
+        description: '',
+        color: '#1f8a4c',
+      });
+    });
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalled();
+    });
   });
 });
