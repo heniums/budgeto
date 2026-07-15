@@ -25,7 +25,12 @@ vi.mock('./client', () => ({
   },
 }));
 
-import { getTransactions, getTransaction, updateTransaction, deleteTransaction } from './transactions';
+import {
+  getTransactions,
+  getTransaction,
+  updateTransaction,
+  deleteTransaction,
+} from './transactions';
 import { ApiError } from './client';
 
 describe('transactions API client', () => {
@@ -33,7 +38,7 @@ describe('transactions API client', () => {
     vi.clearAllMocks();
   });
 
-  it('getTransactions sends GET and returns the user-scoped list', async () => {
+  it('getTransactions sends GET with no params (backward compatible)', async () => {
     mockGet.mockResolvedValue({
       data: {
         transactions: [
@@ -56,6 +61,44 @@ describe('transactions API client', () => {
     expect(result.total).toBe(1);
     expect(result.transactions[0].categoryId).toBe('c1');
     expect(result.transactions[0].categoryName).toBe('Food');
+  });
+
+  it('getTransactions serializes filter params', async () => {
+    mockGet.mockResolvedValue({
+      data: { transactions: [], total: 0 },
+    });
+    await getTransactions({
+      walletId: 'w1',
+      categoryId: 'c1',
+      type: 'expense',
+      search: 'foo',
+      from: '2024-01-01T00:00:00.000Z',
+      to: '2024-12-31T23:59:59.999Z',
+      limit: 20,
+      offset: 40,
+    });
+    expect(mockGet).toHaveBeenCalledWith('/transactions', {
+      params: {
+        walletId: 'w1',
+        categoryId: 'c1',
+        type: 'expense',
+        search: 'foo',
+        from: '2024-01-01T00:00:00.000Z',
+        to: '2024-12-31T23:59:59.999Z',
+        limit: 20,
+        offset: 40,
+      },
+    });
+  });
+
+  it('getTransactions omits the type filter when set to all', async () => {
+    mockGet.mockResolvedValue({
+      data: { transactions: [], total: 0 },
+    });
+    await getTransactions({ type: 'all', walletId: 'w1' });
+    expect(mockGet).toHaveBeenCalledWith('/transactions', {
+      params: { walletId: 'w1' },
+    });
   });
 
   it('getTransaction sends GET for a single transaction', async () => {

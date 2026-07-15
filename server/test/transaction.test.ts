@@ -4,6 +4,7 @@ import { createApp } from '../src/app';
 import { register } from '../src/auth/service';
 import { deleteAllUsers } from '../src/auth/repository';
 import { signToken } from '../src/auth/token';
+import { createTransaction } from '../src/transactions/repository';
 
 const app = createApp();
 
@@ -796,5 +797,187 @@ describe('GET /transactions (user-scoped)', () => {
     expect(categorized.categoryName).toBe('Food');
     expect(uncategorized.categoryId).toBeNull();
     expect(uncategorized.categoryName).toBeNull();
+  });
+});
+
+describe('GET /transactions — filtering & pagination', () => {
+  let token: string;
+  let walletId: string;
+  let otherWalletId: string;
+  let categoryId: string;
+
+  async function seedTx(
+    overrides: {
+      amount?: string;
+      description?: string;
+      walletId?: string;
+      categoryId?: string | null;
+      createdAt?: string;
+    } = {},
+  ): Promise<void> {
+    await createTransaction({
+      walletId: overrides.walletId ?? walletId,
+      amount: overrides.amount ?? '10.00',
+      description: overrides.description ?? 'Tx',
+      categoryId:
+        overrides.categoryId === undefined ? categoryId : overrides.categoryId,
+      createdAt: overrides.createdAt
+        ? new Date(overrides.createdAt)
+        : undefined,
+    });
+  }
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+    walletId = await createWallet(token, 'Main');
+    otherWalletId = await createWallet(token, 'Other');
+    categoryId = await createCategory(token, 'Food');
+  });
+
+  it('filters by walletId (200)', async () => {
+    await seedTx({ description: 'In main', walletId });
+    await seedTx({ description: 'In other', walletId: otherWalletId });
+
+    const response = await request(app)
+      .get(`/transactions?walletId=${walletId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.transactions).toHaveLength(1);
+    expect(response.body.transactions[0].description).toBe('In main');
+    expect(response.body.total).toBe(1);
+  });
+
+  it('filters by categoryId (200)', async () => {
+    await seedTx({ description: 'Categorized', categoryId });
+    await seedTx({ description: 'Uncategorized', categoryId: null });
+
+    const response = await request(app)
+      .get(`/transactions?categoryId=${categoryId}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.transactions).toHaveLength(1);
+    expect(response.body.transactions[0].description).toBe('Categorized');
+  });
+
+  it('filters by type income/expense (200)', async () => {
+    await seedTx({ description: 'Income', amount: '50.00' });
+    await seedTx({ description: 'Expense', amount: '-20.00' });
+
+    const income = await request(app)
+      .get('/transactions?type=income')
+      .set('Authorization', `Bearer ${token}`);
+    expect(income.status).toBe(200);
+    expect(
+      income.body.transactions.map(
+        (t: { description: string }) => t.description,
+      ),
+    ).toEqual(['Income']);
+
+    const expense = await request(app)
+      .get('/transactions?type=expense')
+      .set('Authorization', `Bearer ${token}`);
+    expect(
+      expense.body.transactions.map(
+        (t: { description: string }) => t.description,
+      ),
+    ).toEqual(['Expense']);
+  });
+
+  it('filters by search (case-insensitive, 200)', async () => {
+    await seedTx({ description: 'Groceries run' });
+    await seedTx({ description: 'Salary deposit' });
+
+    const response = await request(app)
+      .get('/transactions?search=groceries')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.transactions).toHaveLength(1);
+    expect(response.body.transactions[0].description).toBe('Groceries run');
+  });
+
+  it('filters by from/to date range (200)', async () => {
+    await seedTx({ description: 'Old', createdAt: '2024-06-01T10:00:00Z' });
+    await seedTx({ description: 'Recent', createdAt: '2026-01-15T10:00:00Z' });
+
+    const response = await request(app)
+      .get(
+        '/transactions?from=2024-01-01T00:00:00.000Z&to=2024-12-31T23:59:59.999Z',
+      )
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.transactions).toHaveLength(1);
+    expect(response.body.transactions[0].description).toBe('Old');
+  });
+
+  it('paginates with limit and offset (200)', async () => {
+    for (let i = 0; i < 5; i += 1) {
+      await seedTx({ description: `T${i}`, amount: `${i + 1}.00` });
+    }
+
+    const page1 = await request(app)
+      .get('/transactions?limit=2&offset=0')
+      .set('Authorization', `Bearer ${token}`);
+    expect(page1.status).toBe(200);
+    expect(page1.body.transactions).toHaveLength(2);
+    expect(page1.body.total).toBe(5);
+
+    const page2 = await request(app)
+      .get('/transactions?limit=2&offset=2')
+      .set('Authorization', `Bearer ${token}`);
+    expect(page2.body.transactions).toHaveLength(2);
+    expect(
+      page2.body.transactions.map(
+        (t: { description: string }) => t.description,
+      ),
+    ).not.toEqual(
+      page1.body.transactions.map(
+        (t: { description: string }) => t.description,
+      ),
+    );
+  });
+
+  it('rejects a walletId owned by another user (404)', async () => {
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-filter@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+    const strangersWallet = await createWallet(otherToken, 'Stranger');
+
+    const response = await request(app)
+      .get(`/transactions?walletId=${strangersWallet}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects a categoryId owned by another user (404)', async () => {
+    const otherUser = await register({
+      name: 'Other Cat',
+      email: 'other-cat-filter@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+    const strangersCategory = await createCategory(otherToken, 'Stranger');
+
+    const response = await request(app)
+      .get(`/transactions?categoryId=${strangersCategory}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects an invalid query (400)', async () => {
+    const response = await request(app)
+      .get('/transactions?limit=abc')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 });

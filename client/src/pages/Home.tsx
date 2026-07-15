@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import dayjs from 'dayjs';
 import {
   getTransactions,
   type TransactionData,
+  type TransactionQuery,
   deleteTransaction,
 } from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
@@ -30,6 +32,8 @@ import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletModal } from '../components/WalletModal';
 import { CategoryModal } from '../components/CategoryModal';
+import { DateRangeButton } from '../components/DateRangeButton';
+import { formatPeriodLabel, periodKey, type DatePreset } from '@/lib/dateRange';
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -37,26 +41,27 @@ import {
   ContextMenuItem,
 } from '@/components/ui/context-menu';
 
-const PAGE_SIZE = 10;
+const PAGE_SIZE = 20;
 
-function useLongPress(
-  onLongPress: () => void,
-  ms = 500,
-): {
+interface LongPressHandlers {
   onTouchStart: () => void;
   onTouchEnd: () => void;
   onTouchMove: () => void;
-} {
-  const timerRef = { current: null as ReturnType<typeof setTimeout> | null };
+}
+
+function makeLongPressHandlers(onLongPress: () => void): LongPressHandlers {
+  const timer: { current: ReturnType<typeof setTimeout> | null } = {
+    current: null,
+  };
   return {
     onTouchStart: () => {
-      timerRef.current = setTimeout(onLongPress, ms);
+      timer.current = setTimeout(onLongPress, 500);
     },
     onTouchEnd: () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timer.current) clearTimeout(timer.current);
     },
     onTouchMove: () => {
-      if (timerRef.current) clearTimeout(timerRef.current);
+      if (timer.current) clearTimeout(timer.current);
     },
   };
 }
@@ -69,22 +74,36 @@ function formatAmount(amount: string): string {
 
 function formatDate(iso: string): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString();
+  return dayjs(iso).format('M/D/YYYY');
+}
+
+interface PeriodGroup {
+  key: string;
+  label: string;
+  items: TransactionData[];
 }
 
 export function Home(): JSX.Element {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
+  const [total, setTotal] = useState(0);
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const loadingMoreRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [walletFilter, setWalletFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('all');
+  const [datePreset, setDatePreset] = useState<DatePreset>('day');
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [walletFilter, setWalletFilter] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>(
+    'all',
+  );
   const [search, setSearch] = useState('');
-  const [page, setPage] = useState(1);
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [editTx, setEditTx] = useState<TransactionData | null>(null);
@@ -106,15 +125,102 @@ export function Home(): JSX.Element {
     null,
   );
 
-  const load = (): void => {
-    setLoading(true);
+  // Debounce the free-text search so we don't hit the API on every keystroke.
+  useEffect(() => {
+    const handle = setTimeout(() => setDebouncedSearch(search.trim()), 250);
+    return () => clearTimeout(handle);
+  }, [search]);
+
+  const buildQuery = useCallback(
+    (offset: number): TransactionQuery => {
+      const query: TransactionQuery = { limit: PAGE_SIZE, offset };
+      if (datePreset === 'custom') {
+        if (fromDate) {
+          query.from = dayjs(`${fromDate}T00:00:00`).toISOString();
+        }
+        if (toDate) {
+          query.to = dayjs(`${toDate}T23:59:59.999`).toISOString();
+        }
+      }
+      if (walletFilter) query.walletId = walletFilter;
+      if (categoryFilter) query.categoryId = categoryFilter;
+      if (typeFilter !== 'all') query.type = typeFilter;
+      if (debouncedSearch) query.search = debouncedSearch;
+      return query;
+    },
+    [
+      datePreset,
+      fromDate,
+      toDate,
+      walletFilter,
+      categoryFilter,
+      typeFilter,
+      debouncedSearch,
+    ],
+  );
+
+  const loadInitial = useCallback(() => {
+    setInitialLoading(true);
     setError(null);
-    Promise.all([getTransactions(), getWallets(), getCategories()])
-      .then(([txResult, walletResult, catResult]) => {
-        setTransactions(txResult.transactions);
+    getTransactions(buildQuery(0))
+      .then((result) => {
+        setTransactions(result.transactions);
+        setTotal(result.total);
+      })
+      .catch((err: unknown) => {
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : 'Failed to load transactions.',
+        );
+      })
+      .finally(() => setInitialLoading(false));
+  }, [buildQuery]);
+
+  // Guard concurrent loads with a ref (not just state): two synchronous
+  // observer fires can otherwise both slip past the `loadingMore` state guard
+  // (state updates are async) and append a duplicate page.
+  const loadMore = useCallback(() => {
+    if (loadingMoreRef.current || transactions.length >= total) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    getTransactions(buildQuery(transactions.length))
+      .then((result) => {
+        setTransactions((prev) => [...prev, ...result.transactions]);
+      })
+      .catch((err: unknown) => {
+        setError(
+          err instanceof ApiError
+            ? err.message
+            : 'Failed to load transactions.',
+        );
+      })
+      .finally(() => {
+        loadingMoreRef.current = false;
+        setLoadingMore(false);
+      });
+  }, [transactions.length, total, buildQuery]);
+
+  // Reload reference data (wallets/categories) and the transaction list together.
+  const reload = useCallback(() => {
+    Promise.all([getWallets(), getCategories()])
+      .then(([walletResult, catResult]) => {
         setWallets(walletResult.wallets);
         setCategories(catResult.categories);
+      })
+      .catch(() => {
+        // Reference-data failures are non-fatal for the list reload.
+      })
+      .finally(() => loadInitial());
+  }, [loadInitial]);
 
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([getWallets(), getCategories()])
+      .then(([walletResult, catResult]) => {
+        if (cancelled) return;
+        setWallets(walletResult.wallets);
+        setCategories(catResult.categories);
         if (
           walletResult.wallets.length === 0 &&
           localStorage.getItem('budgeto:wizardDismissed') !== 'true'
@@ -122,18 +228,39 @@ export function Home(): JSX.Element {
           setWizardOpen(true);
         }
       })
-      .catch((err) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : 'Failed to load transactions.',
-        );
-      })
-      .finally(() => setLoading(false));
-  };
+      .catch(() => {
+        // Ignore — the transaction list effect will surface real errors.
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
-    load();
+    loadInitial();
+  }, [loadInitial]);
+
+  const loadMoreRef = useRef(loadMore);
+  useEffect(() => {
+    loadMoreRef.current = loadMore;
+  }, [loadMore]);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  // Callback ref: create the observer exactly when the sentinel mounts so we
+  // never read a not-yet-attached node. Re-triggers always call the latest
+  // loadMore via loadMoreRef, so duplicate observers can't double-load.
+  const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+    observerRef.current?.disconnect();
+    observerRef.current = null;
+    if (node && typeof IntersectionObserver !== 'undefined') {
+      const observer = new IntersectionObserver(
+        (entries) => {
+          if (entries[0]?.isIntersecting) loadMoreRef.current();
+        },
+        { rootMargin: '200px' },
+      );
+      observer.observe(node);
+      observerRef.current = observer;
+    }
   }, []);
 
   const walletName = (walletId: string): string =>
@@ -147,30 +274,25 @@ export function Home(): JSX.Element {
     return map;
   }, [categories]);
 
-  const filtered = useMemo(() => {
-    return transactions.filter((tx) => {
-      if (walletFilter && tx.walletId !== walletFilter) return false;
-      const amount = Number(tx.amount);
-      if (typeFilter === 'income' && amount <= 0) return false;
-      if (typeFilter === 'expense' && amount >= 0) return false;
-      if (fromDate && new Date(tx.createdAt) < new Date(fromDate)) return false;
-      if (toDate && new Date(tx.createdAt) > new Date(`${toDate}T23:59:59`))
-        return false;
-      if (
-        search &&
-        !tx.description.toLowerCase().includes(search.toLowerCase())
-      )
-        return false;
-      return true;
-    });
-  }, [transactions, walletFilter, typeFilter, fromDate, toDate, search]);
+  const groups = useMemo<PeriodGroup[]>(() => {
+    const result: PeriodGroup[] = [];
+    for (const tx of transactions) {
+      const key = periodKey(tx.createdAt, datePreset);
+      const last = result[result.length - 1];
+      if (last && last.key === key) {
+        last.items.push(tx);
+      } else {
+        result.push({
+          key,
+          label: formatPeriodLabel(tx.createdAt, datePreset),
+          items: [tx],
+        });
+      }
+    }
+    return result;
+  }, [transactions, datePreset]);
 
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const currentPage = Math.min(page, totalPages);
-  const pageItems = filtered.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE,
-  );
+  const hasMore = transactions.length < total;
 
   return (
     <div className="space-y-6">
@@ -179,7 +301,7 @@ export function Home(): JSX.Element {
         onOpenChange={setWizardOpen}
         onComplete={() => {
           setWizardOpen(false);
-          load();
+          reload();
         }}
       />
 
@@ -213,13 +335,12 @@ export function Home(): JSX.Element {
                   }
                   onSuccess={() => {
                     setTxOpen(false);
-                    setPage(1);
                     setPendingWalletId(null);
                     setPendingCategoryId(null);
-                    load();
+                    reload();
                   }}
-                  onRefreshWallets={load}
-                  onRefreshCategories={load}
+                  onRefreshWallets={reload}
+                  onRefreshCategories={reload}
                   onClose={() => setTxOpen(false)}
                   onCreateWallet={() => {
                     setCreateWalletOpen(true);
@@ -259,8 +380,7 @@ export function Home(): JSX.Element {
                 wallets={wallets}
                 onSuccess={() => {
                   setTransferOpen(false);
-                  setPage(1);
-                  load();
+                  reload();
                 }}
               />
             </DialogContent>
@@ -282,19 +402,14 @@ export function Home(): JSX.Element {
           type="search"
           placeholder="Search description…"
           value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setSearch(e.target.value)}
           className="max-w-xs"
           aria-label="Search transactions"
         />
+        <DateRangeButton value={datePreset} onChange={setDatePreset} />
         <select
           value={walletFilter}
-          onChange={(e) => {
-            setWalletFilter(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) => setWalletFilter(e.target.value)}
           aria-label="Filter by wallet"
           className="rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
@@ -306,11 +421,23 @@ export function Home(): JSX.Element {
           ))}
         </select>
         <select
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+          aria-label="Filter by category"
+          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
+        >
+          <option value="">All categories</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
+        <select
           value={typeFilter}
-          onChange={(e) => {
-            setTypeFilter(e.target.value);
-            setPage(1);
-          }}
+          onChange={(e) =>
+            setTypeFilter(e.target.value as 'all' | 'income' | 'expense')
+          }
           aria-label="Filter by type"
           className="rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
@@ -318,31 +445,29 @@ export function Home(): JSX.Element {
           <option value="income">Income</option>
           <option value="expense">Expense</option>
         </select>
-        <Input
-          type="date"
-          value={fromDate}
-          onChange={(e) => {
-            setFromDate(e.target.value);
-            setPage(1);
-          }}
-          aria-label="From date"
-          className="max-w-[160px]"
-        />
-        <Input
-          type="date"
-          value={toDate}
-          onChange={(e) => {
-            setToDate(e.target.value);
-            setPage(1);
-          }}
-          aria-label="To date"
-          className="max-w-[160px]"
-        />
+        {datePreset === 'custom' && (
+          <>
+            <Input
+              type="date"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+              aria-label="From date"
+              className="max-w-[160px]"
+            />
+            <Input
+              type="date"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+              aria-label="To date"
+              className="max-w-[160px]"
+            />
+          </>
+        )}
       </div>
 
-      {loading ? (
+      {initialLoading ? (
         <p className="text-muted-foreground">Loading…</p>
-      ) : !loading && wallets.length === 0 ? (
+      ) : !loadingMore && wallets.length === 0 ? (
         <div className="rounded-md border p-8 text-center">
           <p className="text-lg font-medium">You have no wallets yet.</p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -352,7 +477,7 @@ export function Home(): JSX.Element {
             Create your first wallet
           </Button>
         </div>
-      ) : !loading && categories.length === 0 ? (
+      ) : !loadingMore && categories.length === 0 ? (
         <div className="rounded-md border p-8 text-center">
           <p className="text-lg font-medium">You have no categories yet.</p>
           <p className="mt-2 text-sm text-muted-foreground">
@@ -362,7 +487,7 @@ export function Home(): JSX.Element {
             Create your first category
           </Button>
         </div>
-      ) : filtered.length === 0 ? (
+      ) : transactions.length === 0 ? (
         <div className="rounded-md border p-8 text-center">
           <p className="text-muted-foreground">No transactions found.</p>
           <Button className="mt-4" onClick={() => setTxOpen(true)}>
@@ -371,114 +496,122 @@ export function Home(): JSX.Element {
         </div>
       ) : (
         <>
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Wallet</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pageItems.map((tx) => {
-                  const amount = Number(tx.amount);
-                  const cat = tx.categoryId
-                    ? categoryMap.get(tx.categoryId)
-                    : null;
-                  return (
-                    <TableRow
-                      key={tx.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setEditTx(tx)}
-                    >
-                      <TableCell>{formatDate(tx.createdAt)}</TableCell>
-                      <TableCell>
-                        <ContextMenu>
-                          <ContextMenuTrigger
-                            className="cursor-context-menu"
-                            {...useLongPress(() =>
-                              setDetailWalletId(tx.walletId),
-                            )}
+          <div className="space-y-6">
+            {groups.map((group) => (
+              <div key={group.key}>
+                <h2
+                  data-testid="period-header"
+                  className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+                >
+                  {group.label}
+                </h2>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Date</TableHead>
+                        <TableHead>Wallet</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead className="text-right">Amount</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {group.items.map((tx) => {
+                        const amount = Number(tx.amount);
+                        const cat = tx.categoryId
+                          ? categoryMap.get(tx.categoryId)
+                          : null;
+                        return (
+                          <TableRow
+                            key={tx.id}
+                            className="cursor-pointer hover:bg-muted/50"
+                            onClick={() => setEditTx(tx)}
                           >
-                            {walletName(tx.walletId)}
-                          </ContextMenuTrigger>
-                          <ContextMenuContent>
-                            <ContextMenuItem
-                              onClick={() => setDetailWalletId(tx.walletId)}
-                            >
-                              View wallet details
-                            </ContextMenuItem>
-                          </ContextMenuContent>
-                        </ContextMenu>
-                      </TableCell>
-                      <TableCell>
-                        {cat ? (
-                          <ContextMenu>
-                            <ContextMenuTrigger
-                              className="cursor-context-menu inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
-                              style={{
-                                backgroundColor: cat.color + '20',
-                                color: cat.color,
-                              }}
-                              {...useLongPress(() =>
-                                setDetailCategoryId(cat.id),
+                            <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                            <TableCell>
+                              <ContextMenu>
+                                <ContextMenuTrigger
+                                  className="cursor-context-menu"
+                                  {...makeLongPressHandlers(() =>
+                                    setDetailWalletId(tx.walletId),
+                                  )}
+                                >
+                                  {walletName(tx.walletId)}
+                                </ContextMenuTrigger>
+                                <ContextMenuContent>
+                                  <ContextMenuItem
+                                    onClick={() =>
+                                      setDetailWalletId(tx.walletId)
+                                    }
+                                  >
+                                    View wallet details
+                                  </ContextMenuItem>
+                                </ContextMenuContent>
+                              </ContextMenu>
+                            </TableCell>
+                            <TableCell>
+                              {cat ? (
+                                <ContextMenu>
+                                  <ContextMenuTrigger
+                                    className="cursor-context-menu inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                                    style={{
+                                      backgroundColor: cat.color + '20',
+                                      color: cat.color,
+                                    }}
+                                    {...makeLongPressHandlers(() =>
+                                      setDetailCategoryId(cat.id),
+                                    )}
+                                  >
+                                    {cat.name}
+                                  </ContextMenuTrigger>
+                                  <ContextMenuContent>
+                                    <ContextMenuItem
+                                      onClick={() =>
+                                        setDetailCategoryId(cat.id)
+                                      }
+                                    >
+                                      View category details
+                                    </ContextMenuItem>
+                                  </ContextMenuContent>
+                                </ContextMenu>
+                              ) : (
+                                <span className="text-muted-foreground">—</span>
                               )}
+                            </TableCell>
+                            <TableCell>{tx.description || '—'}</TableCell>
+                            <TableCell
+                              className={`text-right ${
+                                amount < 0
+                                  ? 'text-destructive'
+                                  : 'text-foreground'
+                              }`}
                             >
-                              {cat.name}
-                            </ContextMenuTrigger>
-                            <ContextMenuContent>
-                              <ContextMenuItem
-                                onClick={() => setDetailCategoryId(cat.id)}
-                              >
-                                View category details
-                              </ContextMenuItem>
-                            </ContextMenuContent>
-                          </ContextMenu>
-                        ) : (
-                          <span className="text-muted-foreground">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>{tx.description || '—'}</TableCell>
-                      <TableCell
-                        className={`text-right ${
-                          amount < 0 ? 'text-destructive' : 'text-foreground'
-                        }`}
-                      >
-                        {formatAmount(tx.amount)}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
+                              {formatAmount(tx.amount)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ))}
           </div>
 
+          <div
+            ref={sentinelRef}
+            aria-hidden={!hasMore}
+            className="h-px w-full"
+          />
           <div className="flex items-center justify-between text-sm text-muted-foreground">
-            <span>{filtered.length} transactions</span>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage <= 1}
-                onClick={() => setPage(currentPage - 1)}
-              >
-                Previous
-              </Button>
-              <span>
-                Page {currentPage} of {totalPages}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentPage >= totalPages}
-                onClick={() => setPage(currentPage + 1)}
-              >
-                Next
-              </Button>
-            </div>
+            <span>
+              {transactions.length} of {total} transactions
+            </span>
+            {loadingMore && <span>Loading more…</span>}
+            {!hasMore && transactions.length > 0 && (
+              <span>You&apos;re all caught up.</span>
+            )}
           </div>
         </>
       )}
@@ -505,11 +638,10 @@ export function Home(): JSX.Element {
               }))}
               onSuccess={() => {
                 setEditTx(null);
-                setPage(1);
-                load();
+                reload();
               }}
-              onRefreshWallets={load}
-              onRefreshCategories={load}
+              onRefreshWallets={reload}
+              onRefreshCategories={reload}
               onViewWallet={(id) => {
                 setDetailWalletId(id);
               }}
@@ -572,8 +704,7 @@ export function Home(): JSX.Element {
                 if (deleteConfirm) {
                   await deleteTransaction(deleteConfirm.id);
                   setDeleteConfirm(null);
-                  setPage(1);
-                  load();
+                  reload();
                 }
               }}
             >
@@ -613,8 +744,7 @@ export function Home(): JSX.Element {
                   await deleteTransaction(cascadeTx.tx.id);
                 }
                 setCascadeTx(null);
-                setPage(1);
-                load();
+                reload();
               }}
             >
               No, just this one
@@ -628,8 +758,7 @@ export function Home(): JSX.Element {
                   await deleteTransaction(cascadeTx.pair.id);
                 }
                 setCascadeTx(null);
-                setPage(1);
-                load();
+                reload();
               }}
             >
               Yes, {cascadeTx?.action === 'delete' ? 'delete' : 'update'} both
@@ -646,7 +775,7 @@ export function Home(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailWalletId(null);
-          load();
+          reload();
         }}
       />
 
@@ -656,7 +785,7 @@ export function Home(): JSX.Element {
         onSuccess={(newWallet) => {
           setCreateWalletOpen(false);
           if (newWallet) setPendingWalletId(newWallet.id);
-          load();
+          reload();
         }}
       />
 
@@ -668,7 +797,7 @@ export function Home(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailCategoryId(null);
-          load();
+          reload();
         }}
       />
 
@@ -678,7 +807,7 @@ export function Home(): JSX.Element {
         onSuccess={(newCategory) => {
           setCreateCategoryOpen(false);
           if (newCategory) setPendingCategoryId(newCategory.id);
-          load();
+          reload();
         }}
       />
     </div>

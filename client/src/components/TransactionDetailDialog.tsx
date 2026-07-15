@@ -6,6 +6,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import type { TransactionData } from '../api/transactions';
+import dayjs from 'dayjs';
 
 interface TransactionDetailDialogProps {
   open: boolean;
@@ -25,7 +26,7 @@ function formatAmount(amount: string): string {
 
 function formatDate(iso: string): string {
   if (!iso) return '';
-  return new Date(iso).toLocaleDateString();
+  return dayjs(iso).format('M/D/YYYY');
 }
 
 export function TransactionDetailDialog({
