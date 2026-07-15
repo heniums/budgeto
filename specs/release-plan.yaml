@@ -25,56 +25,56 @@ epics:
     wsjf: 10
     status: done
     completed_at: '2026-07-12'
-    file: 'specs/epics/archive/e01-scaffold-auth/'
+    capsule_dir: 'specs/epics/e01-scaffold-auth/'
 
   - id: e02
     title: 'User Sign-Up, Sign-In & Profile Management Pages'
     wsjf: 15
     status: done
     completed_at: '2026-07-12'
-    file: 'specs/epics/archive/e02-auth-pages/'
+    capsule_dir: 'specs/epics/e02-auth-pages/'
 
   - id: e03
     title: 'Balances/Wallets Management'
     wsjf: 20
     status: done
     completed_at: '2026-07-12'
-    file: 'specs/epics/archive/e03-wallets-management/'
+    capsule_dir: 'specs/epics/e03-wallets-management/'
 
   - id: e04
     title: 'Centralized HTTP Client with Axios'
     wsjf: 5
     status: done
     completed_at: '2026-07-12'
-    file: 'specs/epics/archive/e04-axios-client/'
+    capsule_dir: 'specs/epics/e04-axios-client/'
 
   - id: e05
     title: 'Category Management System'
     wsjf: 18
     status: done
     completed_at: '2026-07-13'
-    file: 'specs/epics/e05-categories/'
+    capsule_dir: 'specs/epics/e05-categories/'
 
   - id: e06
     title: 'Transactions Management (CRUD + Wallet Transfers)'
     wsjf: 22
     status: done
     completed_at: '2026-07-13'
-    file: 'specs/epics/e06-transactions/'
+    capsule_dir: 'specs/epics/e06-transactions/'
 
   - id: e07
     title: 'UI Remake with shadcn/ui'
     wsjf: 12
     status: done
     completed_at: '2026-07-14'
-    capsule_dir: 'specs/epics/e06-ui-remake/'
+    capsule_dir: 'specs/epics/e07-ui-remake/'
 
   - id: e08
     title: 'Guided UX — Onboarding Wizard & Contextual Navigation'
     wsjf: 14
     status: done
     completed_at: '2026-07-15'
-    capsule_dir: 'specs/epics/archive/e08-guided-ux/'
+    capsule_dir: 'specs/epics/e08-guided-ux/'
 
   - id: e09
     title: 'Transaction Detail View & Full CRUD'
