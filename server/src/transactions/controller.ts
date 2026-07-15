@@ -10,6 +10,7 @@ import {
   remove,
   list,
   listByUser,
+  listQuerySchema,
   transfer,
 } from './service';
 
@@ -49,7 +50,8 @@ export async function listAllTransactionsHandler(
 ): Promise<void> {
   try {
     const user = getUser(req);
-    const result = await listByUser(user.sub);
+    const query = listQuerySchema.parse(req.query);
+    const result = await listByUser(user.sub, query);
     res.status(200).json(result);
   } catch (error) {
     next(error);

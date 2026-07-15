@@ -4,6 +4,7 @@ import {
   findTransactionById,
   findTransactionsByWalletId,
   findTransactionsByUserId,
+  countTransactionsByUserId,
   updateTransaction,
   deleteTransaction,
 } from './repository';
@@ -35,14 +36,29 @@ export const transferSchema = z.object({
 });
 
 export const updateTransactionSchema = z.object({
-  amount: z.string().refine((val) => val !== '0' && !isNaN(Number(val)), {
-    message: 'Amount must be a non-zero number',
-  }).optional(),
+  amount: z
+    .string()
+    .refine((val) => val !== '0' && !isNaN(Number(val)), {
+      message: 'Amount must be a non-zero number',
+    })
+    .optional(),
   description: z.string().max(512).optional(),
   categoryId: z.string().uuid().optional().nullable(),
   walletId: z.string().uuid().optional(),
 });
 
+export const listQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  walletId: z.string().uuid().optional(),
+  categoryId: z.string().uuid().optional(),
+  type: z.enum(['income', 'expense']).optional(),
+  search: z.string().max(512).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional().default(50),
+  offset: z.coerce.number().int().min(0).optional().default(0),
+});
+
+export type TransactionListQuery = z.infer<typeof listQuerySchema>;
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
 export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 export type TransferInput = z.infer<typeof transferSchema>;
@@ -84,10 +100,7 @@ export async function create(
   };
 }
 
-export async function getById(
-  userId: string,
-  txId: string,
-) {
+export async function getById(userId: string, txId: string) {
   const tx = await findTransactionById(txId);
   if (!tx || tx.userId !== userId) {
     throw notFoundError('Transaction not found');
@@ -145,10 +158,7 @@ export async function update(
   };
 }
 
-export async function remove(
-  userId: string,
-  txId: string,
-) {
+export async function remove(userId: string, txId: string) {
   const existing = await findTransactionById(txId);
   if (!existing || existing.userId !== userId) {
     throw notFoundError('Transaction not found');
@@ -203,22 +213,47 @@ export type UserTransactionsResult = {
 
 export async function listByUser(
   userId: string,
+  query: TransactionListQuery,
 ): Promise<UserTransactionsResult> {
-  const rows = await findTransactionsByUserId(userId);
+  if (query.walletId) {
+    const wallet = await findWalletById(query.walletId);
+    if (!wallet || wallet.userId !== userId) {
+      throw notFoundError('Wallet not found');
+    }
+  }
+  if (query.categoryId) {
+    const category = await findCategoryById(query.categoryId);
+    if (!category || category.userId !== userId) {
+      throw notFoundError('Category not found');
+    }
+  }
+
+  const filters = {
+    from: query.from,
+    to: query.to,
+    walletId: query.walletId,
+    categoryId: query.categoryId,
+    type: query.type,
+    search: query.search?.trim() || undefined,
+    limit: query.limit,
+    offset: query.offset,
+  };
+
+  const [rows, total] = await Promise.all([
+    findTransactionsByUserId(userId, filters),
+    countTransactionsByUserId(userId, filters),
+  ]);
   return {
-    transactions: rows.map((tx) => {
-      const r = tx as unknown as Record<string, unknown>;
-      return {
-        id: tx.id,
-        walletId: tx.walletId,
-        amount: tx.amount,
-        description: tx.description ?? '',
-        categoryId: (r.categoryId as string) ?? null,
-        categoryName: (r.categoryName as string) ?? null,
-        createdAt: tx.createdAt,
-      };
-    }),
-    total: rows.length,
+    transactions: rows.map((tx) => ({
+      id: tx.id,
+      walletId: tx.walletId,
+      amount: tx.amount,
+      description: tx.description ?? '',
+      categoryId: tx.categoryId ?? null,
+      categoryName: tx.categoryName ?? null,
+      createdAt: tx.createdAt,
+    })),
+    total,
   };
 }
 
