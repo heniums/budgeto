@@ -8,6 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  ContextMenu,
+  ContextMenuContent,
+  ContextMenuItem,
+  ContextMenuTrigger,
+} from '@/components/ui/context-menu';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
@@ -318,33 +324,41 @@ export function WalletSelectList({
             });
 
             return (
-              <Badge
-                key={wallet.id}
-                variant={isSelected ? 'default' : 'outline'}
-                data-testid="wallet-chip"
-                data-selected={isSelected ? 'true' : 'false'}
-                data-wallet-index={index}
-                role="option"
-                aria-selected={isSelected}
-                tabIndex={0}
-                style={
-                  isSelected
-                    ? {
-                        backgroundColor: wallet.color,
-                        borderColor: wallet.color,
-                      }
-                    : { borderColor: wallet.color, color: wallet.color }
-                }
-                className={cn(
-                  'cursor-pointer whitespace-nowrap shrink-0 select-none',
-                  isSelected && 'text-white',
-                )}
-                onClick={() => onSelect(wallet.id)}
-                onKeyDown={(e) => handleKeyDown(e, index, wallet)}
-                {...longPress}
-              >
-                {wallet.name}
-              </Badge>
+              <ContextMenu key={wallet.id}>
+                <ContextMenuTrigger asChild>
+                  <Badge
+                    variant={isSelected ? 'default' : 'outline'}
+                    data-testid="wallet-chip"
+                    data-selected={isSelected ? 'true' : 'false'}
+                    data-wallet-index={index}
+                    role="option"
+                    aria-selected={isSelected}
+                    tabIndex={0}
+                    style={
+                      isSelected
+                        ? {
+                            backgroundColor: wallet.color,
+                            borderColor: wallet.color,
+                          }
+                        : { borderColor: wallet.color, color: wallet.color }
+                    }
+                    className={cn(
+                      'cursor-pointer whitespace-nowrap shrink-0 select-none',
+                      isSelected && 'text-white',
+                    )}
+                    onClick={() => onSelect(wallet.id)}
+                    onKeyDown={(e) => handleKeyDown(e, index, wallet)}
+                    {...longPress}
+                  >
+                    {wallet.name}
+                  </Badge>
+                </ContextMenuTrigger>
+                <ContextMenuContent>
+                  <ContextMenuItem onClick={() => setEditWallet(wallet)}>
+                    Edit
+                  </ContextMenuItem>
+                </ContextMenuContent>
+              </ContextMenu>
             );
           })}
           {onRefresh && (
