@@ -7,12 +7,12 @@ active_story_id: e11s01
 completed_epic: false
 
 epic_cycle:
-  current_step: 5
-  next_skill: verify-work
+  current_step: 6
+  next_skill: audit-code
   story_bcps: 6
-  completed_steps: ['0', '1', '2', '3', '4']
+  completed_steps: ['0', '1', '2', '3', '4', '5']
   audit_result: null
-  note: 'e11s01 done: 159/159 tests pass, type-check clean. WalletModal + CategoryModal refactored to Dialog.'
+  note: 'e11s01 verify-work PASS: 159/159 tests, type-check clean, -191 net lines.'
 
 bug_cycle:
   current_step: null

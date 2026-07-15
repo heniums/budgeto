@@ -94,7 +94,8 @@ export function CategoryModal({
     let active = true;
     setLoading(true);
     setFormError(null);
-    getCategory(categoryId!)
+    if (!categoryId) return;
+    getCategory(categoryId)
       .then((c) => {
         if (!active) return;
         reset({
