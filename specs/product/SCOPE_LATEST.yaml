@@ -1,117 +1,131 @@
-# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Chip-List Selectors initiative.
+# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Unified Modal System.
 # Written by scope-work (planning spine step 1) on 2026-07-15.
 # Consumes specs/planning-context.yaml (elaborate-spec output).
 
 core_value: >
-  Replace the TransactionForm's plain dropdown selects with visually rich,
-  horizontally scrollable chip lists that show wallet/category identity at a
-  glance and allow inline CRUD without losing the transaction draft.
+  Consolidate wallet and category creation, editing, and viewing into two
+  unified Sheet-based modal components (WalletModal, CategoryModal) that
+  replace four divergent UI surfaces and enable a smooth sequential slide
+  transition from the TransactionForm without losing draft state.
 
 summary: >
-  The TransactionForm currently uses HTML <select> dropdowns for wallet and
-  category choice. These show only the resource name as text — no color, no
-  icon — and offer no path to create or edit a wallet/category without
-  abandoning the form. This undermines the visual design language established
-  for wallets and categories elsewhere and blocks users who realize mid-entry
-  that they need a new wallet or category.
+  Budgeto currently has four different UI surfaces for wallet and category
+  CRUD: slide-in Sheets (WalletDetailSheet/CategoryDetailSheet), inline
+  Dialogs inside chip-selectors (WalletEditDialog/WalletCreateDialog etc.),
+  and full-page form routes in Settings (WalletForm/WalletDetail/CategoryForm).
+  This fragmentation duplicates code, creates inconsistent UX, and breaks the
+  transaction flow — creating a wallet while filling a transaction form loses
+  the entire transaction draft.
 
-  This initiative introduces two new components — WalletSelectList and
-  CategorySelectList — that render the user's wallets and categories as a
-  horizontally scrollable row of chips. Wallet chips appear as colored badges
-  (border + text in the wallet's color). Category chips show the category icon
-  rendered in the category's color. A single tap selects the item; a long-press
-  opens an inline full-form edit dialog. A "View All" trigger at the end of the
-  row opens a compact grid modal for browsing and selecting from all available
-  items. A "+" trigger opens an inline full-form creation dialog.
+  This initiative creates two unified modal components — WalletModal and
+  CategoryModal — using shadcn Sheet (slide-in from right) with three modes:
+  create, edit, and view. These modals become the single source of truth for
+  wallet/category CRUD everywhere in the app.
 
-  The scope is strictly limited to the TransactionForm. Existing wallet/category
-  management pages and all other select inputs remain unchanged. No new database
-  migrations or server endpoints are needed — all required fields already exist.
+  In the TransactionForm flow, the transaction Dialog and the wallet/category
+  Sheet participate in a sequential replace animation: the Dialog closes (state
+  preserved in the parent), the Sheet slides in, and on save/cancel the Sheet
+  closes and the Dialog reopens with the form exactly as left.
+
+  The Settings page keeps its list views (WalletList, Categories) but uses
+  WalletModal/CategoryModal for add/edit/view instead of navigating to separate
+  route pages. The WalletDetail page, WalletForm, and CategoryForm page routes
+  are removed.
+
+  WalletSelectList and CategorySelectList are simplified to emit callbacks
+  (onCreate, onEdit) instead of managing their own dialogs.
 
 in_scope:
   - id: SC-1
     description: >
-      WalletSelectList component — horizontally scrollable row of wallet chips.
-      Each chip is a badge with colored border and text showing the wallet name.
-      Tap to select, long-press to open inline full-form edit dialog. Includes
-      "View All" trigger (compact grid modal) and "+" trigger (inline full-form
-      creation dialog).
+      WalletModal component — a Sheet-based modal with create, edit, and view
+      modes. Create mode: empty form (name, description, color). Edit mode:
+      prefilled form with save/delete. View mode: read-only display of wallet
+      info + filtered transactions list. Replaces WalletDetailSheet,
+      WalletEditDialog, WalletCreateDialog, WalletForm page, WalletDetail page.
   - id: SC-2
     description: >
-      CategorySelectList component — horizontally scrollable row of category
-      chips. Each chip shows the category icon rendered in the category's color.
-      Shows all categories regardless of type (income + expense mixed). Tap to
-      select, long-press to open inline full-form edit dialog. Includes
-      "View All" trigger (compact grid modal) and "+" trigger (inline full-form
-      creation dialog).
+      CategoryModal component — a Sheet-based modal with create, edit, and view
+      modes. Create mode: empty form (name, type, color, icon grid). Edit mode:
+      prefilled form with save/delete. View mode: read-only display of category
+      info. Replaces CategoryDetailSheet, CategoryEditDialog,
+      CategoryCreateDialog, CategoryForm page.
   - id: SC-3
     description: >
-      Integration into TransactionForm — replace the existing wallet and
-      category <select> dropdowns with WalletSelectList and CategorySelectList.
-      The TransactionForm's submit logic and validation remain unchanged; only
-      the selection UI is replaced. Form state is preserved when the inline
-      edit/creation dialogs open and close.
+      Sequential slide transition from TransactionForm. When the user clicks
+      "Create wallet" or long-presses a wallet chip, the transaction Dialog
+      closes (form state preserved in parent via ref or lifted state), then
+      WalletModal/CategoryModal Sheet slides in. On save/cancel, Sheet closes
+      and transaction Dialog reopens with all fields intact.
   - id: SC-4
     description: >
-      Inline edit and creation dialogs — reuse the existing wallet/category
-      form field sets (name, description, color for wallets; name, type, color,
-      icon for categories) inside shadcn/ui Dialog components. Submitting the
-      dialog calls the existing API functions and refreshes the list.
+      Simplify WalletSelectList and CategorySelectList — remove all inline
+      Dialog components (WalletEditDialog, WalletCreateDialog,
+      WalletViewAllDialog, CategoryEditDialog, CategoryCreateDialog,
+      CategoryViewAllDialog). Instead, emit callbacks: onCreate, onEdit(wallet),
+      onViewAll. Parent handles modal management.
   - id: SC-5
     description: >
-      Tests and type-check — add component tests for WalletSelectList and
-      CategorySelectList (selection, long-press, dialogs, keyboard navigation).
-      Update TransactionForm tests to reflect the new selectors. Ensure
-      npm test (>=80% coverage) and npm run type-check pass cleanly.
+      Settings page integration — WalletList and Categories pages stay as-is
+      (list views). Tapping a wallet opens WalletModal in view mode. Tapping
+      "New Wallet" opens WalletModal in create mode. Tapping "Edit" opens
+      WalletModal in edit mode. Same pattern for categories. Remove
+      /settings/wallets/new, /settings/wallets/:id, /settings/wallets/:id/edit,
+      /settings/categories/new, /settings/categories/:id/edit routes.
+  - id: SC-6
+    description: >
+      Home page refactor — manage the sequential modal state machine
+      (transaction Dialog ↔ wallet/category Sheet). Remove WalletDetailSheet
+      and CategoryDetailSheet usage. Wire up WalletModal and CategoryModal
+      for all wallet/category interactions originating from Home.
+  - id: SC-7
+    description: >
+      Tests and cleanup — add component tests for WalletModal and CategoryModal
+      (create/edit/view modes, form validation, API calls). Update
+      WalletSelectList and CategorySelectList tests (remove dialog tests, add
+      callback tests). Update Home page tests. Remove tests for deleted
+      components. Ensure npm test (>=80% coverage) and npm run type-check pass.
 
 out_of_scope:
   - id: OOS-1
-    item: 'Changes to existing /categories or /wallets management pages.'
-    reason: 'Explicitly excluded — these pages remain as-is. The chip lists are an alternative selection UI within TransactionForm only.'
-  - id: OOS-2
-    item: 'Changes to any select inputs outside TransactionForm.'
-    reason: 'Excluded — all other forms and pages keep their current dropdowns.'
-  - id: OOS-3
-    item: 'New database migrations.'
-    reason: 'Not needed — wallet color and category icon/color fields already exist in the schema.'
-  - id: OOS-4
-    item: 'New server endpoints.'
-    reason: 'Not needed — existing GET/POST/PUT wallets and categories endpoints serve the inline dialogs.'
-  - id: OOS-5
-    item: 'Client-side filtering of categories by transaction type.'
-    reason: 'Explicitly excluded — all categories (income + expense) are shown together in the chip list by design decision.'
-  - id: OOS-6
     item: 'Changes to the transfer form dialog.'
-    reason: 'Excluded — the transfer form is unchanged and continues using its current selectors.'
-  - id: OOS-7
-    item: 'Drag-to-reorder or other gestures beyond tap and long-press.'
-    reason: 'Deferred — not part of the initial chip-list feature. May be considered in a future iteration.'
-  - id: OOS-8
-    item: 'New npm dependencies.'
-    reason: 'Excluded unless a library is required and justifies the cost. Existing shadcn/ui primitives and lucide-react icons should suffice.'
+    reason: 'The transfer form is unchanged and continues using its current selectors.'
+  - id: OOS-2
+    item: 'New database migrations or server endpoints.'
+    reason: 'All required fields and APIs already exist.'
+  - id: OOS-3
+    item: 'Changes to the OnboardingWizard flow.'
+    reason: 'The wizard may use WalletModal/CategoryModal in a future iteration but is not in scope now.'
+  - id: OOS-4
+    item: 'Changes to Profile, SignIn, or SignUp pages.'
+    reason: 'These pages are unrelated to wallet/category CRUD.'
+  - id: OOS-5
+    item: 'Animation library or new npm dependency for transitions.'
+    reason: 'shadcn Sheet already provides slide animation. Dialog close/open provides sufficient transition feel.'
+  - id: OOS-6
+    item: 'Changes to the Layout sidebar navigation.'
+    reason: 'The sidebar navigation (Home, Settings) is unrelated to this feature.'
 
 constraints:
-  - 'TransactionForm only — no changes to other forms or existing wallet/category pages.'
-  - 'Reuse existing shadcn/ui primitives (Dialog, Badge, Button, ScrollArea) and lucide-react icons.'
-  - 'No new npm dependencies unless justified and lightweight.'
-  - 'Wallets: show as badge with colored border + text (wallet name). No icon.'
-  - 'Categories: show icon glyph rendered in the category color. All types mixed together.'
-  - 'Inline edit and creation dialogs use the full existing form fields.'
+  - 'Reuse existing shadcn/ui primitives (Sheet, Button, Input, Label, Badge, ScrollArea) and lucide-react icons.'
+  - 'No new npm dependencies.'
+  - 'Reuse existing API modules (api/wallets.ts, api/categories.ts, api/transactions.ts).'
+  - 'No new server endpoints or database migrations.'
   - 'npm test (>=80% coverage) and npm run type-check must remain green.'
-  - 'Horizontal scroll must work on touch (mobile) and with mouse/trackpad (desktop).'
-  - 'Long-press must work on touch devices; a desktop alternative (right-click or hover button) must also be supported.'
-  - 'Client API modules (api/wallets.ts, api/categories.ts) are reused — no new API calls needed.'
+  - 'Transaction form state must survive the wallet/category Sheet round-trip.'
+  - 'WalletModal and CategoryModal must handle loading, empty, and error states gracefully.'
 
 success_criteria:
-  - 'In the Add Transaction form, wallets appear as a horizontally scrollable row of colored badges instead of a <select> dropdown.'
-  - 'In the Add Transaction form, categories appear as a horizontally scrollable row of colored icons instead of a <select> dropdown.'
-  - 'Tapping a wallet or category chip selects it and the selection is visually indicated.'
-  - 'Long-pressing a wallet or category chip on mobile opens an inline edit dialog with all fields prefilled.'
-  - 'Right-clicking (or equivalent desktop trigger) a chip opens the inline edit dialog.'
-  - 'The "View All" trigger opens a compact grid modal showing all wallets/categories; tapping one selects it and closes the modal.'
-  - 'The "+" trigger opens a full-form creation dialog; submitting creates the resource and adds it to the list.'
-  - 'Opening and closing the edit/creation dialogs preserves all fields in the TransactionForm (description, amount, etc.).'
+  - 'WalletModal handles create, edit, and view modes with proper form validation.'
+  - 'CategoryModal handles create, edit, and view modes with proper form validation and icon grid.'
+  - 'From the TransactionForm, clicking "Create wallet" closes the transaction Dialog, opens WalletModal in create mode, and on save returns to the transaction Dialog with all fields preserved.'
+  - 'Long-pressing a wallet chip in the TransactionForm opens WalletModal in edit mode with fields prefilled.'
+  - 'In Settings → Wallets, tapping a wallet opens WalletModal in view mode showing wallet info and transactions.'
+  - 'In Settings → Wallets, tapping "New Wallet" opens WalletModal in create mode.'
+  - 'Same patterns work for categories.'
+  - 'WalletDetailSheet, CategoryDetailSheet, WalletForm page, CategoryForm page, WalletDetail page, and all inline Dialogs in chip-selectors are removed.'
   - 'npm test passes with >=80% coverage and npm run type-check exits clean.'
+  - 'No new orphans or dead code introduced.'
 
 references:
   - specs/planning-context.yaml

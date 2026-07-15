@@ -1,0 +1,48 @@
+# e11s01 tasks — WalletModal + CategoryModal Components
+tasks:
+  - id: '1'
+    desc: 'Create client/src/components/WalletModal.tsx'
+    story: e11s01
+    verify: 'npm run type-check -- --noEmit'
+    details: >
+      Build WalletModal with Sheet (side="right"), three modes: create/edit/view.
+      Create mode: empty form with name, description, color. Submits via
+      createWallet(). Edit mode: fetches wallet by ID, prefills form, submits
+      via updateWallet(), delete via deleteWallet(). View mode: fetches wallet
+      + filtered transactions, shows read-only with Edit button.
+      Handle loading, empty, error states. Use useState for form fields.
+
+  - id: '2'
+    desc: 'Create client/src/components/WalletModal.test.tsx'
+    story: e11s01
+    verify: 'npx vitest run client/src/components/WalletModal.test.tsx'
+    details: >
+      Test create mode: renders form, submits, calls onSuccess.
+      Test edit mode: fetches and prefills, updates, handles delete.
+      Test view mode: fetches and displays wallet + transactions.
+      Test error states: API failure shows error message.
+      Test loading state: shows "Loading…" initially.
+
+  - id: '3'
+    desc: 'Create client/src/components/CategoryModal.tsx'
+    story: e11s01
+    verify: 'npm run type-check -- --noEmit'
+    details: >
+      Build CategoryModal with Sheet (side="right"), three modes:
+      create/edit/view. Create mode: empty form with name, type radio,
+      color, icon grid. Submits via createCategory(). Edit mode: fetches
+      category by ID, prefills form including icon, submits via
+      updateCategory(), delete via deleteCategory(). View mode: fetches
+      category, shows read-only with icon, type badge, Edit button.
+      Handle loading, empty, error states. Use useState for form fields.
+
+  - id: '4'
+    desc: 'Create client/src/components/CategoryModal.test.tsx'
+    story: e11s01
+    verify: 'npx vitest run client/src/components/CategoryModal.test.tsx'
+    details: >
+      Test create mode: renders form with icon grid, submits, calls onSuccess.
+      Test edit mode: fetches and prefills including icon, updates, handles delete.
+      Test view mode: fetches and displays category details.
+      Test error states: API failure shows error message.
+      Test loading state.

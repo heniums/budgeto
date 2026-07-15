@@ -1,8 +1,5 @@
 # specs/execution-status.yaml — flat story status store.
-# Synced from epic capsules by plan-release / sync-status-from-epics.
-# Generated 2026-07-13 for epic e06 (UI Remake).
-# Updated 2026-07-14: synced with epic.yaml (all stories done).
-# Updated 2026-07-14: added e08 (Guided UX) stories.
+# Updated 2026-07-15: added e11 (Unified Modals) stories.
 
 e06s01: done
 e06s02: done
@@ -15,3 +12,6 @@ e08s02: done
 e08s03: done
 e08s04: done
 e08s05: done
+e11s01: planned
+e11s02: planned
+e11s03: planned

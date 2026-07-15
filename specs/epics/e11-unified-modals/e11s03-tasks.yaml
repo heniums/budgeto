@@ -1,0 +1,62 @@
+# e11s03 tasks — Settings integration + route cleanup + removal
+tasks:
+  - id: '1'
+    desc: 'Integrate WalletModal into WalletList page'
+    story: e11s03
+    verify: 'npm run type-check -- --noEmit'
+    details: >
+      Replace route-based navigation in WalletList with state-driven
+      WalletModal. Add modalMode state (create/edit/view/null) and
+      selectedWalletId state. "New Wallet" button opens create mode.
+      Tapping a wallet row opens view mode. Edit button in view mode
+      switches to edit mode. Remove Link imports for /settings/wallets/*
+      routes. Remove inline delete button (handled by WalletModal).
+
+  - id: '2'
+    desc: 'Integrate CategoryModal into Categories page'
+    story: e11s03
+    verify: 'npm run type-check -- --noEmit'
+    details: >
+      Replace route-based navigation in Categories with state-driven
+      CategoryModal. Add modalMode state (create/edit/null) and
+      selectedCategoryId state. "New Category" button opens create mode.
+      "Edit" link opens edit mode. Remove inline delete button
+      (handled by CategoryModal). Remove Link imports for
+      /settings/categories/* routes.
+
+  - id: '3'
+    desc: 'Clean up router: remove old wallet/category routes'
+    story: e11s03
+    verify: 'npm run type-check -- --noEmit'
+    details: >
+      Remove from router.tsx: /settings/wallets/new, /settings/wallets/:id,
+      /settings/wallets/:id/edit, /settings/categories/new,
+      /settings/categories/:id/edit routes. Remove WalletForm, WalletDetail,
+      CategoryForm imports.
+
+  - id: '4'
+    desc: 'Delete old components and their test files'
+    story: e11s03
+    verify: 'npm run type-check -- --noEmit'
+    details: >
+      Delete: WalletDetailSheet.tsx, WalletDetailSheet.test.tsx,
+      CategoryDetailSheet.tsx, CategoryDetailSheet.test.tsx,
+      WalletForm.tsx, WalletForm.test.tsx, CategoryForm.tsx,
+      CategoryForm.test.tsx, WalletDetail.tsx, WalletDetail.test.tsx.
+
+  - id: '5'
+    desc: 'Update WalletList and Categories tests for modal flow'
+    story: e11s03
+    verify: 'npx vitest run client/src/pages/WalletList.test.tsx client/src/pages/Categories.test.tsx'
+    details: >
+      Update WalletList tests: mock WalletModal, test that clicking
+      "New Wallet" opens create modal, clicking a wallet opens view modal.
+      Update Categories tests: mock CategoryModal, test create/edit flows.
+
+  - id: '6'
+    desc: 'Run full test suite and fix any failures'
+    story: e11s03
+    verify: 'npm test'
+    details: >
+      Run npm test. Fix any remaining test failures from integration
+      changes. Ensure coverage >= 80%.

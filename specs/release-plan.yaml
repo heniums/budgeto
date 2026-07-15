@@ -1,21 +1,21 @@
-# Budgeto — Release Plan v0.3.0
+# Budgeto — Release Plan v0.4.0
 # Updated by slice-tasks on 2026-07-15.
 
-release: '0.3.0'
-codename: 'Polished UX'
+release: '0.4.0'
+codename: 'Unified Modals'
 status: planning
 semantic_release: true
 bump_hint: minor
 created: '2026-07-15'
 description: >
-  Polished user experience: replace plain dropdowns with visually rich chip-list
-  selectors in the TransactionForm, inline wallet/category management dialogs,
-  and the Transaction Detail View & Full CRUD feature.
-  Epics ordered by WSJF (Weighted Shortest Job First).
+  Unified wallet and category modal system — consolidate four divergent UI
+  surfaces (slide-in Sheets, inline Dialogs, full-page forms) into two Sheet-based
+  modal components (WalletModal, CategoryModal). Sequential slide transition from
+  TransactionForm preserves draft state. Settings page uses modals for CRUD
+  instead of full-page navigation.
 
-  Previous release (v0.2.0 'Guided UX'): onboarding wizard, empty-state guidance,
-  contextual wallet/category access, stacked modal transitions, category column —
-  all epics completed and merged to main.
+  Previous release (v0.3.0 'Polished UX'): chip-list selectors, transaction detail
+  view, full CRUD — all epics completed and merged to main.
 
 epics:
   - id: e01
@@ -86,3 +86,9 @@ epics:
     status: done
     completed_at: '2026-07-15'
     capsule_dir: 'specs/epics/e10-chip-selectors/'
+
+  - id: e11
+    title: 'Unified Wallet & Category Modals'
+    wsjf: 15
+    status: planned
+    capsule_dir: 'specs/epics/e11-unified-modals/'

@@ -1,0 +1,96 @@
+# e11 — Unified Wallet & Category Modals
+# Elaborated 2026-07-15 from specs/planning-context.yaml
+
+id: e11
+title: 'Unified Wallet & Category Modals'
+status: planned
+wsjf: 15
+release: '0.4.0'
+description: >
+  Consolidate wallet and category creation, editing, and viewing into two
+  unified Sheet-based modal components (WalletModal, CategoryModal) that
+  replace four divergent UI surfaces. Implement sequential slide transition
+  from TransactionForm without losing draft state. Integrate into Settings
+  page, remove old full-page form routes and slide-in Sheet components.
+
+stories:
+  - id: e11s01
+    title: 'WalletModal + CategoryModal components'
+    status: planned
+    bcps: 6
+    file: 'specs/epics/e11-unified-modals/e11s01-modal-components.md'
+    delta:
+      - target: 'client/src/components/WalletModal.tsx'
+        change: ADDED
+        reason: 'New unified Sheet-based wallet modal with create/edit/view modes'
+      - target: 'client/src/components/CategoryModal.tsx'
+        change: ADDED
+        reason: 'New unified Sheet-based category modal with create/edit/view modes'
+      - target: 'client/src/components/WalletModal.test.tsx'
+        change: ADDED
+        reason: 'Tests for wallet modal create/edit/view modes'
+      - target: 'client/src/components/CategoryModal.test.tsx'
+        change: ADDED
+        reason: 'Tests for category modal create/edit/view modes'
+
+  - id: e11s02
+    title: 'Simplify chip-selectors + Home page sequential transition'
+    status: planned
+    bcps: 5
+    file: 'specs/epics/e11-unified-modals/e11s02-chip-selectors-home.md'
+    delta:
+      - target: 'client/src/components/WalletSelectList.tsx'
+        change: MODIFIED
+        reason: 'Remove inline Dialog components, emit onCreate/onEdit callbacks'
+      - target: 'client/src/components/CategorySelectList.tsx'
+        change: MODIFIED
+        reason: 'Remove inline Dialog components, emit onCreate/onEdit callbacks'
+      - target: 'client/src/pages/Home.tsx'
+        change: MODIFIED
+        reason: 'Implement sequential modal state machine, transaction state preservation, wire WalletModal/CategoryModal'
+      - target: 'client/src/components/WalletSelectList.test.tsx'
+        change: MODIFIED
+        reason: 'Update tests for callback-based API'
+      - target: 'client/src/components/CategorySelectList.test.tsx'
+        change: MODIFIED
+        reason: 'Update tests for callback-based API'
+      - target: 'client/src/pages/Home.test.tsx'
+        change: MODIFIED
+        reason: 'Update tests for new modal flow'
+
+  - id: e11s03
+    title: 'Settings integration + route cleanup + removal of old components'
+    status: planned
+    bcps: 5
+    file: 'specs/epics/e11-unified-modals/e11s03-settings-cleanup.md'
+    delta:
+      - target: 'client/src/pages/WalletList.tsx'
+        change: MODIFIED
+        reason: 'Use WalletModal for new/edit/view instead of route navigation'
+      - target: 'client/src/pages/Categories.tsx'
+        change: MODIFIED
+        reason: 'Use CategoryModal for new/edit instead of route navigation'
+      - target: 'client/src/router.tsx'
+        change: MODIFIED
+        reason: 'Remove old wallet/category form and detail routes'
+      - target: 'client/src/components/WalletDetailSheet.tsx'
+        change: DELETED
+        reason: 'Replaced by WalletModal'
+      - target: 'client/src/components/CategoryDetailSheet.tsx'
+        change: DELETED
+        reason: 'Replaced by CategoryModal'
+      - target: 'client/src/pages/WalletForm.tsx'
+        change: DELETED
+        reason: 'Replaced by WalletModal'
+      - target: 'client/src/pages/CategoryForm.tsx'
+        change: DELETED
+        reason: 'Replaced by CategoryModal'
+      - target: 'client/src/pages/WalletDetail.tsx'
+        change: DELETED
+        reason: 'Replaced by WalletModal view mode'
+      - target: 'client/src/pages/WalletList.test.tsx'
+        change: MODIFIED
+        reason: 'Update tests for modal-based flow'
+      - target: 'client/src/pages/Categories.test.tsx'
+        change: MODIFIED
+        reason: 'Update tests for modal-based flow'
