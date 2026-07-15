@@ -16,7 +16,7 @@ vi.mock('../api/wallets', async (importOriginal) => {
   };
 });
 
-import { createWallet } from '../api/wallets';
+import { createWallet, getWallet, updateWallet } from '../api/wallets';
 
 describe('WalletModal — create mode', () => {
   beforeEach(() => {
@@ -74,6 +74,108 @@ describe('WalletModal — create mode', () => {
     });
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+});
+
+const mockWallet = {
+  id: 'w1',
+  name: 'Cash',
+  description: 'Daily expenses',
+  color: '#1f8a4c',
+  balance: '100.00',
+  createdAt: '',
+  updatedAt: '',
+};
+
+describe('WalletModal — edit mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getWallet).mockResolvedValue(mockWallet);
+    cleanup();
+  });
+
+  it('fetches wallet and prefills form fields', async () => {
+    render(
+      <WalletModal
+        mode="edit"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(getWallet).toHaveBeenCalledWith('w1');
+    });
+    expect(await screen.findByDisplayValue('Cash')).toBeInTheDocument();
+  });
+
+  it('renders Save button in edit mode', async () => {
+    render(
+      <WalletModal
+        mode="edit"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Save' })).toBeInTheDocument();
+    });
+  });
+
+  it('calls updateWallet and onSuccess on save', async () => {
+    vi.mocked(updateWallet).mockResolvedValue(mockWallet);
+    const onSuccess = vi.fn();
+
+    render(
+      <WalletModal
+        mode="edit"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={onSuccess}
+      />,
+    );
+
+    await screen.findByDisplayValue('Cash');
+
+    const user = userEvent.setup();
+    await user.clear(screen.getByLabelText('Name'));
+    await user.type(screen.getByLabelText('Name'), 'Bank');
+    await user.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => {
+      expect(updateWallet).toHaveBeenCalledWith('w1', {
+        name: 'Bank',
+        description: 'Daily expenses',
+        color: '#1f8a4c',
+      });
+    });
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
+  it('renders Delete button in edit mode', async () => {
+    render(
+      <WalletModal
+        mode="edit"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Delete' }),
+      ).toBeInTheDocument();
     });
   });
 });
