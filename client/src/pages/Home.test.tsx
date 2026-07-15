@@ -200,7 +200,7 @@ describe('Home onboarding wizard', () => {
   });
 });
 
-describe('Home stacked modal — transaction dialog + wallet/category sheets', () => {
+describe('Home sequential modal — transaction + wallet/category', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getWallets).mockResolvedValue({ wallets });
@@ -232,33 +232,20 @@ describe('Home stacked modal — transaction dialog + wallet/category sheets', (
     cleanup();
   });
 
-  it('keeps transaction dialog open when viewing wallet details from form', async () => {
+  it('opens WalletModal when "Don\'t see your wallet?" is clicked in tx form', async () => {
     const user = userEvent.setup();
     renderHome();
     await screen.findByText('Salary');
 
-    // Open Add Transaction dialog
     await user.click(screen.getByRole('button', { name: /add transaction/i }));
-    // Dialog title should be visible (there may also be the trigger button)
-    const txTitles = screen.getAllByText('Add transaction');
-    expect(txTitles.length).toBeGreaterThanOrEqual(2);
 
-    // Select a wallet by clicking its chip to reveal "View wallet details" link
-    const walletOptions = screen.getAllByRole('option', { name: 'Cash' });
-    // Click the wallet chip inside the dialog's WalletSelectList
-    await user.click(walletOptions[0]);
+    // Click the wallet creation link text
+    await user.click(screen.getByText(/don't see your wallet\?/i));
 
-    // Click "View wallet details"
-    await user.click(screen.getByText(/view wallet details/i));
-
-    // Wallet detail sheet opens on top
+    // WalletModal should open in create mode
     await waitFor(() => {
-      expect(screen.getByText('Wallet Details')).toBeInTheDocument();
+      expect(screen.getByText('New Wallet')).toBeInTheDocument();
     });
-
-    // Transaction dialog stays open behind the sheet
-    const txTitlesAfter = screen.getAllByText('Add transaction');
-    expect(txTitlesAfter.length).toBeGreaterThanOrEqual(2);
   });
 });
 
