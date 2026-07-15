@@ -20,4 +20,7 @@ e11s02:
   status: done
   started_at: '2026-07-15T18:22:00-03:00'
   completed_at: '2026-07-15T18:28:00-03:00'
-e11s03: todo
+e11s03:
+  status: done
+  started_at: '2026-07-15T18:54:00-03:00'
+  completed_at: '2026-07-15T18:58:00-03:00'

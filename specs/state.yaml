@@ -3,8 +3,8 @@
 
 active_flow: build_epic
 active_epic_id: e11
-active_story_id: e11s03
-completed_epic: false
+active_story_id: null
+completed_epic: true
 
 epic_cycle:
   current_step: 2
