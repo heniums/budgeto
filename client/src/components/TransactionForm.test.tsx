@@ -188,14 +188,14 @@ describe('TransactionForm — prerequisite warnings', () => {
       </MemoryRouter>,
     );
 
-    const select = screen.getByLabelText('Wallet') as HTMLSelectElement;
-    expect(select.value).toBe('w-new');
+    const chip = screen.getByText('Savings').closest('[data-testid="wallet-chip"]');
+    expect(chip).toHaveAttribute('data-selected', 'true');
   });
 
-  it('renders category dropdown when categories are provided', () => {
+  it('renders category chips when categories are provided', () => {
     const categories = [
-      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
-      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c' },
+      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b', icon: 'UtensilsCrossed' },
+      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c', icon: 'BriefcaseBusiness' },
     ];
     render(
       <MemoryRouter>
@@ -207,15 +207,15 @@ describe('TransactionForm — prerequisite warnings', () => {
       </MemoryRouter>,
     );
 
-    expect(screen.getByLabelText('Category')).toBeInTheDocument();
-    expect(screen.getByText('Food')).toBeInTheDocument();
-    expect(screen.getByText('Salary')).toBeInTheDocument();
+    // Category chips rendered as buttons with aria-label
+    expect(screen.getByLabelText('Food')).toBeInTheDocument();
+    expect(screen.getByLabelText('Salary')).toBeInTheDocument();
   });
 
   it('auto-selects category when autoSelectCategoryId prop is provided', () => {
     const categories = [
-      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
-      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c' },
+      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b', icon: 'UtensilsCrossed' },
+      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c', icon: 'BriefcaseBusiness' },
     ];
     render(
       <MemoryRouter>
@@ -228,14 +228,14 @@ describe('TransactionForm — prerequisite warnings', () => {
       </MemoryRouter>,
     );
 
-    const select = screen.getByLabelText('Category') as HTMLSelectElement;
-    expect(select.value).toBe('c2');
+    const chip = screen.getByLabelText('Salary');
+    expect(chip).toHaveAttribute('data-selected', 'true');
   });
 });
 
 describe('TransactionForm — edit mode', () => {
   const categories = [
-    { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b' },
+    { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b', icon: 'UtensilsCrossed' },
   ];
 
   beforeEach(() => {
@@ -279,17 +279,19 @@ describe('TransactionForm — edit mode', () => {
       </MemoryRouter>,
     );
 
-    const walletSelect = screen.getByLabelText('Wallet') as HTMLSelectElement;
+    // Wallet chip should be selected
+    const walletChip = screen.getByText('Cash').closest('[data-testid="wallet-chip"]');
+    expect(walletChip).toHaveAttribute('data-selected', 'true');
+
+    // Amount and description still use Input components
     const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
     const descInput = screen.getByLabelText('Description') as HTMLInputElement;
-    const categorySelect = screen.getByLabelText(
-      'Category',
-    ) as HTMLSelectElement;
-
-    expect(walletSelect.value).toBe('w1');
     expect(amountInput.value).toBe('42.50');
     expect(descInput.value).toBe('Groceries');
-    expect(categorySelect.value).toBe('c1');
+
+    // Category chip should be selected
+    const categoryChip = screen.getByLabelText('Food');
+    expect(categoryChip).toHaveAttribute('data-selected', 'true');
   });
 
   it('shows "Save changes" button in edit mode', () => {
