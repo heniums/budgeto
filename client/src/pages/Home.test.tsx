@@ -1,8 +1,16 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, beforeAll } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { Home } from './Home';
+
+beforeAll(() => {
+  global.ResizeObserver = class ResizeObserver {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
+});
 
 import type * as TxModule from '../api/transactions';
 import type * as WalletModule from '../api/wallets';
@@ -235,8 +243,10 @@ describe('Home stacked modal — transaction dialog + wallet/category sheets', (
     const txTitles = screen.getAllByText('Add transaction');
     expect(txTitles.length).toBeGreaterThanOrEqual(2);
 
-    // Select a wallet to reveal "View wallet details" link
-    await user.selectOptions(screen.getByLabelText('Wallet'), 'w1');
+    // Select a wallet by clicking its chip to reveal "View wallet details" link
+    const walletOptions = screen.getAllByRole('option', { name: 'Cash' });
+    // Click the wallet chip inside the dialog's WalletSelectList
+    await user.click(walletOptions[0]);
 
     // Click "View wallet details"
     await user.click(screen.getByText(/view wallet details/i));
@@ -292,41 +302,20 @@ describe('Home transaction detail view', () => {
     cleanup();
   });
 
-  it('opens detail dialog when clicking a transaction row', async () => {
-    const user = userEvent.setup();
-    renderHome();
-    await screen.findByText('Groceries');
-
-    // Click the description cell (part of the row)
-    await user.click(screen.getByText('Groceries'));
-
-    expect(
-      await screen.findByText('Transaction details'),
-    ).toBeInTheDocument();
-    // Amount appears in both the table and the dialog — check dialog shows it
-    const amounts = screen.getAllByText('-$42.50');
-    expect(amounts.length).toBeGreaterThanOrEqual(2);
-    // Cash wallet name also appears in both
-    const cashElements = screen.getAllByText('Cash');
-    expect(cashElements.length).toBeGreaterThanOrEqual(2);
-    // Food category badge also appears in both
-    const foodElements = screen.getAllByText('Food');
-    expect(foodElements.length).toBeGreaterThanOrEqual(2);
-  });
-
-  it('opens edit form when Edit is clicked in detail dialog', async () => {
+  it('opens edit form when clicking a transaction row', async () => {
     const user = userEvent.setup();
     renderHome();
     await screen.findByText('Groceries');
 
     await user.click(screen.getByText('Groceries'));
-    await screen.findByText('Transaction details');
 
-    await user.click(screen.getByRole('button', { name: /edit/i }));
-
-    // Edit form should appear with pre-filled values
+    // Row click opens edit mode directly — Save changes button visible
     expect(
       await screen.findByRole('button', { name: /save changes/i }),
+    ).toBeInTheDocument();
+    // Delete text link also visible in edit mode
+    expect(
+      screen.getByText(/delete this transaction/i),
     ).toBeInTheDocument();
   });
 
@@ -336,9 +325,10 @@ describe('Home transaction detail view', () => {
     await screen.findByText('Groceries');
 
     await user.click(screen.getByText('Groceries'));
-    await screen.findByText('Transaction details');
+    // In edit mode, Delete button is visible
+    await screen.findByRole('button', { name: /save changes/i });
 
-    await user.click(screen.getByRole('button', { name: /delete/i }));
+        await user.click(screen.getByText(/delete this transaction/i));
 
     // Confirmation dialog should appear
     expect(await screen.findByText(/are you sure/i)).toBeInTheDocument();
@@ -383,9 +373,10 @@ describe('Home transaction detail view', () => {
     // Click the amount cell of the first transfer leg
     const amountCells = screen.getAllByText('$50.00');
     await user.click(amountCells[0]);
-    await screen.findByText('Transaction details');
+    // Row click opens edit mode
+    await screen.findByRole('button', { name: /save changes/i });
 
-    await user.click(screen.getByRole('button', { name: /delete/i }));
+    await user.click(screen.getByText(/delete this transaction/i));
 
     // Cascade prompt should appear
     expect(

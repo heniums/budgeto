@@ -11,6 +11,8 @@ import { ApiError } from '../api/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { WalletSelectList } from './WalletSelectList';
+import { CategorySelectList } from './CategorySelectList';
 
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
@@ -28,7 +30,7 @@ type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
-  categories?: { id: string; name: string; type: string; color: string }[];
+  categories?: { id: string; name: string; type: 'income' | 'expense'; color: string; icon: string }[];
   categoriesCount?: number;
   onSuccess: () => void;
   onCreateWallet?: () => void;
@@ -44,6 +46,24 @@ interface TransactionFormProps {
     categoryId: string;
   };
   editTxId?: string;
+  onRefreshWallets?: () => void;
+  onRefreshCategories?: () => void;
+  viewMode?: boolean;
+  viewTxId?: string;
+  viewValues?: {
+    walletId: string;
+    amount: string;
+    description: string;
+    categoryId: string;
+    walletName?: string;
+    categoryName?: string;
+    categoryColor?: string;
+    createdAt?: string;
+  };
+  onEdit?: () => void;
+  onDelete?: () => void;
+  onQuickChange?: () => void;
+  onClose?: () => void;
 }
 
 export function TransactionForm({
@@ -59,6 +79,15 @@ export function TransactionForm({
   editMode,
   initialValues,
   editTxId,
+  onRefreshWallets,
+  onRefreshCategories,
+  viewMode,
+  viewTxId,
+  viewValues,
+  onEdit,
+  onDelete,
+  onQuickChange,
+  onClose,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -66,7 +95,7 @@ export function TransactionForm({
     register,
     handleSubmit,
     watch,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
     reset,
     setValue,
   } = useForm<TransactionValues>({
@@ -136,6 +165,117 @@ export function TransactionForm({
     }
   };
 
+  const handleQuickWalletChange = async (id: string): Promise<void> => {
+    if (!viewTxId || !viewValues) return;
+    setFormError(null);
+    try {
+      await updateTransaction(viewTxId, {
+        walletId: id,
+        amount: viewValues.amount,
+        description: viewValues.description,
+        categoryId: viewValues.categoryId || undefined,
+      });
+      onQuickChange?.();
+    } catch (err) {
+      if (err instanceof ApiError) setFormError(err.message);
+      else setFormError('Failed to update.');
+    }
+  };
+
+  const handleQuickCategoryChange = async (id: string): Promise<void> => {
+    if (!viewTxId || !viewValues) return;
+    setFormError(null);
+    try {
+      await updateTransaction(viewTxId, {
+        walletId: viewValues.walletId,
+        amount: viewValues.amount,
+        description: viewValues.description,
+        categoryId: id || undefined,
+      });
+      onQuickChange?.();
+    } catch (err) {
+      if (err instanceof ApiError) setFormError(err.message);
+      else setFormError('Failed to update.');
+    }
+  };
+
+  // View mode: read-only display with interactive chip lists
+  if (viewMode && viewValues) {
+    return (
+      <div className="space-y-4">
+        {formError && (
+          <div
+            role="alert"
+            className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
+          >
+            {formError}
+          </div>
+        )}
+
+        {viewValues.createdAt && (
+          <div>
+            <span className="text-sm text-muted-foreground">Date</span>
+            <p className="text-sm font-medium">
+              {new Date(viewValues.createdAt).toLocaleDateString()}
+            </p>
+          </div>
+        )}
+
+        <div className="space-y-2">
+          <Label>Wallet</Label>
+          <WalletSelectList
+            wallets={wallets}
+            selectedId={viewValues.walletId || null}
+            onSelect={handleQuickWalletChange}
+            onRefresh={onRefreshWallets}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Amount</Label>
+          <p className={`text-lg font-semibold ${
+            Number(viewValues.amount) < 0 ? 'text-destructive' : 'text-foreground'
+          }`}>
+            {Number(viewValues.amount) < 0 ? '-' : ''}$
+            {Math.abs(Number(viewValues.amount)).toFixed(2)}
+          </p>
+        </div>
+
+        {categories && categories.length > 0 && (
+          <div className="space-y-2">
+            <Label>Category</Label>
+            <CategorySelectList
+              categories={categories}
+              selectedId={viewValues.categoryId || null}
+              onSelect={handleQuickCategoryChange}
+              onRefresh={onRefreshCategories}
+            />
+          </div>
+        )}
+
+        <div>
+          <span className="text-sm text-muted-foreground">Description</span>
+          <p className="text-sm font-medium">
+            {viewValues.description || '—'}
+          </p>
+        </div>
+
+        <div className="flex gap-2 pt-2">
+          {onEdit && (
+            <Button onClick={onEdit} variant="default">
+              Edit
+            </Button>
+          )}
+          {onDelete && (
+            <Button onClick={onDelete} variant="destructive">
+              Delete
+            </Button>
+          )}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
       {wallets.length === 0 && (
@@ -191,19 +331,13 @@ export function TransactionForm({
       )}
 
       <div className="space-y-2">
-        <Label htmlFor="tx-wallet">Wallet</Label>
-        <select
-          id="tx-wallet"
-          {...register('walletId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="">Select a wallet…</option>
-          {wallets.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.name}
-            </option>
-          ))}
-        </select>
+        <Label>Wallet</Label>
+        <WalletSelectList
+          wallets={wallets}
+          selectedId={selectedWalletId || null}
+          onSelect={(id) => setValue('walletId', id, { shouldValidate: true, shouldDirty: true })}
+          onRefresh={onRefreshWallets}
+        />
         {errors.walletId && (
           <span role="alert" className="text-sm text-destructive">
             {errors.walletId.message}
@@ -248,19 +382,13 @@ export function TransactionForm({
       {/* Category selector */}
       {categories && categories.length > 0 && (
         <div className="space-y-2">
-          <Label htmlFor="tx-category">Category</Label>
-          <select
-            id="tx-category"
-            {...register('categoryId')}
-            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-          >
-            <option value="">No category</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <Label>Category</Label>
+          <CategorySelectList
+            categories={categories}
+            selectedId={watch('categoryId') || null}
+            onSelect={(id) => setValue('categoryId', id, { shouldValidate: true, shouldDirty: true })}
+            onRefresh={onRefreshCategories}
+          />
           {onCreateCategory && (
             <span
               className="text-xs text-muted-foreground underline cursor-pointer"
@@ -292,15 +420,44 @@ export function TransactionForm({
         )}
       </div>
 
-      <Button type="submit" disabled={isSubmitting || wallets.length === 0}>
-        {isSubmitting
-          ? editMode
-            ? 'Saving…'
-            : 'Adding…'
-          : editMode
-            ? 'Save changes'
-            : 'Add Transaction'}
-      </Button>
+      <div className="flex gap-2">
+        <Button
+          type="submit"
+          disabled={
+            isSubmitting ||
+            wallets.length === 0 ||
+            (editMode && !isDirty)
+          }
+        >
+          {isSubmitting
+            ? editMode
+              ? 'Saving…'
+              : 'Adding…'
+            : editMode
+              ? 'Save changes'
+              : 'Add Transaction'}
+        </Button>
+        {editMode ? (
+          <Button type="button" variant="outline" onClick={onClose}>
+            Close
+          </Button>
+        ) : (
+          onClose && (
+            <Button type="button" variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          )
+        )}
+      </div>
+      {editMode && onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="text-xs text-muted-foreground hover:text-destructive underline mt-1"
+        >
+          Delete this transaction
+        </button>
+      )}
     </form>
   );
 }

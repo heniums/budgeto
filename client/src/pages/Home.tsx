@@ -22,7 +22,6 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
-import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
 import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletDetailSheet } from '../components/WalletDetailSheet';
@@ -84,7 +83,6 @@ export function Home(): JSX.Element {
   const [page, setPage] = useState(1);
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
-  const [detailTx, setDetailTx] = useState<TransactionData | null>(null);
   const [editTx, setEditTx] = useState<TransactionData | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
     null,
@@ -199,6 +197,7 @@ export function Home(): JSX.Element {
                   name: c.name,
                   type: c.type,
                   color: c.color,
+                  icon: c.icon,
                 }))}
                 categoriesCount={categories.length}
                 autoSelectWalletId={pendingWalletId ?? undefined}
@@ -210,6 +209,9 @@ export function Home(): JSX.Element {
                   setPendingCategoryId(null);
                   load();
                 }}
+                onRefreshWallets={load}
+                onRefreshCategories={load}
+                onClose={() => setTxOpen(false)}
                 onCreateWallet={() => {
                   setCreateWalletOpen(true);
                 }}
@@ -367,7 +369,7 @@ export function Home(): JSX.Element {
                     <TableRow
                       key={tx.id}
                       className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => setDetailTx(tx)}
+                      onClick={() => setEditTx(tx)}
                     >
                       <TableCell>{formatDate(tx.createdAt)}</TableCell>
                       <TableCell>
@@ -458,39 +460,6 @@ export function Home(): JSX.Element {
         </>
       )}
 
-            <TransactionDetailDialog
-        open={detailTx !== null}
-        onOpenChange={(open) => {
-          if (!open) setDetailTx(null);
-        }}
-        transaction={detailTx ?? ({} as TransactionData)}
-        walletName={
-          detailTx ? walletName(detailTx.walletId) : ''
-        }
-        categoryColor={
-          detailTx?.categoryId
-            ? categoryMap.get(detailTx.categoryId)?.color
-            : undefined
-        }
-        onEdit={() => {
-          if (detailTx) {
-            setDetailTx(null);
-            setEditTx(detailTx);
-          }
-        }}
-        onDelete={() => {
-          if (detailTx) {
-            setDetailTx(null);
-            const pair = findTransferPair(detailTx, transactions);
-            if (pair) {
-              setCascadeTx({ action: 'delete', tx: detailTx, pair });
-            } else {
-              setDeleteConfirm(detailTx);
-            }
-          }
-        }}
-      />
-
       <Dialog
         open={editTx !== null}
         onOpenChange={(open) => {
@@ -509,12 +478,25 @@ export function Home(): JSX.Element {
                 name: c.name,
                 type: c.type,
                 color: c.color,
+                icon: c.icon,
               }))}
               onSuccess={() => {
                 setEditTx(null);
                 setPage(1);
                 load();
               }}
+              onRefreshWallets={load}
+              onRefreshCategories={load}
+              onDelete={() => {
+                setEditTx(null);
+                const pair = findTransferPair(editTx, transactions);
+                if (pair) {
+                  setCascadeTx({ action: 'delete', tx: editTx, pair });
+                } else {
+                  setDeleteConfirm(editTx);
+                }
+              }}
+              onClose={() => setEditTx(null)}
               editMode
               editTxId={editTx.id}
               initialValues={{

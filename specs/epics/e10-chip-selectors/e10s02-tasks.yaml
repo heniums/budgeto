@@ -1,0 +1,127 @@
+# e10s02 — Inline Dialogs for Chip-List Management
+# Adds long-press edit, + create, View All grid, and desktop alternatives.
+
+story_id: e10s02
+title: 'Inline Dialogs for Chip-List Management'
+status: passing
+bcps: 6
+
+tasks:
+  - id: t01
+    title: 'Long-press → inline edit dialog for wallet chips'
+    description: >
+      Add long-press (touch-hold) detection to WalletSelectList chips via a
+      useLongPress hook. On long-press, open a shadcn/ui Dialog with wallet
+      edit form fields (name, description, color) prefilled from the chip's
+      wallet data. On submit, call updateWallet() and trigger list refresh.
+      TransactionForm state preserved. Use react-hook-form inside the dialog.
+    status: passing
+    risk: P1
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'WalletSelectList'
+    verify: 'npx vitest run client/src/components/WalletSelectList.test.tsx'
+
+  - id: t02
+    title: '"+" trigger → inline creation dialog for wallets'
+    description: >
+      Add a "+" button at the end of the WalletSelectList scroll row.
+      On click, open a shadcn/ui Dialog with wallet creation form fields
+      (name, description, color — all empty, default color). On submit,
+      call createWallet() and trigger list refresh. New wallet appears
+      immediately.
+    status: passing
+    risk: P1
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'WalletSelectList'
+    verify: 'npx vitest run client/src/components/WalletSelectList.test.tsx'
+
+  - id: t03
+    title: '"View All" trigger → compact grid modal for wallets'
+    description: >
+      Add a "View All" button (grid icon via lucide-react) at the end of the
+      WalletSelectList scroll row. On click, open a shadcn/ui Dialog
+      containing a compact CSS grid of wallet badges. Tapping a wallet
+      selects it via onSelect and closes the modal. Pure selection — no edit
+      or create controls inside the grid modal.
+    status: passing
+    risk: P2
+    allure:
+      severity: normal
+      categories:
+        - 'UI'
+        - 'WalletSelectList'
+    verify: 'npx vitest run client/src/components/WalletSelectList.test.tsx'
+
+  - id: t04
+    title: 'Long-press → inline edit dialog for category chips'
+    description: >
+      Same pattern as t01 for CategorySelectList. On long-press, open a
+      shadcn/ui Dialog with category edit form fields (name, type, color,
+      icon picker) prefilled. On submit, call updateCategory() and trigger
+      list refresh. Icon picker renders the existing ICONS grid from
+      CategoryForm.
+    status: passing
+    risk: P1
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'CategorySelectList'
+    verify: 'npx vitest run client/src/components/CategorySelectList.test.tsx'
+
+  - id: t05
+    title: '"+" → inline creation and "View All" → grid modal for categories'
+    description: >
+      Same pattern as t02 + t03 for CategorySelectList. "+" opens creation
+      dialog (full category form, empty defaults). "View All" opens grid
+      modal showing all category icons for selection (same icon grid as
+      CategoryForm but read-only for picking).
+    status: passing
+    risk: P2
+    allure:
+      severity: normal
+      categories:
+        - 'UI'
+        - 'CategorySelectList'
+    verify: 'npx vitest run client/src/components/CategorySelectList.test.tsx'
+
+  - id: t06
+    title: 'Desktop alternatives for long-press'
+    description: >
+      On desktop, long-press is not available. Wrap each chip in the existing
+      shadcn/ui ContextMenu component. Context menu shows "Edit" option.
+      Alternatively (or additionally), show a small pencil icon on hover.
+      This coexists with touch long-press on mobile — use pointer device
+      detection or simply provide both interactions and let the platform
+      filter naturally.
+    status: passing
+    risk: P2
+    allure:
+      severity: normal
+      categories:
+        - 'UI'
+        - 'Accessibility'
+    verify: 'npx vitest run client/src/components/WalletSelectList.test.tsx client/src/components/CategorySelectList.test.tsx'
+
+  - id: t07
+    title: 'Type-check and full test suite'
+    description: >
+      Run npm run type-check and npm test. All new dialog tests must pass.
+      Coverage >=80%. Verify no regressions in TransactionForm,
+      WalletSelectList, or CategorySelectList tests. Manual verification
+      of dialog workflows (edit, create, view-all) on both mobile viewport
+      and desktop.
+    status: passing
+    risk: P2
+    security: none
+    allure:
+      severity: normal
+      categories:
+        - 'Quality'
+    verify: 'npm run type-check && npm test'
