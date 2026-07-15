@@ -63,6 +63,7 @@ interface TransactionFormProps {
   onEdit?: () => void;
   onDelete?: () => void;
   onQuickChange?: () => void;
+  onClose?: () => void;
 }
 
 export function TransactionForm({
@@ -86,6 +87,7 @@ export function TransactionForm({
   onEdit,
   onDelete,
   onQuickChange,
+  onClose,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -435,16 +437,27 @@ export function TransactionForm({
               ? 'Save changes'
               : 'Add Transaction'}
         </Button>
-        {editMode && onDelete && (
-          <Button
-            type="button"
-            variant="destructive"
-            onClick={onDelete}
-          >
-            Delete
+        {editMode ? (
+          <Button type="button" variant="outline" onClick={onClose}>
+            Close
           </Button>
+        ) : (
+          onClose && (
+            <Button type="button" variant="outline" onClick={onClose}>
+              Close
+            </Button>
+          )
         )}
       </div>
+      {editMode && onDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          className="text-xs text-muted-foreground hover:text-destructive underline mt-1"
+        >
+          Delete this transaction
+        </button>
+      )}
     </form>
   );
 }

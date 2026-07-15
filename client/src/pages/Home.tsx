@@ -211,6 +211,7 @@ export function Home(): JSX.Element {
                 }}
                 onRefreshWallets={load}
                 onRefreshCategories={load}
+                onClose={() => setTxOpen(false)}
                 onCreateWallet={() => {
                   setCreateWalletOpen(true);
                 }}
@@ -495,6 +496,7 @@ export function Home(): JSX.Element {
                   setDeleteConfirm(editTx);
                 }
               }}
+              onClose={() => setEditTx(null)}
               editMode
               editTxId={editTx.id}
               initialValues={{

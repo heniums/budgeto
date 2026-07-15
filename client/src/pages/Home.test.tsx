@@ -313,9 +313,9 @@ describe('Home transaction detail view', () => {
     expect(
       await screen.findByRole('button', { name: /save changes/i }),
     ).toBeInTheDocument();
-    // Delete button also visible in edit mode
+    // Delete text link also visible in edit mode
     expect(
-      screen.getByRole('button', { name: /delete/i }),
+      screen.getByText(/delete this transaction/i),
     ).toBeInTheDocument();
   });
 
@@ -328,7 +328,7 @@ describe('Home transaction detail view', () => {
     // In edit mode, Delete button is visible
     await screen.findByRole('button', { name: /save changes/i });
 
-    await user.click(screen.getByRole('button', { name: /delete/i }));
+        await user.click(screen.getByText(/delete this transaction/i));
 
     // Confirmation dialog should appear
     expect(await screen.findByText(/are you sure/i)).toBeInTheDocument();
@@ -376,7 +376,7 @@ describe('Home transaction detail view', () => {
     // Row click opens edit mode
     await screen.findByRole('button', { name: /save changes/i });
 
-    await user.click(screen.getByRole('button', { name: /delete/i }));
+    await user.click(screen.getByText(/delete this transaction/i));
 
     // Cascade prompt should appear
     expect(
