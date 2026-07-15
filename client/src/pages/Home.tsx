@@ -24,8 +24,8 @@ import { TransactionForm } from '../components/TransactionForm';
 import { TransferForm } from '../components/TransferForm';
 import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
-import { WalletDetailSheet } from '../components/WalletDetailSheet';
-import { CategoryDetailSheet } from '../components/CategoryDetailSheet';
+import { WalletModal } from '../components/WalletModal';
+import { CategoryModal } from '../components/CategoryModal';
 import {
   ContextMenu,
   ContextMenuTrigger,
@@ -603,8 +603,9 @@ export function Home(): JSX.Element {
         </DialogContent>
       </Dialog>
 
-      <WalletDetailSheet
-        walletId={detailWalletId ?? ''}
+      <WalletModal
+        mode="view"
+        walletId={detailWalletId ?? undefined}
         open={detailWalletId !== null}
         onOpenChange={(open) => {
           if (!open) setDetailWalletId(null);
@@ -615,8 +616,8 @@ export function Home(): JSX.Element {
         }}
       />
 
-      <WalletDetailSheet
-        walletId=""
+      <WalletModal
+        mode="create"
         open={createWalletOpen}
         onOpenChange={setCreateWalletOpen}
         onSuccess={(newWallet) => {
@@ -626,8 +627,9 @@ export function Home(): JSX.Element {
         }}
       />
 
-      <CategoryDetailSheet
-        categoryId={detailCategoryId ?? ''}
+      <CategoryModal
+        mode="view"
+        categoryId={detailCategoryId ?? undefined}
         open={detailCategoryId !== null}
         onOpenChange={(open) => {
           if (!open) setDetailCategoryId(null);
@@ -638,8 +640,8 @@ export function Home(): JSX.Element {
         }}
       />
 
-      <CategoryDetailSheet
-        categoryId=""
+      <CategoryModal
+        mode="create"
         open={createCategoryOpen}
         onOpenChange={setCreateCategoryOpen}
         onSuccess={(newCategory) => {
