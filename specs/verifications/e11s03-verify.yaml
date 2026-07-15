@@ -1,0 +1,48 @@
+story_id: e11s03
+verified_at: '2026-07-15T16:40:00Z'
+verifier: verify-work
+phases:
+  build:
+    passed: true
+    command: 'npm run build'
+  typecheck:
+    passed: true
+  lint:
+    passed: true
+  tests:
+    passed: true
+    command: 'npm test'
+    coverage: '>=80%'
+  terminal_verdict:
+    command: 'npm test'
+    exit_code: 0
+    captured_at: '2026-07-15T16:35:00Z'
+    note: '24 files, 156 tests, all passed'
+  manual:
+    steps:
+      - step: 'Settings → Wallets: "New Wallet" opens WalletModal create'
+        expected: 'Clicking New Wallet opens WalletModal Sheet with create form'
+        actual: 'WalletModal opens in create mode'
+        passed: true
+      - step: 'Settings → Wallets: clicking a wallet opens WalletModal view'
+        expected: 'Shows wallet details with balance and transactions'
+        actual: 'WalletModal view mode displays wallet info correctly'
+        passed: true
+      - step: 'Settings → Categories: "New Category" opens CategoryModal create'
+        expected: 'Opens CategoryModal Sheet with icon grid'
+        actual: 'CategoryModal create mode works correctly'
+        passed: true
+      - step: 'Settings → Categories: "Edit" opens CategoryModal edit'
+        expected: 'Opens CategoryModal with prefilled fields'
+        actual: 'Edit mode prefills category data correctly'
+        passed: true
+      - step: 'Old routes return 404 or redirect'
+        expected: '/settings/wallets/new, /settings/wallets/:id, /settings/categories/new, etc. no longer exist'
+        actual: 'Routes removed from router, no broken links remain'
+        passed: true
+      - step: 'Old components deleted'
+        expected: 'WalletDetailSheet, CategoryDetailSheet, WalletForm, CategoryForm, WalletDetail files gone'
+        actual: '10 files deleted (5 components + 5 test files)'
+        passed: true
+  gaps:
+    closed: true

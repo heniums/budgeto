@@ -35,7 +35,7 @@ git:
   pushed: false
 
 handoff:
-  last_step_completed: 'kickoff-branch: e11-unified-modals worktree created, preflight green'
+  last_step_completed: 'verify-work: e11 (Unified Wallet & Category Modals) verified, 16 commits, 156 tests'
   open_decisions: []
   required_reading:
     - specs/product/VISION_LATEST.yaml
@@ -43,8 +43,8 @@ handoff:
     - specs/planning-context.yaml
     - specs/tech-architecture/TECH_STACK_LATEST.md
     - specs/release-plan.yaml
-    - specs/epics/e11-unified-modals/e11s01-modal-components.md
-  next_skill: develop-tdd
+    - specs/verifications/e11s03-verify.yaml
+  next_skill: audit-code
 
 two_pass_spec:
   journey_pass: pending
