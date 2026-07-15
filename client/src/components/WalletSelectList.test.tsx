@@ -154,7 +154,8 @@ describe('WalletSelectList', () => {
 
     // ArrowRight moves focus to second chip
     await user.keyboard('{ArrowRight}');
-    const secondChip = screen.getByText('Bank').closest('[role="option"]')!;
+    const secondChip = screen.getByText('Bank').closest('[role="option"]');
+    if (!secondChip) throw new Error('second chip not found');
     expect(document.activeElement).toBe(secondChip);
 
     // Enter on second chip selects it
