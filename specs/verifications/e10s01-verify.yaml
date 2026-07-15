@@ -1,0 +1,29 @@
+story_id: e10s01
+verified_at: '2026-07-15T14:52:00Z'
+verifier: verify-work
+phases:
+  smoke:
+    passed: true
+    note: 'Server returned {"status":"ok"} on cold start'
+  build:
+    passed: true
+    command: 'npm run build'
+  typecheck:
+    passed: true
+  lint:
+    passed: true
+  tests:
+    passed: true
+    coverage: '>=80%'
+  terminal_verdict:
+    command: 'npm test'
+    exit_code: 0
+    captured_at: '2026-07-15T14:20:00Z'
+    note: '27 test files, 164 tests passed. Single run — no merge.'
+  gaps:
+    closed: true
+    items:
+      - gap: 'Chip list does not refresh after edit/create'
+        fix: 'Wired onRefreshWallets/onRefreshCategories to load() in Home.tsx'
+      - gap: 'Detail view uses static text instead of interactive chip lists'
+        fix: 'Added viewMode to TransactionForm, replaced TransactionDetailDialog'
