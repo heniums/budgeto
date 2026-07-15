@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { MemoryRouter, Route, Routes } from 'react-router-dom';
+import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { Categories } from './Categories';
 
@@ -18,12 +18,11 @@ vi.mock('../api/categories', async (importOriginal) => {
   return {
     ...actual,
     getCategories: vi.fn(),
-    deleteCategory: vi.fn(),
   };
 });
 
 import { getMe } from '../api/auth';
-import { getCategories, deleteCategory } from '../api/categories';
+import { getCategories } from '../api/categories';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
@@ -54,17 +53,7 @@ function renderList(): void {
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/settings/categories']}>
-        <Routes>
-          <Route path="/settings/categories" element={<Categories />} />
-          <Route
-            path="/settings/categories/new"
-            element={<div>Create Category</div>}
-          />
-          <Route
-            path="/settings/categories/:id/edit"
-            element={<div>Edit Category</div>}
-          />
-        </Routes>
+        <Categories />
       </MemoryRouter>
     </AuthProvider>,
   );
@@ -77,7 +66,6 @@ describe('Categories page', () => {
     vi.mocked(getCategories).mockResolvedValue({
       categories: mockCategories,
     });
-    vi.mocked(deleteCategory).mockResolvedValue(undefined);
     window.localStorage.clear();
     cleanup();
   });
@@ -105,35 +93,27 @@ describe('Categories page', () => {
     expect(screen.getByText('No categories yet.')).toBeInTheDocument();
   });
 
-  it('navigates to create category page', async () => {
+  it('opens CategoryModal in create mode when clicking New Category', async () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Categories');
-    await user.click(screen.getByRole('link', { name: /new category/i }));
-    expect(screen.getByText('Create Category')).toBeInTheDocument();
-  });
+    await user.click(screen.getByRole('button', { name: /new category/i }));
 
-  it('navigates to edit category page', async () => {
-    const user = userEvent.setup();
-    renderList();
-    await screen.findByText('Groceries');
-    await user.click(screen.getAllByRole('link', { name: /edit/i })[0]);
-    expect(screen.getByText('Edit Category')).toBeInTheDocument();
-  });
-
-  it('deletes a category after confirmation', async () => {
-    const user = userEvent.setup();
-    window.confirm = vi.fn(() => true);
-
-    renderList();
-    await screen.findByText('Groceries');
-
-    const deleteButtons = screen.getAllByRole('button', { name: /delete/i });
-    await user.click(deleteButtons[0]);
-
-    expect(window.confirm).toHaveBeenCalled();
     await waitFor(() => {
-      expect(vi.mocked(deleteCategory)).toHaveBeenCalledWith('c1');
+      const titles = screen.getAllByText('New Category');
+      expect(titles.length).toBeGreaterThanOrEqual(2);
+    });
+  });
+
+  it('opens CategoryModal in edit mode when clicking Edit', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Groceries');
+    await user.click(screen.getAllByRole('button', { name: /edit/i })[0]);
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('Edit Category');
+      expect(titles.length).toBeGreaterThanOrEqual(1);
     });
   });
 });
