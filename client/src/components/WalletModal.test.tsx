@@ -179,3 +179,66 @@ describe('WalletModal — edit mode', () => {
     });
   });
 });
+
+describe('WalletModal — view mode', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(getWallet).mockResolvedValue(mockWallet);
+    cleanup();
+  });
+
+  it('renders loading state while fetching', () => {
+    vi.mocked(getWallet).mockImplementation(
+      () => new Promise(() => {}),
+    );
+
+    render(
+      <WalletModal
+        mode="view"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    expect(screen.getByText('Loading…')).toBeInTheDocument();
+  });
+
+  it('shows wallet info and transactions in view mode', async () => {
+    render(
+      <WalletModal
+        mode="view"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText('Cash')).toBeInTheDocument();
+    });
+    expect(screen.getByText('100.00')).toBeInTheDocument();
+  });
+
+  it('shows error when wallet fetch fails', async () => {
+    vi.mocked(getWallet).mockRejectedValue(new Error('Not found'));
+
+    render(
+      <WalletModal
+        mode="view"
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByText('Failed to load wallet.'),
+      ).toBeInTheDocument();
+    });
+  });
+});
