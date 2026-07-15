@@ -1,20 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { CategorySelectList } from './CategorySelectList';
-
-import type * as CategoryModule from '../api/categories';
-
-vi.mock('../api/categories', async (importOriginal) => {
-  const actual = await importOriginal<typeof CategoryModule>();
-  return {
-    ...actual,
-    updateCategory: vi.fn(),
-    createCategory: vi.fn(),
-  };
-});
-
-import { updateCategory, createCategory } from '../api/categories';
 
 beforeAll(() => {
   global.ResizeObserver = class ResizeObserver {
@@ -57,7 +44,7 @@ const categories = [
   },
 ];
 
-describe('CategorySelectList', () => {
+describe('CategorySelectList — rendering', () => {
   it('renders all categories as icon chips', () => {
     render(
       <CategorySelectList
@@ -67,7 +54,6 @@ describe('CategorySelectList', () => {
       />,
     );
 
-    // Each category should have a chip (role="option")
     const chips = screen.getAllByRole('option');
     expect(chips).toHaveLength(3);
   });
@@ -81,7 +67,6 @@ describe('CategorySelectList', () => {
       />,
     );
 
-    // Food chip should have red color
     const foodChip = screen.getByLabelText('Food');
     expect(foodChip).toHaveStyle({ color: '#ef4444' });
   });
@@ -152,48 +137,87 @@ describe('CategorySelectList', () => {
       />,
     );
 
-    // Focus the first chip
     const firstChip = screen.getByLabelText('Food');
     firstChip.focus();
     expect(document.activeElement).toBe(firstChip);
 
-    // ArrowRight moves to second chip
     await user.keyboard('{ArrowRight}');
     const secondChip = screen.getByLabelText('Salary');
     expect(document.activeElement).toBe(secondChip);
 
-    // Enter selects it
     await user.keyboard('{Enter}');
     expect(onSelect).toHaveBeenCalledWith('c2');
   });
 });
 
-describe('CategorySelectList — dialogs', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    vi.mocked(updateCategory).mockResolvedValue({
+describe('CategorySelectList — callbacks', () => {
+  it('calls onCreate when "+" button is clicked', async () => {
+    const onCreate = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+        onCreate={onCreate}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('Add category'));
+    expect(onCreate).toHaveBeenCalled();
+  });
+
+  it('calls onViewAll when grid button is clicked', async () => {
+    const onViewAll = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+        onViewAll={onViewAll}
+      />,
+    );
+
+    await user.click(screen.getByLabelText('View all categories'));
+    expect(onViewAll).toHaveBeenCalled();
+  });
+
+  it('calls onEdit when Shift+Enter is pressed on a chip', async () => {
+    const onEdit = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+        onRefresh={vi.fn()}
+        onEdit={onEdit}
+      />,
+    );
+
+    const foodChip = screen.getByLabelText('Food');
+    foodChip.focus();
+    await user.keyboard('{Shift>}{Enter}{/Shift}');
+
+    expect(onEdit).toHaveBeenCalledWith({
       id: 'c1',
       userId: 'u1',
-      name: 'Food Updated',
-      type: 'expense' as const,
+      name: 'Food',
+      type: 'expense',
       color: '#ef4444',
       icon: 'UtensilsCrossed',
       createdAt: '',
       updatedAt: '',
     });
-    vi.mocked(createCategory).mockResolvedValue({
-      id: 'c-new',
-      userId: 'u1',
-      name: 'New Category',
-      type: 'expense' as const,
-      color: '#1f8a4c',
-      icon: 'Tag',
-      createdAt: '',
-      updatedAt: '',
-    });
   });
 
-  it('shows "+" and "View All" buttons', () => {
+  it('hides "+" button when onCreate is not provided', () => {
     render(
       <CategorySelectList
         categories={categories}
@@ -203,12 +227,12 @@ describe('CategorySelectList — dialogs', () => {
       />,
     );
 
-    expect(screen.getByLabelText('Add category')).toBeInTheDocument();
-    expect(screen.getByLabelText('View all categories')).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Add category'),
+    ).not.toBeInTheDocument();
   });
 
-  it('opens edit dialog via Shift+Enter', async () => {
-    const user = userEvent.setup();
+  it('hides "View All" button when onViewAll is not provided', () => {
     render(
       <CategorySelectList
         categories={categories}
@@ -218,33 +242,8 @@ describe('CategorySelectList — dialogs', () => {
       />,
     );
 
-    const foodChip = screen.getByLabelText('Food');
-    foodChip.focus();
-    await user.keyboard('{Shift>}{Enter}{/Shift}');
-
-    await waitFor(() => {
-      expect(screen.getByText(/edit category/i)).toBeInTheDocument();
-    });
-  });
-
-  it('prefills edit dialog with category values', async () => {
-    const user = userEvent.setup();
-    render(
-      <CategorySelectList
-        categories={categories}
-        selectedId={null}
-        onSelect={vi.fn()}
-        onRefresh={vi.fn()}
-      />,
-    );
-
-    const foodChip = screen.getByLabelText('Food');
-    foodChip.focus();
-    await user.keyboard('{Shift>}{Enter}{/Shift}');
-
-    await waitFor(() => {
-      const nameInput = screen.getByLabelText('Name') as HTMLInputElement;
-      expect(nameInput.value).toBe('Food');
-    });
+    expect(
+      screen.queryByLabelText('View all categories'),
+    ).not.toBeInTheDocument();
   });
 });
