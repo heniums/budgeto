@@ -3,10 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createTransaction, type WalletData } from '../api/wallets';
-import {
-  updateTransaction,
-  type TransactionData,
-} from '../api/transactions';
+import { updateTransaction, type TransactionData } from '../api/transactions';
 import { ApiError } from '../api/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -23,19 +20,38 @@ const transactionSchema = z.object({
       message: 'Amount must be a non-zero number.',
     }),
   description: z.string().max(512),
-  categoryId: z.string().optional(),
+  categoryId: z.string().min(1, 'Please select a category.'),
 });
 
 type TransactionValues = z.infer<typeof transactionSchema>;
 
 interface TransactionFormProps {
   wallets: WalletData[];
-  categories?: { id: string; name: string; type: 'income' | 'expense'; color: string; icon: string }[];
+  categories?: {
+    id: string;
+    name: string;
+    type: 'income' | 'expense';
+    color: string;
+    icon: string;
+  }[];
   categoriesCount?: number;
   onSuccess: () => void;
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
   onViewWallet?: (walletId: string) => void;
+  onEditWallet?: (wallet: {
+    id: string;
+    name: string;
+    color: string;
+    description: string;
+  }) => void;
+  onEditCategory?: (category: {
+    id: string;
+    name: string;
+    color: string;
+    icon: string;
+    type: 'income' | 'expense';
+  }) => void;
   autoSelectWalletId?: string;
   autoSelectCategoryId?: string;
   editMode?: boolean;
@@ -74,6 +90,8 @@ export function TransactionForm({
   onCreateWallet,
   onCreateCategory,
   onViewWallet,
+  onEditWallet,
+  onEditCategory,
   autoSelectWalletId,
   autoSelectCategoryId,
   editMode,
@@ -228,14 +246,19 @@ export function TransactionForm({
             selectedId={viewValues.walletId || null}
             onSelect={handleQuickWalletChange}
             onRefresh={onRefreshWallets}
+            onEdit={onEditWallet}
           />
         </div>
 
         <div className="space-y-2">
           <Label>Amount</Label>
-          <p className={`text-lg font-semibold ${
-            Number(viewValues.amount) < 0 ? 'text-destructive' : 'text-foreground'
-          }`}>
+          <p
+            className={`text-lg font-semibold ${
+              Number(viewValues.amount) < 0
+                ? 'text-destructive'
+                : 'text-foreground'
+            }`}
+          >
             {Number(viewValues.amount) < 0 ? '-' : ''}$
             {Math.abs(Number(viewValues.amount)).toFixed(2)}
           </p>
@@ -249,15 +272,14 @@ export function TransactionForm({
               selectedId={viewValues.categoryId || null}
               onSelect={handleQuickCategoryChange}
               onRefresh={onRefreshCategories}
+              onEdit={onEditCategory}
             />
           </div>
         )}
 
         <div>
           <span className="text-sm text-muted-foreground">Description</span>
-          <p className="text-sm font-medium">
-            {viewValues.description || '—'}
-          </p>
+          <p className="text-sm font-medium">{viewValues.description || '—'}</p>
         </div>
 
         <div className="flex gap-2 pt-2">
@@ -335,8 +357,14 @@ export function TransactionForm({
         <WalletSelectList
           wallets={wallets}
           selectedId={selectedWalletId || null}
-          onSelect={(id) => setValue('walletId', id, { shouldValidate: true, shouldDirty: true })}
+          onSelect={(id) =>
+            setValue('walletId', id, {
+              shouldValidate: true,
+              shouldDirty: true,
+            })
+          }
           onRefresh={onRefreshWallets}
+          onEdit={onEditWallet}
         />
         {errors.walletId && (
           <span role="alert" className="text-sm text-destructive">
@@ -386,8 +414,14 @@ export function TransactionForm({
           <CategorySelectList
             categories={categories}
             selectedId={watch('categoryId') || null}
-            onSelect={(id) => setValue('categoryId', id, { shouldValidate: true, shouldDirty: true })}
+            onSelect={(id) =>
+              setValue('categoryId', id, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
             onRefresh={onRefreshCategories}
+            onEdit={onEditCategory}
           />
           {onCreateCategory && (
             <span
@@ -424,9 +458,7 @@ export function TransactionForm({
         <Button
           type="submit"
           disabled={
-            isSubmitting ||
-            wallets.length === 0 ||
-            (editMode && !isDirty)
+            isSubmitting || wallets.length === 0 || (editMode && !isDirty)
           }
         >
           {isSubmitting

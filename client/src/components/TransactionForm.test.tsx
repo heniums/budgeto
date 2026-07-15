@@ -188,14 +188,28 @@ describe('TransactionForm — prerequisite warnings', () => {
       </MemoryRouter>,
     );
 
-    const chip = screen.getByText('Savings').closest('[data-testid="wallet-chip"]');
+    const chip = screen
+      .getByText('Savings')
+      .closest('[data-testid="wallet-chip"]');
     expect(chip).toHaveAttribute('data-selected', 'true');
   });
 
   it('renders category chips when categories are provided', () => {
     const categories = [
-      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b', icon: 'UtensilsCrossed' },
-      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c', icon: 'BriefcaseBusiness' },
+      {
+        id: 'c1',
+        name: 'Food',
+        type: 'expense' as const,
+        color: '#ff6b6b',
+        icon: 'UtensilsCrossed',
+      },
+      {
+        id: 'c2',
+        name: 'Salary',
+        type: 'income' as const,
+        color: '#1f8a4c',
+        icon: 'BriefcaseBusiness',
+      },
     ];
     render(
       <MemoryRouter>
@@ -214,8 +228,20 @@ describe('TransactionForm — prerequisite warnings', () => {
 
   it('auto-selects category when autoSelectCategoryId prop is provided', () => {
     const categories = [
-      { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b', icon: 'UtensilsCrossed' },
-      { id: 'c2', name: 'Salary', type: 'income' as const, color: '#1f8a4c', icon: 'BriefcaseBusiness' },
+      {
+        id: 'c1',
+        name: 'Food',
+        type: 'expense' as const,
+        color: '#ff6b6b',
+        icon: 'UtensilsCrossed',
+      },
+      {
+        id: 'c2',
+        name: 'Salary',
+        type: 'income' as const,
+        color: '#1f8a4c',
+        icon: 'BriefcaseBusiness',
+      },
     ];
     render(
       <MemoryRouter>
@@ -231,11 +257,40 @@ describe('TransactionForm — prerequisite warnings', () => {
     const chip = screen.getByLabelText('Salary');
     expect(chip).toHaveAttribute('data-selected', 'true');
   });
+
+  it('prevents submit when no category is selected', async () => {
+    const onSuccess = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={[]}
+          onSuccess={onSuccess}
+        />
+      </MemoryRouter>,
+    );
+
+    // Fill required fields but no category
+    await user.type(screen.getByLabelText('Amount'), '50');
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+
+    // Should not call createTransaction because category is missing
+    expect(createTransaction).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
 });
 
 describe('TransactionForm — edit mode', () => {
   const categories = [
-    { id: 'c1', name: 'Food', type: 'expense' as const, color: '#ff6b6b', icon: 'UtensilsCrossed' },
+    {
+      id: 'c1',
+      name: 'Food',
+      type: 'expense' as const,
+      color: '#ff6b6b',
+      icon: 'UtensilsCrossed',
+    },
   ];
 
   beforeEach(() => {
@@ -280,7 +335,9 @@ describe('TransactionForm — edit mode', () => {
     );
 
     // Wallet chip should be selected
-    const walletChip = screen.getByText('Cash').closest('[data-testid="wallet-chip"]');
+    const walletChip = screen
+      .getByText('Cash')
+      .closest('[data-testid="wallet-chip"]');
     expect(walletChip).toHaveAttribute('data-selected', 'true');
 
     // Amount and description still use Input components
@@ -306,7 +363,7 @@ describe('TransactionForm — edit mode', () => {
             walletId: 'w1',
             amount: '10',
             description: '',
-            categoryId: '',
+            categoryId: 'c1',
           }}
           editTxId="t-edit"
         />
@@ -336,7 +393,7 @@ describe('TransactionForm — edit mode', () => {
             walletId: 'w1',
             amount: '100',
             description: 'Old',
-            categoryId: '',
+            categoryId: 'c1',
           }}
           editTxId="t-edit"
         />
@@ -353,7 +410,7 @@ describe('TransactionForm — edit mode', () => {
     expect(updateTransaction).toHaveBeenCalledWith('t-edit', {
       amount: '200',
       description: 'Old',
-      categoryId: undefined,
+      categoryId: 'c1',
       walletId: 'w1',
     });
     expect(createTransaction).not.toHaveBeenCalled();

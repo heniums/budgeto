@@ -1,5 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
-import { getTransactions, type TransactionData, deleteTransaction } from '../api/transactions';
+import {
+  getTransactions,
+  type TransactionData,
+  deleteTransaction,
+} from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
@@ -182,48 +186,67 @@ export function Home(): JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
         <div className="flex gap-2">
-          <Dialog open={txOpen} onOpenChange={setTxOpen}>
-            <DialogTrigger asChild>
-              <Button>Add transaction</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add transaction</DialogTitle>
-              </DialogHeader>
-              <TransactionForm
-                wallets={wallets}
-                categories={categories.map((c) => ({
-                  id: c.id,
-                  name: c.name,
-                  type: c.type,
-                  color: c.color,
-                  icon: c.icon,
-                }))}
-                categoriesCount={categories.length}
-                autoSelectWalletId={pendingWalletId ?? undefined}
-                autoSelectCategoryId={pendingCategoryId ?? undefined}
-                onSuccess={() => {
-                  setTxOpen(false);
-                  setPage(1);
-                  setPendingWalletId(null);
-                  setPendingCategoryId(null);
-                  load();
-                }}
-                onRefreshWallets={load}
-                onRefreshCategories={load}
-                onClose={() => setTxOpen(false)}
-                onCreateWallet={() => {
-                  setCreateWalletOpen(true);
-                }}
-                onCreateCategory={() => {
-                  setCreateCategoryOpen(true);
-                }}
-                onViewWallet={(id) => {
-                  setDetailWalletId(id);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {wallets.length > 0 && categories.length > 0 ? (
+            <Dialog open={txOpen} onOpenChange={setTxOpen}>
+              <DialogTrigger asChild>
+                <Button>Add transaction</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add transaction</DialogTitle>
+                </DialogHeader>
+                <TransactionForm
+                  wallets={wallets}
+                  categories={categories.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    color: c.color,
+                    icon: c.icon,
+                  }))}
+                  categoriesCount={categories.length}
+                  autoSelectWalletId={
+                    pendingWalletId ?? wallets[0]?.id ?? undefined
+                  }
+                  autoSelectCategoryId={
+                    pendingCategoryId ?? categories[0]?.id ?? undefined
+                  }
+                  onSuccess={() => {
+                    setTxOpen(false);
+                    setPage(1);
+                    setPendingWalletId(null);
+                    setPendingCategoryId(null);
+                    load();
+                  }}
+                  onRefreshWallets={load}
+                  onRefreshCategories={load}
+                  onClose={() => setTxOpen(false)}
+                  onCreateWallet={() => {
+                    setCreateWalletOpen(true);
+                  }}
+                  onCreateCategory={() => {
+                    setCreateCategoryOpen(true);
+                  }}
+                  onViewWallet={(id) => {
+                    setDetailWalletId(id);
+                  }}
+                  onEditWallet={(wallet) => {
+                    setDetailWalletId(wallet.id);
+                  }}
+                  onEditCategory={(category) => {
+                    setDetailCategoryId(category.id);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button
+              disabled
+              title="You need at least one wallet and one category to add a transaction"
+            >
+              Add transaction
+            </Button>
+          )}
           <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Transfer</Button>
@@ -487,6 +510,21 @@ export function Home(): JSX.Element {
               }}
               onRefreshWallets={load}
               onRefreshCategories={load}
+              onViewWallet={(id) => {
+                setDetailWalletId(id);
+              }}
+              onEditWallet={(wallet) => {
+                setDetailWalletId(wallet.id);
+              }}
+              onEditCategory={(category) => {
+                setDetailCategoryId(category.id);
+              }}
+              onCreateWallet={() => {
+                setCreateWalletOpen(true);
+              }}
+              onCreateCategory={() => {
+                setCreateCategoryOpen(true);
+              }}
               onDelete={() => {
                 setEditTx(null);
                 const pair = findTransferPair(editTx, transactions);
@@ -521,14 +559,11 @@ export function Home(): JSX.Element {
             <DialogTitle>Delete transaction</DialogTitle>
           </DialogHeader>
           <p className="text-sm text-muted-foreground">
-            Are you sure you want to delete this transaction? This action
-            cannot be undone.
+            Are you sure you want to delete this transaction? This action cannot
+            be undone.
           </p>
           <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              onClick={() => setDeleteConfirm(null)}
-            >
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
               Cancel
             </Button>
             <Button
@@ -548,7 +583,7 @@ export function Home(): JSX.Element {
         </DialogContent>
       </Dialog>
 
-            <Dialog
+      <Dialog
         open={cascadeTx !== null}
         onOpenChange={(open) => {
           if (!open) setCascadeTx(null);
@@ -604,7 +639,6 @@ export function Home(): JSX.Element {
       </Dialog>
 
       <WalletModal
-        mode="view"
         walletId={detailWalletId ?? undefined}
         open={detailWalletId !== null}
         onOpenChange={(open) => {
@@ -617,7 +651,6 @@ export function Home(): JSX.Element {
       />
 
       <WalletModal
-        mode="create"
         open={createWalletOpen}
         onOpenChange={setCreateWalletOpen}
         onSuccess={(newWallet) => {
@@ -628,7 +661,6 @@ export function Home(): JSX.Element {
       />
 
       <CategoryModal
-        mode="view"
         categoryId={detailCategoryId ?? undefined}
         open={detailCategoryId !== null}
         onOpenChange={(open) => {
@@ -641,7 +673,6 @@ export function Home(): JSX.Element {
       />
 
       <CategoryModal
-        mode="create"
         open={createCategoryOpen}
         onOpenChange={setCreateCategoryOpen}
         onSuccess={(newCategory) => {

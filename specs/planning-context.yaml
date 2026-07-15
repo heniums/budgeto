@@ -1,72 +1,63 @@
-# specs/planning-context.yaml — elaborated 2026-07-15
-# Feature: Unified Wallet & Category Modal System
+# specs/planning-context.yaml — elaborated 2026-07-15, updated 2026-07-15
+# Feature: Unified Wallet & Category Modal Refactor (Dialog-based)
 
-feature_name: 'Unified Wallet & Category Modal System'
+feature_name: 'Unified Wallet & Category Modal Refactor'
 
 problem_statement: >
-  Wallet and category creation/editing currently has four different UI surfaces
-  across the app, causing inconsistency, code duplication, and a jarring user
-  experience:
-
-  1. WalletDetailSheet / CategoryDetailSheet — slide-in Sheet components used
-     in the Home page for viewing/creating from the transaction flow.
-  2. WalletEditDialog / WalletCreateDialog — inline Dialog components inside
-     WalletSelectList and CategorySelectList (e10 chip-selectors).
-  3. WalletForm / WalletDetail pages — full-page navigation routes in the
-     Settings area.
-  4. CategoryForm / Categories pages — full-page navigation routes in Settings.
-
-  This fragmentation means:
-  - The inline dialogs in the chip-selectors duplicate the Sheet form logic
-    (two different implementations of "create wallet" and "edit category").
-  - The Settings page uses old full-page form navigation that feels disconnected
-    from the rest of the app's modal-first design.
-  - Navigating from a transaction to create a wallet loses the transaction draft
-    (you must re-enter all fields).
-  - The WalletDetail page (viewing a single wallet's transactions) requires
-    full-page navigation when it could be a modal.
+  Wallet and category management currently uses slide-in Sheets with separate
+  create/edit/view modes. Users must click "Edit" to leave read-only view
+  before making changes — an extra step that adds friction. The transaction
+  form is always openable even when no wallets or categories exist, showing
+  inline alerts after the fact instead of preventing the action upfront.
+  Additionally, the Sheet-based slide-in feels disconnected from the
+  Dialog-based transaction form, making nested management awkward.
 
 constraints:
-  - 'Reuse existing shadcn/ui primitives (Dialog, Sheet, Button, Input, Label, Badge, ScrollArea).'
+  - 'Reuse existing shadcn/ui primitives (Dialog, Button, Input, Label, Badge, ScrollArea).'
   - 'No new npm dependencies.'
   - 'Reuse existing API modules (api/wallets.ts, api/categories.ts, api/transactions.ts).'
   - 'No new server endpoints or database migrations needed.'
   - 'npm test (>=80% coverage) and npm run type-check must remain green.'
-  - 'Transaction form state must survive the wallet/category modal round-trip.'
-  - 'Slide-in/slide-out animation for modal transitions (Dialog does not natively support this — use Sheet or CSS transitions).'
+  - 'Category is now mandatory for transactions (client-side enforcement; schema change in TransactionForm only).'
+  - 'Nested dialogs use Radix built-in dialog stacking (Dialog over Dialog).'
 
 out_of_scope:
   - 'Changes to the transfer form dialog.'
   - 'New database migrations or server endpoints.'
   - 'Changes to the OnboardingWizard flow (though it may reuse the same modals).'
   - 'Changes to the Profile/SignIn/SignUp pages.'
+  - 'Backend enforcement of mandatory category (client-side only for now).'
+  - 'Removal of Settings routes or pages (WalletList, Categories) — only the modals they consume change.'
 
 key_decisions:
-  - decision: 'Use shadcn Sheet (side="right") for the unified wallet/category modals — not Dialog.'
-    rationale: "Sheet natively supports slide-in/out animation from the right edge. This matches the user's desired 'fly out / fly in' transition. Dialogs are center-popups with fade animation and don't support directional slide transitions without custom CSS."
-  - decision: 'Sequential replace transition: Transaction dialog closes (unmounted from Dialog but parent holds form state), wallet/category Sheet slides in. On save/cancel, Sheet closes, transaction dialog reopens with state intact.'
-    rationale: "The user prefers 'slide out / slide in' animation. Since Dialog and Sheet are different components, we implement this by managing open/close state in the parent (Home page), not by nesting modals. The transaction Dialog closes → Sheet opens → Sheet closes → transaction Dialog reopens. The TransactionForm is not unmounted from React — it's just inside a closed Dialog whose children stay mounted because the Dialog's open state is controlled by the parent."
-  - decision: 'Parent (Home page) holds the transaction form state in a ref or lifted state so it survives Dialog close/reopen.'
-    rationale: "When the transaction Dialog closes and reopens, React Hook Form's reset would normally clear the form. By keeping the form state in the parent (or using React Hook Form's `shouldUnregister: false`), the draft is preserved across the round-trip."
-  - decision: 'Create a single WalletModal and CategoryModal component used everywhere (TransactionForm flow, Settings page, chip-selector inline actions).'
-    rationale: 'One component, one set of tests, one source of truth. Eliminates WalletDetailSheet, CategoryDetailSheet, WalletEditDialog, WalletCreateDialog, CategoryEditDialog, CategoryCreateDialog — all replaced by two components.'
-  - decision: 'WalletModal and CategoryModal accept mode prop: "create" | "edit" | "view".'
-    rationale: 'A single component handles all three use cases. The view mode shows wallet/category details read-only with an Edit button. This replaces WalletDetailSheet/CategoryDetailSheet for read-only viewing too.'
-  - decision: 'Settings → Wallets tab: WalletList page stays as-is (list view). New/Edit/View open WalletModal as a Sheet.'
-    rationale: 'The list page is good UX for browsing. Modals for CRUD actions keep the user in context without full-page navigation.'
-  - decision: 'Settings → Categories tab: Categories page stays as-is (list view). New/Edit open CategoryModal as a Sheet.'
-    rationale: 'Same reasoning as wallets.'
-  - decision: 'The Wallet Detail page (/settings/wallets/:id) is removed as a route. Viewing a wallet opens WalletModal in view mode.'
-    rationale: 'The wallet detail page shows wallet info + filtered transactions. This works well as a modal Sheet — the transactions list scrolls within the Sheet. Keeping it as a full page adds unnecessary navigation.'
-  - decision: 'WalletForm, CategoryForm, WalletDetail pages are removed. WalletModal and CategoryModal handle all CRUD and viewing.'
-    rationale: 'These pages are replaced by the unified modals. Removing them simplifies the route table.'
-  - decision: 'WalletSelectList and CategorySelectList are simplified: they no longer contain their own Dialog components. Instead, they emit callbacks (onCreate, onEdit) that the parent handles by opening WalletModal/CategoryModal.'
-    rationale: 'This separates concerns — the chip list handles selection, the parent handles modal management. The chip list no longer needs to know about forms or dialogs.'
-  - decision: 'Transition animation: CSS transform + opacity. Sheet slides in from right, Dialog slides out to left (or fades).'
-    rationale: "shadcn Sheet already has slide-from-right animation. For the Dialog exit, we use a brief opacity/transform transition. The key UX is that the transaction form appears to 'slide away' and the wallet/category form 'slides in' — achieved by closing the Dialog and opening the Sheet in quick succession."
+  - decision: 'Convert WalletModal and CategoryModal from Sheet to Dialog (centered popup).'
+    rationale: 'User wants popup modals, not slide-in sidebars. Dialog is already used for the transaction form — consistency across the app. Applies everywhere: Home page, Settings pages, nested from transaction form.'
+
+  - decision: 'Unified CRUD view — drop mode prop and internalMode toggle. Single screen where form fields are always editable.'
+    rationale: "No more clicking 'Edit' to switch from view mode. Fields are always live. 'Save Changes' enables on form dirty. 'Delete' always visible. Form-only layout — no separate read-only details section."
+
+  - decision: 'Nested dialogs for transaction-form-launched wallet/category management.'
+    rationale: "When the transaction Dialog is open and user clicks 'Create wallet →', the wallet Dialog opens ON TOP. Radix Dialog natively supports this. On close, focus returns to the transaction Dialog underneath. Simpler than the prior sequential-close-reopen approach."
+
+  - decision: 'Auto-select first wallet AND first category when transaction form opens.'
+    rationale: 'Reduces friction — the most common case is the user wants to use their default wallet/category. Auto-selection on mount via useEffect.'
+
+  - decision: 'Hard guard: transaction form cannot open if wallets.length === 0 OR categories.length === 0.'
+    rationale: "The 'Add transaction' button is disabled with explanatory text. No inline alerts inside the form — the form simply cannot be opened until both wallets and categories exist. This prevents the user from starting a transaction they cannot complete."
+
+  - decision: 'Category is now mandatory in the transaction form (schema change: categoryId z.string().min(1)).'
+    rationale: 'Consistent with the hard guard — if we require categories to exist before opening the form, the category field should be required. Client-side only for now.'
+
+  - decision: 'WalletSelectList and CategorySelectList chips emit onEdit callback; parent opens the unified Dialog.'
+    rationale: 'The chip list handles selection/display. The parent (Home page or Settings page) handles modal orchestration. Already mostly the pattern — just ensuring onEdit opens the unified Dialog with the item pre-populated.'
+
+  - decision: 'Settings pages (WalletList, Categories) use the same refactored Dialog-based modals.'
+    rationale: 'Consistent experience. WalletList and Categories pages stay as list views; clicking an item opens the unified Dialog for edit/delete.'
+
+  - decision: 'WalletModal view mode no longer fetches transactions for the wallet.'
+    rationale: "Unified form-only layout doesn't include the transaction list. If wallet transaction viewing is needed later, it would be a separate component. Keeping the modal focused on CRUD."
 
 references:
   - specs/product/VISION_LATEST.yaml
   - specs/release-plan.yaml
   - specs/tech-architecture/TECH_STACK_LATEST.md
-  - specs/planning-context.yaml (previous, for chip-selectors)

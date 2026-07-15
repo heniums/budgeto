@@ -1,67 +1,46 @@
-# e11s02 tasks — Simplify chip-selectors + Home page sequential transition
+# e11s02 tasks — Transaction Form Auto-select, Mandatory Category & Hard Guard
+story_id: e11s02
+title: 'Transaction Form — Auto-select, Mandatory Category & Hard Guard'
+status: planned
+bcps: 4
 tasks:
   - id: '1'
-    desc: 'Simplify WalletSelectList: remove inline dialogs, emit callbacks'
+    desc: 'Make categoryId mandatory in TransactionForm schema'
     story: e11s02
-    verify: 'npm run type-check -- --noEmit'
+    verify: 'npx vitest run client/src/components/TransactionForm.test.tsx'
     details: >
-      Remove WalletEditDialog, WalletCreateDialog, WalletViewAllDialog
-      components and their state. Add onCreate, onEdit, onViewAll callback
-      props. LongPressWalletChip: call onEdit directly. Plus button: call
-      onCreate. Grid button: call onViewAll. ContextMenu: call onEdit.
-      When callbacks not provided, hide corresponding buttons.
-      Keep ScrollArea, keyboard nav, selected styling.
+      Change categoryId Zod schema from z.string().optional() to
+      z.string().min(1, 'Please select a category.'). The submit button
+      should be disabled until a category is selected. Add validation
+      error display for categoryId. Update test to verify category is
+      required (form invalid without it).
 
   - id: '2'
-    desc: 'Simplify CategorySelectList: remove inline dialogs, emit callbacks'
+    desc: 'Auto-select first wallet and category on transaction form open in Home page'
     story: e11s02
     verify: 'npm run type-check -- --noEmit'
     details: >
-      Remove CategoryEditDialog, CategoryCreateDialog, CategoryViewAllDialog
-      components and their state. Add onCreate, onEdit, onViewAll callback
-      props. LongPressCategoryChip: call onEdit directly. Plus button: call
-      onCreate. Grid button: call onViewAll. ContextMenu: call onEdit.
-      When callbacks not provided, hide corresponding buttons.
-      Keep ScrollArea, keyboard nav, selected styling.
+      In Home.tsx, when opening the transaction Dialog, compute
+      firstWalletId (wallets[0].id) and firstCategoryId (categories[0].id)
+      and pass as autoSelectWalletId/autoSelectCategoryId to TransactionForm.
+      The existing useEffect hooks in TransactionForm handle the rest.
 
   - id: '3'
-    desc: 'Add formRef to TransactionForm for state preservation'
-    story: e11s02
-    verify: 'npm run type-check -- --noEmit'
-    details: >
-      Add forwardRef + useImperativeHandle to TransactionForm exposing
-      getValues() that returns the current form values. This allows the
-      Home page to snapshot form state before closing the Dialog and
-      restore it when reopening.
-
-  - id: '4'
-    desc: 'Refactor Home page: sequential modal state machine'
-    story: e11s02
-    verify: 'npm run type-check -- --noEmit && npx vitest run client/src/pages/Home.test.tsx'
-    details: >
-      Implement modal state machine in Home page. Add state:
-      `activeModal: 'tx' | 'tx-edit' | 'wallet-create' | 'wallet-edit' |
-      'wallet-view' | 'category-create' | 'category-edit' | 'category-view' | null`.
-      Before transitioning from tx → wallet/category, snapshot TransactionForm
-      values via formRef.getValues() and store in savedTxDraft ref.
-      On wallet/category modal close, restore tx Dialog with saved values
-      as initialValues. Remove WalletDetailSheet/CategoryDetailSheet usage.
-      Wire WalletModal/CategoryModal. Handle onSuccess callbacks to refresh data.
-
-  - id: '5'
-    desc: 'Update chip-selector tests for callback API'
-    story: e11s02
-    verify: 'npx vitest run client/src/components/WalletSelectList.test.tsx client/src/components/CategorySelectList.test.tsx'
-    details: >
-      Update WalletSelectList tests: remove dialog tests, add tests for
-      onCreate/onEdit/onViewAll callbacks. Verify buttons hidden when
-      callbacks not provided. Update CategorySelectList tests similarly.
-
-  - id: '6'
-    desc: 'Update Home page tests for new modal flow'
+    desc: 'Disable "Add transaction" button when wallets or categories empty'
     story: e11s02
     verify: 'npx vitest run client/src/pages/Home.test.tsx'
     details: >
-      Update Home tests: test sequential modal transitions, verify
-      transaction state preserved across wallet/category round-trip,
-      test WalletModal/CategoryModal integration.
+      In Home.tsx, conditionally render the Dialog+DialogTrigger (enabled
+      Button) when wallets.length > 0 && categories.length > 0. Otherwise
+      render a disabled Button with title tooltip and contextual guidance
+      text. Show specific messages for missing wallets vs missing categories.
+
+  - id: '4'
+    desc: 'Update TransactionForm and Home tests'
+    story: e11s02
+    verify: 'npm test -- --run client/src/components/TransactionForm.test.tsx client/src/pages/Home.test.tsx'
+    details: >
+      TransactionForm tests: add test for mandatory category validation
+      (form invalid without category, error shown on submit). Home tests:
+      add tests for disabled button when wallets empty, disabled when
+      categories empty, enabled when both exist, auto-select on open.

@@ -6,11 +6,11 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-} from '@/components/ui/sheet';
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   createCategory,
   getCategory,
@@ -19,9 +19,15 @@ import {
   type CategoryData,
 } from '../api/categories';
 import { ApiError } from '../api/client';
-import { ICONS, getIcon } from '../lib/icons';
+import { ICONS } from '../lib/icons';
 import { cn } from '@/lib/utils';
-import { DEFAULT_COLOR, DEFAULT_ICON_NAME, MAX_NAME_LENGTH, LABEL, ERR, SHEET_SIDE, SHEET_WIDTH } from '../lib/constants';
+import {
+  DEFAULT_COLOR,
+  DEFAULT_ICON_NAME,
+  MAX_NAME_LENGTH,
+  LABEL,
+  ERR,
+} from '../lib/constants';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
@@ -33,7 +39,6 @@ const categorySchema = z.object({
 type CategoryFormValues = z.infer<typeof categorySchema>;
 
 export interface CategoryModalProps {
-  mode: 'create' | 'edit' | 'view';
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categoryId?: string;
@@ -41,18 +46,13 @@ export interface CategoryModalProps {
 }
 
 export function CategoryModal({
-  mode,
   open,
   onOpenChange,
   categoryId,
   onSuccess,
 }: CategoryModalProps): JSX.Element {
-  const [category, setCategory] = useState<CategoryData | null>(null);
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
-  const [internalMode, setInternalMode] = useState<
-    'edit' | null
-  >(null);
 
   const {
     register,
@@ -60,27 +60,27 @@ export function CategoryModal({
     reset,
     watch,
     setValue,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', type: 'expense', color: DEFAULT_COLOR, icon: DEFAULT_ICON_NAME },
+    defaultValues: {
+      name: '',
+      type: 'expense',
+      color: DEFAULT_COLOR,
+      icon: DEFAULT_ICON_NAME,
+    },
   });
 
   const selectedColor = watch('color');
   const selectedIcon = watch('icon');
 
-  const effectiveMode = internalMode ?? mode;
-  const isCreate = effectiveMode === 'create';
-  const isEdit = effectiveMode === 'edit';
-  const isView = effectiveMode === 'view';
+  const isCreate = !categoryId;
 
   useEffect(() => {
     if (!open) return;
 
     if (isCreate) {
       setLoading(false);
-      setCategory(null);
-      setInternalMode(null);
       reset({
         name: '',
         type: 'expense',
@@ -91,15 +91,13 @@ export function CategoryModal({
       return;
     }
 
-    if (!categoryId) return;
-
     let active = true;
     setLoading(true);
     setFormError(null);
+    if (!categoryId) return;
     getCategory(categoryId)
       .then((c) => {
         if (!active) return;
-        setCategory(c);
         reset({
           name: c.name,
           type: c.type,
@@ -128,10 +126,9 @@ export function CategoryModal({
         icon: values.icon,
       });
       onSuccess?.(cat);
-      setInternalMode(null);
     } catch (err) {
       setFormError(
-                err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
+        err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
       );
     }
   };
@@ -147,7 +144,6 @@ export function CategoryModal({
         icon: values.icon,
       });
       onSuccess?.();
-      setInternalMode(null);
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
@@ -165,31 +161,25 @@ export function CategoryModal({
       onSuccess?.();
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : ERR.FAILED_TO_DELETE('category'),
+        err instanceof ApiError
+          ? err.message
+          : ERR.FAILED_TO_DELETE('category'),
       );
     }
   };
 
-  const ViewIcon = category ? getIcon(category.icon) : undefined;
-
-  const title = isCreate
-    ? 'New Category'
-    : isEdit
-      ? 'Edit Category'
-      : 'Category Details';
+  const title = isCreate ? 'New Category' : 'Edit Category';
 
   return (
-    <Sheet open={open} onOpenChange={(o) => { if (!o) setInternalMode(null); onOpenChange(o); }}>
-      <SheetContent side={SHEET_SIDE} className={SHEET_WIDTH}>
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-        </SheetHeader>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{title}</DialogTitle>
+        </DialogHeader>
 
-        {loading && (
-          <p className="text-muted-foreground mt-4">Loading…</p>
-        )}
+        {loading && <p className="text-muted-foreground mt-4">Loading…</p>}
 
-        {!loading && (isCreate || isEdit) && (
+        {!loading && (
           <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate
@@ -206,11 +196,7 @@ export function CategoryModal({
 
             <div className="space-y-2">
               <Label htmlFor="cat-modal-name">{LABEL.NAME}</Label>
-              <Input
-                id="cat-modal-name"
-                type="text"
-                {...register('name')}
-              />
+              <Input id="cat-modal-name" type="text" {...register('name')} />
               {errors.name && (
                 <span role="alert" className="text-sm text-destructive">
                   {errors.name.message}
@@ -222,19 +208,11 @@ export function CategoryModal({
               <Label>{LABEL.TYPE}</Label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="expense"
-                    {...register('type')}
-                  />
+                  <input type="radio" value="expense" {...register('type')} />
                   Expense
                 </label>
                 <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    value="income"
-                    {...register('type')}
-                  />
+                  <input type="radio" value="income" {...register('type')} />
                   Income
                 </label>
               </div>
@@ -242,11 +220,7 @@ export function CategoryModal({
 
             <div className="space-y-2">
               <Label htmlFor="cat-modal-color">{LABEL.COLOR}</Label>
-              <Input
-                id="cat-modal-color"
-                type="color"
-                {...register('color')}
-              />
+              <Input id="cat-modal-color" type="color" {...register('color')} />
             </div>
 
             <div className="space-y-2">
@@ -269,9 +243,7 @@ export function CategoryModal({
                     )}
                     style={{
                       color:
-                        selectedIcon === iconName
-                          ? selectedColor
-                          : undefined,
+                        selectedIcon === iconName ? selectedColor : undefined,
                     }}
                   >
                     <Icon size={18} />
@@ -281,9 +253,9 @@ export function CategoryModal({
             </div>
 
             <div
-              className={`flex ${isEdit ? 'justify-between' : 'justify-end'} gap-2`}
+              className={`flex ${!isCreate ? 'justify-between' : 'justify-end'} gap-2`}
             >
-              {isEdit && (
+              {!isCreate && (
                 <Button
                   variant="destructive"
                   onClick={handleDelete}
@@ -296,20 +268,14 @@ export function CategoryModal({
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={() => {
-                    if (internalMode === 'edit' && mode === 'view') {
-                      setInternalMode(null);
-                    } else {
-                      onOpenChange(false);
-                    }
-                  }}
+                  onClick={() => onOpenChange(false)}
                   type="button"
                 >
                   Cancel
                 </Button>
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || (!isCreate && !isDirty)}
                 >
                   {isSubmitting
                     ? isCreate
@@ -317,58 +283,13 @@ export function CategoryModal({
                       : 'Saving…'
                     : isCreate
                       ? 'Create'
-                      : 'Save'}
+                      : 'Save Changes'}
                 </Button>
               </div>
             </div>
           </form>
         )}
-
-        {!loading && isView && category && (
-          <div className="mt-6 space-y-4">
-            <div className="flex items-center gap-3">
-              {ViewIcon && (
-                <span style={{ color: category.color }}>
-                  <ViewIcon size={32} />
-                </span>
-              )}
-              <div>
-                <p className="font-semibold text-lg">{category.name}</p>
-                <span
-                  className="inline-block text-xs font-medium px-2 py-0.5 rounded-full"
-                  style={{
-                    backgroundColor: category.color + '20',
-                    color: category.color,
-                  }}
-                >
-                  {category.type}
-                </span>
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  onOpenChange(false);
-                }}
-              >
-                Close
-              </Button>
-              <Button
-                variant="default"
-                onClick={() => setInternalMode('edit')}
-              >
-                Edit
-              </Button>
-            </div>
-          </div>
-        )}
-
-        {!loading && isView && formError && (
-          <p className="text-destructive mt-4">{formError}</p>
-        )}
-      </SheetContent>
-    </Sheet>
+      </DialogContent>
+    </Dialog>
   );
 }

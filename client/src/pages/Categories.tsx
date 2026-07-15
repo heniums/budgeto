@@ -8,9 +8,9 @@ export function Categories(): JSX.Element {
   const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [modalMode, setModalMode] = useState<
-    'create' | 'edit' | 'view' | null
-  >(null);
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(
+    null,
+  );
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
@@ -110,7 +110,6 @@ export function Categories(): JSX.Element {
       )}
 
       <CategoryModal
-        mode={modalMode ?? 'view'}
         open={modalMode !== null}
         onOpenChange={(open) => {
           if (!open) {
@@ -118,7 +117,9 @@ export function Categories(): JSX.Element {
             setSelectedCategoryId(null);
           }
         }}
-        categoryId={selectedCategoryId ?? undefined}
+        categoryId={
+          modalMode === 'create' ? undefined : (selectedCategoryId ?? undefined)
+        }
         onSuccess={() => {
           setModalMode(null);
           setSelectedCategoryId(null);

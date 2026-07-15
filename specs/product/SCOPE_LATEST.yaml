@@ -1,131 +1,119 @@
-# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Unified Modal System.
-# Written by scope-work (planning spine step 1) on 2026-07-15.
-# Consumes specs/planning-context.yaml (elaborate-spec output).
+# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Dialog-based Unified Modals.
+# Rewritten 2026-07-15 from updated specs/planning-context.yaml.
+# Supersedes prior Sheet-based approach.
 
 core_value: >
-  Consolidate wallet and category creation, editing, and viewing into two
-  unified Sheet-based modal components (WalletModal, CategoryModal) that
-  replace four divergent UI surfaces and enable a smooth sequential slide
-  transition from the TransactionForm without losing draft state.
+  Convert wallet and category management from slide-in Sheets to centered
+  Dialog popups with a single unified view (no create/edit/view mode switching).
+  Implement nested dialogs from the transaction form, auto-select the first
+  wallet and category on transaction form open, and hard-guard the transaction
+  form behind wallet + category existence requirements.
 
 summary: >
-  Budgeto currently has four different UI surfaces for wallet and category
-  CRUD: slide-in Sheets (WalletDetailSheet/CategoryDetailSheet), inline
-  Dialogs inside chip-selectors (WalletEditDialog/WalletCreateDialog etc.),
-  and full-page form routes in Settings (WalletForm/WalletDetail/CategoryForm).
-  This fragmentation duplicates code, creates inconsistent UX, and breaks the
-  transaction flow — creating a wallet while filling a transaction form loses
-  the entire transaction draft.
+  Budgeto currently uses Sheet-based slide-in modals (WalletModal, CategoryModal)
+  with separate create/edit/view modes that require clicking "Edit" to leave
+  read-only view. The transaction form is always openable even when no wallets
+  or categories exist.
 
-  This initiative creates two unified modal components — WalletModal and
-  CategoryModal — using shadcn Sheet (slide-in from right) with three modes:
-  create, edit, and view. These modals become the single source of truth for
-  wallet/category CRUD everywhere in the app.
+  This initiative refactors WalletModal and CategoryModal to use shadcn Dialog
+  (centered popup) with a single unified view where form fields are always
+  editable. "Save Changes" enables on dirty detection. "Delete" is always
+  visible. The transaction form gains a hard guard — the "Add transaction"
+  button is disabled when wallets or categories are empty, and the form
+  auto-selects the first wallet and category on open. Category becomes
+  mandatory for transactions.
 
-  In the TransactionForm flow, the transaction Dialog and the wallet/category
-  Sheet participate in a sequential replace animation: the Dialog closes (state
-  preserved in the parent), the Sheet slides in, and on save/cancel the Sheet
-  closes and the Dialog reopens with the form exactly as left.
-
-  The Settings page keeps its list views (WalletList, Categories) but uses
-  WalletModal/CategoryModal for add/edit/view instead of navigating to separate
-  route pages. The WalletDetail page, WalletForm, and CategoryForm page routes
-  are removed.
-
-  WalletSelectList and CategorySelectList are simplified to emit callbacks
-  (onCreate, onEdit) instead of managing their own dialogs.
+  Nested dialogs: opening a wallet/category Dialog from within the transaction
+  Dialog stacks it on top via Radix's native dialog nesting. The transaction
+  form state is preserved naturally since the underlying Dialog stays mounted.
 
 in_scope:
   - id: SC-1
     description: >
-      WalletModal component — a Sheet-based modal with create, edit, and view
-      modes. Create mode: empty form (name, description, color). Edit mode:
-      prefilled form with save/delete. View mode: read-only display of wallet
-      info + filtered transactions list. Replaces WalletDetailSheet,
-      WalletEditDialog, WalletCreateDialog, WalletForm page, WalletDetail page.
+      Refactor WalletModal from Sheet to Dialog. Remove mode prop and
+      internalMode toggle. Single unified view: form fields (name, description,
+      color) always editable. "Save Changes" enables on formState.isDirty.
+      "Delete" button always visible. No transaction list in view mode
+      (form-only layout). Update WalletModal tests.
   - id: SC-2
     description: >
-      CategoryModal component — a Sheet-based modal with create, edit, and view
-      modes. Create mode: empty form (name, type, color, icon grid). Edit mode:
-      prefilled form with save/delete. View mode: read-only display of category
-      info. Replaces CategoryDetailSheet, CategoryEditDialog,
-      CategoryCreateDialog, CategoryForm page.
+      Refactor CategoryModal from Sheet to Dialog. Remove mode prop and
+      internalMode toggle. Single unified view: form fields (name, type,
+      color, icon grid) always editable. "Save Changes" enables on
+      formState.isDirty. "Delete" button always visible. Form-only layout.
+      Update CategoryModal tests.
   - id: SC-3
     description: >
-      Sequential slide transition from TransactionForm. When the user clicks
-      "Create wallet" or long-presses a wallet chip, the transaction Dialog
-      closes (form state preserved in parent via ref or lifted state), then
-      WalletModal/CategoryModal Sheet slides in. On save/cancel, Sheet closes
-      and transaction Dialog reopens with all fields intact.
+      Transaction form hard guard: "Add transaction" button in Home page is
+      disabled when wallets.length === 0 OR categories.length === 0. Show
+      explanatory text guiding user to create first wallet/category. No
+      inline alerts inside the form — the form simply cannot be opened.
   - id: SC-4
     description: >
-      Simplify WalletSelectList and CategorySelectList — remove all inline
-      Dialog components (WalletEditDialog, WalletCreateDialog,
-      WalletViewAllDialog, CategoryEditDialog, CategoryCreateDialog,
-      CategoryViewAllDialog). Instead, emit callbacks: onCreate, onEdit(wallet),
-      onViewAll. Parent handles modal management.
+      Transaction form auto-select: on open, auto-select the first wallet
+      AND first category via autoSelectWalletId/autoSelectCategoryId props.
+      Category is now mandatory (schema: categoryId z.string().min(1)).
   - id: SC-5
     description: >
-      Settings page integration — WalletList and Categories pages stay as-is
-      (list views). Tapping a wallet opens WalletModal in view mode. Tapping
-      "New Wallet" opens WalletModal in create mode. Tapping "Edit" opens
-      WalletModal in edit mode. Same pattern for categories. Remove
-      /settings/wallets/new, /settings/wallets/:id, /settings/wallets/:id/edit,
-      /settings/categories/new, /settings/categories/:id/edit routes.
+      Nested dialog orchestration from TransactionForm: clicking "Create
+      wallet →" / "Create category →" opens WalletModal/CategoryModal Dialog
+      ON TOP of the transaction Dialog (Radix native stacking). On save,
+      new item auto-selects and focus returns to transaction Dialog.
+      WalletSelectList/CategorySelectList onEdit callbacks open the unified
+      Dialog with the item pre-populated.
   - id: SC-6
     description: >
-      Home page refactor — manage the sequential modal state machine
-      (transaction Dialog ↔ wallet/category Sheet). Remove WalletDetailSheet
-      and CategoryDetailSheet usage. Wire up WalletModal and CategoryModal
-      for all wallet/category interactions originating from Home.
+      Settings pages (WalletList, Categories) use the same refactored
+      Dialog-based modals. No route changes needed — just the modal
+      components they consume are updated.
   - id: SC-7
     description: >
-      Tests and cleanup — add component tests for WalletModal and CategoryModal
-      (create/edit/view modes, form validation, API calls). Update
-      WalletSelectList and CategorySelectList tests (remove dialog tests, add
-      callback tests). Update Home page tests. Remove tests for deleted
-      components. Ensure npm test (>=80% coverage) and npm run type-check pass.
+      Tests and cleanup: update WalletModal, CategoryModal, TransactionForm,
+      WalletSelectList, CategorySelectList, Home page, WalletList, and
+      Categories tests. Ensure npm test (>=80% coverage) and npm run
+      type-check pass.
 
 out_of_scope:
   - id: OOS-1
     item: 'Changes to the transfer form dialog.'
-    reason: 'The transfer form is unchanged and continues using its current selectors.'
+    reason: 'The transfer form is unchanged.'
   - id: OOS-2
     item: 'New database migrations or server endpoints.'
     reason: 'All required fields and APIs already exist.'
   - id: OOS-3
     item: 'Changes to the OnboardingWizard flow.'
-    reason: 'The wizard may use WalletModal/CategoryModal in a future iteration but is not in scope now.'
+    reason: 'The wizard may reuse modals in a future iteration but is out of scope now.'
   - id: OOS-4
     item: 'Changes to Profile, SignIn, or SignUp pages.'
     reason: 'These pages are unrelated to wallet/category CRUD.'
   - id: OOS-5
-    item: 'Animation library or new npm dependency for transitions.'
-    reason: 'shadcn Sheet already provides slide animation. Dialog close/open provides sufficient transition feel.'
+    item: 'New npm dependencies.'
+    reason: 'shadcn Dialog is already available in client/src/components/ui/dialog.tsx.'
   - id: OOS-6
-    item: 'Changes to the Layout sidebar navigation.'
-    reason: 'The sidebar navigation (Home, Settings) is unrelated to this feature.'
+    item: 'Backend enforcement of mandatory category.'
+    reason: 'Client-side enforcement only for now. Server schema has categoryId as optional.'
+  - id: OOS-7
+    item: 'Removal of Settings routes or pages.'
+    reason: 'WalletList and Categories pages stay as list views. Only the modals they consume change.'
 
 constraints:
-  - 'Reuse existing shadcn/ui primitives (Sheet, Button, Input, Label, Badge, ScrollArea) and lucide-react icons.'
+  - 'Reuse existing shadcn/ui Dialog primitive (client/src/components/ui/dialog.tsx).'
   - 'No new npm dependencies.'
   - 'Reuse existing API modules (api/wallets.ts, api/categories.ts, api/transactions.ts).'
   - 'No new server endpoints or database migrations.'
   - 'npm test (>=80% coverage) and npm run type-check must remain green.'
-  - 'Transaction form state must survive the wallet/category Sheet round-trip.'
-  - 'WalletModal and CategoryModal must handle loading, empty, and error states gracefully.'
+  - 'Radix Dialog natively supports nested dialogs — no custom z-index management needed.'
+  - 'Category is mandatory client-side only (TransactionForm schema change).'
 
 success_criteria:
-  - 'WalletModal handles create, edit, and view modes with proper form validation.'
-  - 'CategoryModal handles create, edit, and view modes with proper form validation and icon grid.'
-  - 'From the TransactionForm, clicking "Create wallet" closes the transaction Dialog, opens WalletModal in create mode, and on save returns to the transaction Dialog with all fields preserved.'
-  - 'Long-pressing a wallet chip in the TransactionForm opens WalletModal in edit mode with fields prefilled.'
-  - 'In Settings → Wallets, tapping a wallet opens WalletModal in view mode showing wallet info and transactions.'
-  - 'In Settings → Wallets, tapping "New Wallet" opens WalletModal in create mode.'
-  - 'Same patterns work for categories.'
-  - 'WalletDetailSheet, CategoryDetailSheet, WalletForm page, CategoryForm page, WalletDetail page, and all inline Dialogs in chip-selectors are removed.'
+  - 'WalletModal uses Dialog (not Sheet) with unified always-editable view. Save enables on dirty.'
+  - 'CategoryModal uses Dialog (not Sheet) with unified always-editable view. Save enables on dirty.'
+  - '"Add transaction" button is disabled when wallets or categories are empty, with guidance text.'
+  - 'Opening transaction form auto-selects first wallet and first category.'
+  - 'Creating a wallet from inside the transaction form opens a nested Dialog; saving returns focus with new wallet auto-selected.'
+  - 'Creating a category from inside the transaction form opens a nested Dialog; saving returns focus with new category auto-selected.'
+  - 'Editing a wallet/category via chip context menu opens unified Dialog with fields pre-populated.'
   - 'npm test passes with >=80% coverage and npm run type-check exits clean.'
-  - 'No new orphans or dead code introduced.'
 
 references:
   - specs/planning-context.yaml

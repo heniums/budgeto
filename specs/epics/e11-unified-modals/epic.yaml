@@ -1,96 +1,79 @@
-# e11 — Unified Wallet & Category Modals
-# Elaborated 2026-07-15 from specs/planning-context.yaml
+# e11 — Dialog Modals & Transaction Guards
+# Rewritten 2026-07-15 for Dialog-based unified approach.
+# Supersedes prior Sheet-based epic definition.
 
 id: e11
-title: 'Unified Wallet & Category Modals'
+title: 'Dialog Modals & Transaction Guards'
 status: planned
 wsjf: 15
-release: '0.4.0'
+release: '0.5.0'
 description: >
-  Consolidate wallet and category creation, editing, and viewing into two
-  unified Sheet-based modal components (WalletModal, CategoryModal) that
-  replace four divergent UI surfaces. Implement sequential slide transition
-  from TransactionForm without losing draft state. Integrate into Settings
-  page, remove old full-page form routes and slide-in Sheet components.
+  Refactor WalletModal and CategoryModal from Sheet (slide-in sidebar) to
+  Dialog (centered popup) with a single unified always-editable view. No more
+  create/edit/view mode switching — form fields are always live, Save enables
+  on dirty, Delete always visible. Implement nested dialogs from the
+  transaction form, auto-select first wallet and category on transaction form
+  open, enforce category as mandatory, and hard-guard the "Add transaction"
+  button behind wallet + category existence requirements.
 
 stories:
   - id: e11s01
-    title: 'WalletModal + CategoryModal components'
+    title: 'Dialog-based Unified WalletModal & CategoryModal'
     status: planned
     bcps: 6
     file: 'specs/epics/e11-unified-modals/e11s01-modal-components.md'
+    tasks: 'specs/epics/e11-unified-modals/e11s01-tasks.yaml'
     delta:
       - target: 'client/src/components/WalletModal.tsx'
-        change: ADDED
-        reason: 'New unified Sheet-based wallet modal with create/edit/view modes'
+        change: MODIFIED
+        reason: 'Convert from Sheet to Dialog, remove mode/internalMode, unified always-editable view'
       - target: 'client/src/components/CategoryModal.tsx'
-        change: ADDED
-        reason: 'New unified Sheet-based category modal with create/edit/view modes'
+        change: MODIFIED
+        reason: 'Convert from Sheet to Dialog, remove mode/internalMode, unified always-editable view'
       - target: 'client/src/components/WalletModal.test.tsx'
-        change: ADDED
-        reason: 'Tests for wallet modal create/edit/view modes'
+        change: MODIFIED
+        reason: 'Update tests for Dialog-based unified view'
       - target: 'client/src/components/CategoryModal.test.tsx'
-        change: ADDED
-        reason: 'Tests for category modal create/edit/view modes'
+        change: MODIFIED
+        reason: 'Update tests for Dialog-based unified view'
 
   - id: e11s02
-    title: 'Simplify chip-selectors + Home page sequential transition'
+    title: 'Transaction Form — Auto-select, Mandatory Category & Hard Guard'
     status: planned
-    bcps: 5
-    file: 'specs/epics/e11-unified-modals/e11s02-chip-selectors-home.md'
+    bcps: 4
+    file: 'specs/epics/e11-unified-modals/e11s02-tx-form-guard.md'
     delta:
-      - target: 'client/src/components/WalletSelectList.tsx'
+      - target: 'client/src/components/TransactionForm.tsx'
         change: MODIFIED
-        reason: 'Remove inline Dialog components, emit onCreate/onEdit callbacks'
-      - target: 'client/src/components/CategorySelectList.tsx'
-        change: MODIFIED
-        reason: 'Remove inline Dialog components, emit onCreate/onEdit callbacks'
+        reason: 'categoryId mandatory, auto-select first wallet/category, update empty-state guard'
       - target: 'client/src/pages/Home.tsx'
         change: MODIFIED
-        reason: 'Implement sequential modal state machine, transaction state preservation, wire WalletModal/CategoryModal'
-      - target: 'client/src/components/WalletSelectList.test.tsx'
+        reason: '"Add transaction" button disabled when wallets or categories empty, guidance text'
+      - target: 'client/src/components/TransactionForm.test.tsx'
         change: MODIFIED
-        reason: 'Update tests for callback-based API'
-      - target: 'client/src/components/CategorySelectList.test.tsx'
-        change: MODIFIED
-        reason: 'Update tests for callback-based API'
+        reason: 'Update tests for mandatory category and auto-select'
       - target: 'client/src/pages/Home.test.tsx'
         change: MODIFIED
-        reason: 'Update tests for new modal flow'
+        reason: 'Update tests for disabled button guard'
 
   - id: e11s03
-    title: 'Settings integration + route cleanup + removal of old components'
+    title: 'Nested Dialogs & Settings Integration'
     status: planned
     bcps: 5
-    file: 'specs/epics/e11-unified-modals/e11s03-settings-cleanup.md'
+    file: 'specs/epics/e11-unified-modals/e11s03-nested-settings.md'
     delta:
+      - target: 'client/src/pages/Home.tsx'
+        change: MODIFIED
+        reason: 'Nested dialog orchestration: wallet/category Dialog on top of transaction Dialog'
       - target: 'client/src/pages/WalletList.tsx'
         change: MODIFIED
-        reason: 'Use WalletModal for new/edit/view instead of route navigation'
+        reason: 'Use refactored Dialog-based WalletModal'
       - target: 'client/src/pages/Categories.tsx'
         change: MODIFIED
-        reason: 'Use CategoryModal for new/edit instead of route navigation'
-      - target: 'client/src/router.tsx'
-        change: MODIFIED
-        reason: 'Remove old wallet/category form and detail routes'
-      - target: 'client/src/components/WalletDetailSheet.tsx'
-        change: DELETED
-        reason: 'Replaced by WalletModal'
-      - target: 'client/src/components/CategoryDetailSheet.tsx'
-        change: DELETED
-        reason: 'Replaced by CategoryModal'
-      - target: 'client/src/pages/WalletForm.tsx'
-        change: DELETED
-        reason: 'Replaced by WalletModal'
-      - target: 'client/src/pages/CategoryForm.tsx'
-        change: DELETED
-        reason: 'Replaced by CategoryModal'
-      - target: 'client/src/pages/WalletDetail.tsx'
-        change: DELETED
-        reason: 'Replaced by WalletModal view mode'
+        reason: 'Use refactored Dialog-based CategoryModal'
       - target: 'client/src/pages/WalletList.test.tsx'
         change: MODIFIED
-        reason: 'Update tests for modal-based flow'
+        reason: 'Update tests for Dialog-based modal flow'
       - target: 'client/src/pages/Categories.test.tsx'
         change: MODIFIED
-        reason: 'Update tests for modal-based flow'
+        reason: 'Update tests for Dialog-based modal flow'
