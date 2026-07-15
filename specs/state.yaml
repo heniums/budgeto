@@ -3,16 +3,16 @@
 
 active_flow: build_epic
 active_epic_id: e11
-active_story_id: e11s01
+active_story_id: e11s02
 completed_epic: false
 
 epic_cycle:
-  current_step: 8
-  next_skill: release-branch
-  story_bcps: 6
-  completed_steps: ['0', '1', '2', '3', '4', '5', '6', '7']
-  audit_result: pass
-  note: 'e11s01 complete: 159/159 tests, lint clean, type-check clean. Ready for release.'
+  current_step: 2
+  next_skill: plan-work
+  story_bcps: 4
+  completed_steps: ['0', '1']
+  audit_result: null
+  note: 'e11s02: plan-work then develop-tdd. Security review already done for e11.'
 
 bug_cycle:
   current_step: null

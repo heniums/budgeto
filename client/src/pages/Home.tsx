@@ -186,48 +186,61 @@ export function Home(): JSX.Element {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
         <div className="flex gap-2">
-          <Dialog open={txOpen} onOpenChange={setTxOpen}>
-            <DialogTrigger asChild>
-              <Button>Add transaction</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add transaction</DialogTitle>
-              </DialogHeader>
-              <TransactionForm
-                wallets={wallets}
-                categories={categories.map((c) => ({
-                  id: c.id,
-                  name: c.name,
-                  type: c.type,
-                  color: c.color,
-                  icon: c.icon,
-                }))}
-                categoriesCount={categories.length}
-                autoSelectWalletId={pendingWalletId ?? undefined}
-                autoSelectCategoryId={pendingCategoryId ?? undefined}
-                onSuccess={() => {
-                  setTxOpen(false);
-                  setPage(1);
-                  setPendingWalletId(null);
-                  setPendingCategoryId(null);
-                  load();
-                }}
-                onRefreshWallets={load}
-                onRefreshCategories={load}
-                onClose={() => setTxOpen(false)}
-                onCreateWallet={() => {
-                  setCreateWalletOpen(true);
-                }}
-                onCreateCategory={() => {
-                  setCreateCategoryOpen(true);
-                }}
-                onViewWallet={(id) => {
-                  setDetailWalletId(id);
-                }}
-              />
-            </DialogContent>
-          </Dialog>
+          {wallets.length > 0 && categories.length > 0 ? (
+            <Dialog open={txOpen} onOpenChange={setTxOpen}>
+              <DialogTrigger asChild>
+                <Button>Add transaction</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Add transaction</DialogTitle>
+                </DialogHeader>
+                <TransactionForm
+                  wallets={wallets}
+                  categories={categories.map((c) => ({
+                    id: c.id,
+                    name: c.name,
+                    type: c.type,
+                    color: c.color,
+                    icon: c.icon,
+                  }))}
+                  categoriesCount={categories.length}
+                  autoSelectWalletId={
+                    pendingWalletId ?? wallets[0]?.id ?? undefined
+                  }
+                  autoSelectCategoryId={
+                    pendingCategoryId ?? categories[0]?.id ?? undefined
+                  }
+                  onSuccess={() => {
+                    setTxOpen(false);
+                    setPage(1);
+                    setPendingWalletId(null);
+                    setPendingCategoryId(null);
+                    load();
+                  }}
+                  onRefreshWallets={load}
+                  onRefreshCategories={load}
+                  onClose={() => setTxOpen(false)}
+                  onCreateWallet={() => {
+                    setCreateWalletOpen(true);
+                  }}
+                  onCreateCategory={() => {
+                    setCreateCategoryOpen(true);
+                  }}
+                  onViewWallet={(id) => {
+                    setDetailWalletId(id);
+                  }}
+                />
+              </DialogContent>
+            </Dialog>
+          ) : (
+            <Button
+              disabled
+              title="You need at least one wallet and one category to add a transaction"
+            >
+              Add transaction
+            </Button>
+          )}
           <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
             <DialogTrigger asChild>
               <Button variant="outline">Transfer</Button>

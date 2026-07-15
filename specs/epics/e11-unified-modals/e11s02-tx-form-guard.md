@@ -113,6 +113,56 @@ categories are empty, showing onboarding prompts) already cover the case
 where there's nothing at all. The disabled button is for when exactly one
 of the two is missing.
 
+## Implementation Steps
+
+**type:** feat
+**risk:** P1
+**context:** domain
+**Context:** Adds auto-select, mandatory category, and hard guard to the transaction form. Touches TransactionForm.tsx (schema change), Home.tsx (auto-select + disabled button), and their tests.
+
+### Step 1: Make categoryId mandatory in TransactionForm schema
+
+Change Zod schema: `categoryId: z.string().min(1, 'Please select a category.')`. Remove `.optional()`. Add validation error display next to category selector. The submit button is disabled when form is invalid (React Hook Form handles this via `isValid` or by checking `errors`).
+
+→ verify: `npm run type-check -- --noEmit`
+
+### Step 2: Auto-select first wallet and category in Home.tsx
+
+In the transaction Dialog open handler, compute `firstWalletId = wallets[0]?.id` and `firstCategoryId = categories[0]?.id`. Pass as `autoSelectWalletId` and `autoSelectCategoryId` to TransactionForm. The existing `useEffect` hooks in TransactionForm handle the rest.
+
+→ verify: `npx vitest run --config client/vitest.config.ts client/src/pages/Home.test.tsx`
+
+### Step 3: Disable "Add transaction" button when wallets or categories empty
+
+In Home.tsx, wrap the Dialog+DialogTrigger in a conditional. When `wallets.length === 0 || categories.length === 0`, render a disabled `<Button>` with a tooltip and contextual guidance text.
+
+→ verify: `npx vitest run --config client/vitest.config.ts client/src/pages/Home.test.tsx`
+
+### Step 4: Update TransactionForm tests for mandatory category
+
+Add test: form is invalid without category selection. Add test: validation error shown when submitting without category. Update existing tests that didn't pass categoryId to now include it.
+
+→ verify: `npx vitest run --config client/vitest.config.ts client/src/components/TransactionForm.test.tsx`
+
+### Step 5: Update Home tests for auto-select and disabled button
+
+Add tests: "Add transaction" button disabled when no wallets, disabled when no categories, enabled when both exist. Add test: auto-select first wallet and category on open.
+
+→ verify: `npx vitest run --config client/vitest.config.ts client/src/pages/Home.test.tsx`
+
+### Step 6: Full integration check
+
+→ verify: `npm run type-check && npm test`
+
+## Out of scope
+
+- Backend enforcement of mandatory category (server schema still optional)
+- Changes to the edit transaction flow (same schema applies)
+
+## Risks
+
+- **Existing transaction entries may have null categoryId.** The server returns transactions with categoryId: null. The TransactionForm must handle this gracefully. Mitigation: Initial values in edit mode may have empty categoryId — form shows "not selected" state.
+
 ## Acceptance Criteria
 
 ```gherkin
