@@ -3,6 +3,10 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { createTransaction, type WalletData } from '../api/wallets';
+import {
+  updateTransaction,
+  type TransactionData,
+} from '../api/transactions';
 import { ApiError } from '../api/client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -32,6 +36,14 @@ interface TransactionFormProps {
   onViewWallet?: (walletId: string) => void;
   autoSelectWalletId?: string;
   autoSelectCategoryId?: string;
+  editMode?: boolean;
+  initialValues?: {
+    walletId: string;
+    amount: string;
+    description: string;
+    categoryId: string;
+  };
+  editTxId?: string;
 }
 
 export function TransactionForm({
@@ -44,6 +56,9 @@ export function TransactionForm({
   onViewWallet,
   autoSelectWalletId,
   autoSelectCategoryId,
+  editMode,
+  initialValues,
+  editTxId,
 }: TransactionFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -78,15 +93,39 @@ export function TransactionForm({
     }
   }, [autoSelectCategoryId, setValue]);
 
+  useEffect(() => {
+    if (editMode && initialValues) {
+      setValue('walletId', initialValues.walletId);
+      setValue('amount', initialValues.amount);
+      setValue('description', initialValues.description);
+      setValue('categoryId', initialValues.categoryId);
+    }
+  }, [editMode, initialValues, setValue]);
+
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
     try {
-      await createTransaction(values.walletId, {
-        amount: values.amount,
-        description: values.description,
-        categoryId: values.categoryId || undefined,
-      });
-      reset();
+      if (editMode && editTxId) {
+        const updated: TransactionData = await updateTransaction(editTxId, {
+          amount: values.amount,
+          description: values.description,
+          categoryId: values.categoryId || undefined,
+          walletId: values.walletId,
+        });
+        reset({
+          walletId: updated.walletId,
+          amount: updated.amount,
+          description: updated.description,
+          categoryId: updated.categoryId ?? '',
+        });
+      } else {
+        await createTransaction(values.walletId, {
+          amount: values.amount,
+          description: values.description,
+          categoryId: values.categoryId || undefined,
+        });
+        reset();
+      }
       onSuccess();
     } catch (err) {
       if (err instanceof ApiError) {
@@ -254,7 +293,13 @@ export function TransactionForm({
       </div>
 
       <Button type="submit" disabled={isSubmitting || wallets.length === 0}>
-        {isSubmitting ? 'Adding…' : 'Add Transaction'}
+        {isSubmitting
+          ? editMode
+            ? 'Saving…'
+            : 'Adding…'
+          : editMode
+            ? 'Save changes'
+            : 'Add Transaction'}
       </Button>
     </form>
   );

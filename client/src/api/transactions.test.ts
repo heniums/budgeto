@@ -1,13 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-const { mockGet } = vi.hoisted(() => {
+const { mockGet, mockPut, mockDelete } = vi.hoisted(() => {
   const mockGet = vi.fn();
-  return { mockGet };
+  const mockPut = vi.fn();
+  const mockDelete = vi.fn();
+  return { mockGet, mockPut, mockDelete };
 });
 
 vi.mock('./client', () => ({
   apiClient: {
     get: mockGet,
+    put: mockPut,
+    delete: mockDelete,
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -21,7 +25,7 @@ vi.mock('./client', () => ({
   },
 }));
 
-import { getTransactions, getTransaction } from './transactions';
+import { getTransactions, getTransaction, updateTransaction, deleteTransaction } from './transactions';
 import { ApiError } from './client';
 
 describe('transactions API client', () => {
@@ -77,5 +81,44 @@ describe('transactions API client', () => {
       status: 404,
       code: 'NOT_FOUND',
     });
+  });
+
+  it('updateTransaction sends PUT with partial fields', async () => {
+    mockPut.mockResolvedValue({
+      data: {
+        id: 't1',
+        walletId: 'w1',
+        amount: '200.00',
+        description: 'Updated',
+        categoryId: null,
+        createdAt: '2024-01-01',
+      },
+    });
+    const result = await updateTransaction('t1', {
+      amount: '200',
+      description: 'Updated',
+    });
+    expect(mockPut).toHaveBeenCalledWith('/transactions/t1', {
+      amount: '200',
+      description: 'Updated',
+    });
+    expect(result.amount).toBe('200.00');
+    expect(result.description).toBe('Updated');
+  });
+
+  it('deleteTransaction sends DELETE and returns the deleted resource', async () => {
+    mockDelete.mockResolvedValue({
+      data: {
+        id: 't1',
+        walletId: 'w1',
+        amount: '50.00',
+        description: 'Deleted',
+        categoryId: null,
+        createdAt: '2024-01-01',
+      },
+    });
+    const result = await deleteTransaction('t1');
+    expect(mockDelete).toHaveBeenCalledWith('/transactions/t1');
+    expect(result.id).toBe('t1');
   });
 });

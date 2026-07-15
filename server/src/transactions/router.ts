@@ -3,6 +3,9 @@ import {
   createTransactionHandler,
   listTransactionsHandler,
   listAllTransactionsHandler,
+  getTransactionHandler,
+  updateTransactionHandler,
+  deleteTransactionHandler,
 } from './controller';
 import { authenticate } from '../auth/middleware';
 
@@ -18,3 +21,6 @@ export default router;
 export const listRouter = Router();
 listRouter.use(authenticate);
 listRouter.get('/', listAllTransactionsHandler);
+listRouter.get('/:id', getTransactionHandler);
+listRouter.put('/:id', updateTransactionHandler);
+listRouter.delete('/:id', deleteTransactionHandler);
