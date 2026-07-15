@@ -21,9 +21,10 @@ import {
 import { ApiError } from '../api/client';
 import { ICONS, getIcon } from '../lib/icons';
 import { cn } from '@/lib/utils';
+import { DEFAULT_COLOR, DEFAULT_ICON_NAME, MAX_NAME_LENGTH, LABEL, ERR, SHEET_SIDE, SHEET_WIDTH } from '../lib/constants';
 
 const categorySchema = z.object({
-  name: z.string().min(1, 'Name is required.').max(128),
+  name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
   type: z.enum(['income', 'expense']),
   color: z.string(),
   icon: z.string(),
@@ -59,7 +60,7 @@ export function CategoryModal({
     formState: { errors, isSubmitting },
   } = useForm<CategoryFormValues>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', type: 'expense', color: '#1f8a4c', icon: 'Tag' },
+    defaultValues: { name: '', type: 'expense', color: DEFAULT_COLOR, icon: DEFAULT_ICON_NAME },
   });
 
   const selectedColor = watch('color');
@@ -78,8 +79,8 @@ export function CategoryModal({
       reset({
         name: '',
         type: 'expense',
-        color: '#1f8a4c',
-        icon: 'Tag',
+        color: DEFAULT_COLOR,
+        icon: DEFAULT_ICON_NAME,
       });
       setFormError(null);
       return;
@@ -104,7 +105,7 @@ export function CategoryModal({
       })
       .catch(() => {
         if (!active) return;
-        setFormError('Failed to load category.');
+        setFormError(ERR.FAILED_TO_LOAD('category'));
         setLoading(false);
       });
     return () => {
@@ -124,7 +125,7 @@ export function CategoryModal({
       onSuccess?.(cat);
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to save category.',
+                err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
       );
     }
   };
@@ -142,7 +143,7 @@ export function CategoryModal({
       onSuccess?.();
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to save category.',
+        err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
       );
     }
   };
@@ -157,7 +158,7 @@ export function CategoryModal({
       onSuccess?.();
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to delete category.',
+        err instanceof ApiError ? err.message : ERR.FAILED_TO_DELETE('category'),
       );
     }
   };
@@ -172,7 +173,7 @@ export function CategoryModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-md">
+      <SheetContent side={SHEET_SIDE} className={SHEET_WIDTH}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
@@ -197,7 +198,7 @@ export function CategoryModal({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="cat-modal-name">Name</Label>
+              <Label htmlFor="cat-modal-name">{LABEL.NAME}</Label>
               <Input
                 id="cat-modal-name"
                 type="text"
@@ -211,7 +212,7 @@ export function CategoryModal({
             </div>
 
             <div className="space-y-2">
-              <Label>Type</Label>
+              <Label>{LABEL.TYPE}</Label>
               <div className="flex gap-4">
                 <label className="flex items-center gap-2">
                   <input
@@ -233,7 +234,7 @@ export function CategoryModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="cat-modal-color">Color</Label>
+              <Label htmlFor="cat-modal-color">{LABEL.COLOR}</Label>
               <Input
                 id="cat-modal-color"
                 type="color"
@@ -242,7 +243,7 @@ export function CategoryModal({
             </div>
 
             <div className="space-y-2">
-              <Label>Icon</Label>
+              <Label>{LABEL.ICON}</Label>
               <input type="hidden" {...register('icon')} />
               <div className="grid grid-cols-6 gap-1">
                 {ICONS.map(({ name: iconName, Icon }) => (

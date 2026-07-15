@@ -23,10 +23,11 @@ import {
   type TransactionData,
 } from '../api/transactions';
 import { ApiError } from '../api/client';
+import { DEFAULT_COLOR, MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH, LABEL, ERR, SHEET_SIDE, SHEET_WIDTH } from '../lib/constants';
 
 const walletSchema = z.object({
-  name: z.string().min(1, 'Name is required.').max(128),
-  description: z.string().max(512),
+  name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
+  description: z.string().max(MAX_DESCRIPTION_LENGTH),
   color: z.string(),
 });
 
@@ -59,7 +60,7 @@ export function WalletModal({
     formState: { errors, isSubmitting },
   } = useForm<WalletFormValues>({
     resolver: zodResolver(walletSchema),
-    defaultValues: { name: '', description: '', color: '#1f8a4c' },
+    defaultValues: { name: '', description: '', color: DEFAULT_COLOR },
   });
 
   const isCreate = mode === 'create';
@@ -72,7 +73,7 @@ export function WalletModal({
     if (isCreate) {
       setLoading(false);
       setWallet(null);
-      reset({ name: '', description: '', color: '#1f8a4c' });
+      reset({ name: '', description: '', color: DEFAULT_COLOR });
       setFormError(null);
       return;
     }
@@ -113,7 +114,7 @@ export function WalletModal({
       })
       .catch(() => {
         if (!active) return;
-        setFormError('Failed to load wallet.');
+        setFormError(ERR.FAILED_TO_LOAD('wallet'));
         setLoading(false);
       });
     return () => {
@@ -132,7 +133,7 @@ export function WalletModal({
       onSuccess?.(w);
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to save wallet.',
+                err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('wallet'),
       );
     }
   };
@@ -149,7 +150,7 @@ export function WalletModal({
       onSuccess?.();
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to save wallet.',
+        err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('wallet'),
       );
     }
   };
@@ -164,7 +165,7 @@ export function WalletModal({
       onSuccess?.();
     } catch (err) {
       setFormError(
-        err instanceof ApiError ? err.message : 'Failed to delete wallet.',
+        err instanceof ApiError ? err.message : ERR.FAILED_TO_DELETE('wallet'),
       );
     }
   };
@@ -177,7 +178,7 @@ export function WalletModal({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="right" className="sm:max-w-md">
+      <SheetContent side={SHEET_SIDE} className={SHEET_WIDTH}>
         <SheetHeader>
           <SheetTitle>{title}</SheetTitle>
         </SheetHeader>
@@ -202,7 +203,7 @@ export function WalletModal({
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="wallet-modal-name">Name</Label>
+              <Label htmlFor="wallet-modal-name">{LABEL.NAME}</Label>
               <Input
                 id="wallet-modal-name"
                 type="text"
@@ -216,7 +217,7 @@ export function WalletModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="wallet-modal-desc">Description</Label>
+              <Label htmlFor="wallet-modal-desc">{LABEL.DESCRIPTION}</Label>
               <Input
                 id="wallet-modal-desc"
                 type="text"
@@ -225,7 +226,7 @@ export function WalletModal({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="wallet-modal-color">Color</Label>
+              <Label htmlFor="wallet-modal-color">{LABEL.COLOR}</Label>
               <Input
                 id="wallet-modal-color"
                 type="color"
