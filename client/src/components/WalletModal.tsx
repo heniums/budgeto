@@ -15,6 +15,10 @@ import {
   deleteWallet,
   type WalletData,
 } from '../api/wallets';
+import {
+  getTransactions,
+  type TransactionData,
+} from '../api/transactions';
 import { ApiError } from '../api/client';
 
 export interface WalletModalProps {
@@ -35,6 +39,8 @@ export function WalletModal({
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [color, setColor] = useState('#1f8a4c');
+  const [wallet, setWallet] = useState<WalletData | null>(null);
+  const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [saving, setSaving] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +54,7 @@ export function WalletModal({
 
     if (isCreate) {
       setLoading(false);
+      setWallet(null);
       setName('');
       setDescription('');
       setColor('#1f8a4c');
@@ -60,12 +67,31 @@ export function WalletModal({
     let active = true;
     setLoading(true);
     setError(null);
-    getWallet(walletId)
-      .then((w) => {
+
+    const fetches: Promise<void>[] = [
+      getWallet(walletId).then((w) => {
         if (!active) return;
+        setWallet(w);
         setName(w.name);
         setDescription(w.description);
         setColor(w.color);
+      }),
+    ];
+
+    if (isView) {
+      fetches.push(
+        getTransactions().then((result) => {
+          if (!active) return;
+          setTransactions(
+            result.transactions.filter((tx) => tx.walletId === walletId),
+          );
+        }),
+      );
+    }
+
+    Promise.all(fetches)
+      .then(() => {
+        if (!active) return;
         setLoading(false);
       })
       .catch(() => {
@@ -76,7 +102,7 @@ export function WalletModal({
     return () => {
       active = false;
     };
-  }, [open, walletId, isCreate]);
+  }, [open, walletId, isCreate, isView]);
 
   const handleCreate = async (e: React.FormEvent): Promise<void> => {
     e.preventDefault();
@@ -267,13 +293,73 @@ export function WalletModal({
           </form>
         )}
 
-        {!loading && isView && (
-          <div className="mt-6">
-            <p className="text-muted-foreground">View mode coming soon.</p>
+        {!loading && isView && wallet && (
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center gap-3">
+              <span
+                className="inline-block w-6 h-6 rounded-full shrink-0"
+                style={{ backgroundColor: wallet.color }}
+                aria-hidden
+              />
+              <div>
+                <p className="font-semibold text-lg">{wallet.name}</p>
+                {wallet.description && (
+                  <p className="text-sm text-muted-foreground">
+                    {wallet.description}
+                  </p>
+                )}
+              </div>
+            </div>
+            <p className="text-2xl font-bold">{wallet.balance}</p>
+
+            {transactions.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-muted-foreground">
+                  Transactions
+                </p>
+                {transactions.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="flex justify-between items-center py-1 border-b text-sm"
+                  >
+                    <span>
+                      {tx.description || '—'}
+                      <span className="text-muted-foreground ml-2">
+                        {new Date(tx.createdAt).toLocaleDateString()}
+                      </span>
+                    </span>
+                    <span
+                      className={
+                        Number(tx.amount) < 0
+                          ? 'text-destructive'
+                          : 'text-foreground'
+                      }
+                    >
+                      {tx.amount}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {transactions.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No transactions yet.
+              </p>
+            )}
+
+            <Button
+              variant="outline"
+              onClick={() => {
+                onOpenChange(false);
+              }}
+            >
+              Close
+            </Button>
           </div>
         )}
 
-        {!loading && error && !isCreate && !isEdit && !isView && (
+        {!loading && isView && error && (
           <p className="text-destructive mt-4">{error}</p>
         )}
       </SheetContent>
