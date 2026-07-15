@@ -1,21 +1,21 @@
-# Budgeto — Release Plan v0.2.0
-# Updated by slice-tasks on 2026-07-14.
+# Budgeto — Release Plan v0.3.0
+# Updated by slice-tasks on 2026-07-15.
 
-release: '0.2.0'
-codename: 'Guided UX'
+release: '0.3.0'
+codename: 'Polished UX'
 status: planning
 semantic_release: true
 bump_hint: minor
-created: '2026-07-14'
+created: '2026-07-15'
 description: >
-  Guided user experience: onboarding wizard, empty-state guidance, contextual
-  wallet/category access via long-press/right-click, stacked modal transitions,
-  and the missing category column in the transaction table.
+  Polished user experience: replace plain dropdowns with visually rich chip-list
+  selectors in the TransactionForm, inline wallet/category management dialogs,
+  and the Transaction Detail View & Full CRUD feature.
   Epics ordered by WSJF (Weighted Shortest Job First).
 
-  Previous release (v0.1.0 'UI Remake'): foundational auth, wallet management,
-  category management, transactions, and shadcn/ui client rebuild — all 7 epics
-  completed and merged to main.
+  Previous release (v0.2.0 'Guided UX'): onboarding wizard, empty-state guidance,
+  contextual wallet/category access, stacked modal transitions, category column —
+  all epics completed and merged to main.
 
 epics:
   - id: e01
@@ -69,5 +69,18 @@ epics:
   - id: e08
     title: 'Guided UX — Onboarding Wizard & Contextual Navigation'
     wsjf: 14
+    status: done
+    completed_at: '2026-07-15'
+    capsule_dir: 'specs/epics/archive/e08-guided-ux/'
+
+  - id: e09
+    title: 'Transaction Detail View & Full CRUD'
+    wsjf: 10
     status: planned
-    capsule_dir: 'specs/epics/e08-guided-ux/'
+    capsule_dir: 'specs/epics/e09-transaction-crud/'
+
+  - id: e10
+    title: 'Wallet & Category Chip-List Selectors'
+    wsjf: 13
+    status: planned
+    capsule_dir: 'specs/epics/e10-chip-selectors/'

@@ -1,0 +1,101 @@
+# e10s01 — Wallet & Category Chip-List Selectors in TransactionForm
+# Tracer-bullet slice: the core visual chip experience with tap-to-select.
+
+story_id: e10s01
+title: 'Wallet & Category Chip-List Selectors in TransactionForm'
+status: failing
+bcps: 5
+
+tasks:
+  - id: t01
+    title: 'WalletSelectList component'
+    description: >
+      Create client/src/components/WalletSelectList.tsx — a horizontally
+      scrollable row of wallet chips. Each chip is a shadcn/ui Badge with
+      border and text in the wallet's color (no icon). The component receives
+      `wallets: WalletData[]`, `selectedId: string | null`, and
+      `onSelect: (id: string) => void` props. Renders inside a ScrollArea
+      with horizontal orientation. Selected chip shows a filled/ring variant.
+      Handles empty state gracefully ("No wallets yet").
+    status: failing
+    risk: P1
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'WalletSelectList'
+    verify: 'npx vitest run client/src/components/WalletSelectList.test.tsx'
+
+  - id: t02
+    title: 'CategorySelectList component'
+    description: >
+      Create client/src/components/CategorySelectList.tsx — a horizontally
+      scrollable row of category chips. Each chip shows the category icon
+      (from lucide-react, resolved via getIcon()) rendered in the category's
+      color. The component receives `categories: CategoryData[]`,
+      `selectedId: string | null`, and `onSelect: (id: string) => void`
+      props. Renders inside a ScrollArea with horizontal orientation.
+      Selected chip shows a filled/ring variant. Shows all categories
+      regardless of type. Handles empty state gracefully.
+    status: failing
+    risk: P1
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'CategorySelectList'
+    verify: 'npx vitest run client/src/components/CategorySelectList.test.tsx'
+
+  - id: t03
+    title: 'Integrate chip lists into TransactionForm'
+    description: >
+      In client/src/components/TransactionForm.tsx, replace the wallet
+      <select> with <WalletSelectList> and the category <select> with
+      <CategorySelectList>. Use react-hook-form Controller or setValue
+      to wire selection into the form state. Pass wallets/categories from
+      the existing props. Remove the old <select> elements and their
+      <label>/<option> markup. Form validation and submit logic remain
+      unchanged. Keep existing onCreateWallet/onCreateCategory/onViewWallet
+      props as supplementary links below the chip lists.
+    status: failing
+    risk: P1
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'TransactionForm'
+    verify: 'npx vitest run client/src/components/TransactionForm.test.tsx'
+
+  - id: t04
+    title: 'Update TransactionForm tests for chip-list selectors'
+    description: >
+      Update TransactionForm.test.tsx to test with WalletSelectList and
+      CategorySelectList instead of <select>. Mock the API but render the
+      real chip-list components (shallow if needed). Verify: selecting a
+      wallet chip calls setValue/Controller, selecting a category chip
+      works, form submits with selected IDs, empty states render correctly.
+      Remove tests specific to the old <select> elements. Add keyboard
+      navigation tests for the chip lists.
+    status: failing
+    risk: P2
+    allure:
+      severity: normal
+      categories:
+        - 'Testing'
+        - 'TransactionForm'
+    verify: 'npx vitest run client/src/components/TransactionForm.test.tsx'
+
+  - id: t05
+    title: 'Type-check and full test suite'
+    description: >
+      Run npm run type-check and npm test. Ensure no regressions in
+      existing tests. Coverage must remain at >=80%. Verify all new
+      component tests and updated TransactionForm tests pass.
+    status: failing
+    risk: P2
+    security: none
+    allure:
+      severity: normal
+      categories:
+        - 'Quality'
+    verify: 'npm run type-check && npm test'

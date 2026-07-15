@@ -1,124 +1,116 @@
-# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Guided UX initiative.
-# Written by scope-work (planning spine step 1) on 2026-07-14.
+# specs/product/SCOPE_LATEST.yaml — Bounded PRD for Chip-List Selectors initiative.
+# Written by scope-work (planning spine step 1) on 2026-07-15.
 # Consumes specs/planning-context.yaml (elaborate-spec output).
 
 core_value: >
-  Make Budgeto immediately usable for a first-time visitor by guiding them
-  through wallet → category → transaction creation, and make wallets and
-  categories reachable from anywhere via contextual long-press/right-click.
+  Replace the TransactionForm's plain dropdown selects with visually rich,
+  horizontally scrollable chip lists that show wallet/category identity at a
+  glance and allow inline CRUD without losing the transaction draft.
 
 summary: >
-  The current Budgeto app (v0.1.0) shows a flat transaction table with no
-  category column, no contextual navigation to wallets/categories, and no
-  onboarding path. A new user lands on "No transactions found" with no clue
-  what to do next. The Add Transaction form blocks you from creating a missing
-  wallet or category inline — you must abandon the form, navigate to Settings,
-  then start over.
+  The TransactionForm currently uses HTML <select> dropdowns for wallet and
+  category choice. These show only the resource name as text — no color, no
+  icon — and offer no path to create or edit a wallet/category without
+  abandoning the form. This undermines the visual design language established
+  for wallets and categories elsewhere and blocks users who realize mid-entry
+  that they need a new wallet or category.
 
-  This initiative adds a 3-step dismissable onboarding wizard (Create Wallet →
-  Create Category → Add Transaction) that appears on first visit and can be
-  re-triggered from the user menu. Empty states throughout the app show
-  conditional guidance ("You have no wallets — create one?"). Transaction rows
-  gain a category column with colored badges, and both wallet and category
-  labels become interactive: long-press on mobile, right-click on desktop opens
-  the detail/edit view in a stacked modal. The transaction form state survives
-  the round-trip — the wallet/category view slides in over the form, and slides
-  back when done.
+  This initiative introduces two new components — WalletSelectList and
+  CategorySelectList — that render the user's wallets and categories as a
+  horizontally scrollable row of chips. Wallet chips appear as colored badges
+  (border + text in the wallet's color). Category chips show the category icon
+  rendered in the category's color. A single tap selects the item; a long-press
+  opens an inline full-form edit dialog. A "View All" trigger at the end of the
+  row opens a compact grid modal for browsing and selecting from all available
+  items. A "+" trigger opens an inline full-form creation dialog.
 
-  The server transaction query is updated to include category data (categoryId
-  + category name via a join), which is already present in the database schema
-  but omitted from the current SELECT. No new endpoints or database migrations
-  are required.
+  The scope is strictly limited to the TransactionForm. Existing wallet/category
+  management pages and all other select inputs remain unchanged. No new database
+  migrations or server endpoints are needed — all required fields already exist.
 
 in_scope:
   - id: SC-1
     description: >
-      Category data plumbing — include categoryId and category name in the
-      server's GET /transactions response (join categories table), update the
-      client TransactionData type, and render a Category column in the
-      transaction table with a colored badge showing the category name.
+      WalletSelectList component — horizontally scrollable row of wallet chips.
+      Each chip is a badge with colored border and text showing the wallet name.
+      Tap to select, long-press to open inline full-form edit dialog. Includes
+      "View All" trigger (compact grid modal) and "+" trigger (inline full-form
+      creation dialog).
   - id: SC-2
     description: >
-      Onboarding wizard — a dismissable 3-step overlay (Create Wallet → Create
-      Category → Add Transaction) that appears on first visit for users with
-      zero wallets. Re-triggerable from the user menu. Responsive on all
-      viewports.
+      CategorySelectList component — horizontally scrollable row of category
+      chips. Each chip shows the category icon rendered in the category's color.
+      Shows all categories regardless of type (income + expense mixed). Tap to
+      select, long-press to open inline full-form edit dialog. Includes
+      "View All" trigger (compact grid modal) and "+" trigger (inline full-form
+      creation dialog).
   - id: SC-3
     description: >
-      Conditional empty-state guidance — Home page shows contextual prompts:
-      "You have no wallets yet — create your first wallet" when wallets=0;
-      "You have no categories yet — create your first category" when
-      categories=0 but wallets>0. Each prompt has a direct CTA button that
-      opens the appropriate creation flow.
+      Integration into TransactionForm — replace the existing wallet and
+      category <select> dropdowns with WalletSelectList and CategorySelectList.
+      The TransactionForm's submit logic and validation remain unchanged; only
+      the selection UI is replaced. Form state is preserved when the inline
+      edit/creation dialogs open and close.
   - id: SC-4
     description: >
-      Contextual wallet/category access — long-press (mobile touch-hold) or
-      right-click (desktop) on a wallet or category label in any transaction
-      row or in the transaction form opens the detail/edit view for that
-      resource. The edit view is the same component used in Settings tabs,
-      reached via a context menu or action sheet.
+      Inline edit and creation dialogs — reuse the existing wallet/category
+      form field sets (name, description, color for wallets; name, type, color,
+      icon for categories) inside shadcn/ui Dialog components. Submitting the
+      dialog calls the existing API functions and refreshes the list.
   - id: SC-5
     description: >
-      Stacked modal transitions — the Add Transaction dialog and the
-      wallet/category detail view use a slide-out / slide-in pattern so the
-      transaction form stays mounted with all field values preserved while the
-      user creates or edits a wallet/category, then resumes.
-  - id: SC-6
-    description: >
-      Tests and type-check — update existing client and server tests to cover
-      the category column, onboarding wizard, empty states, context menus, and
-      modal transitions. Ensure npm test (>=80% coverage) and npm run
-      type-check pass cleanly.
+      Tests and type-check — add component tests for WalletSelectList and
+      CategorySelectList (selection, long-press, dialogs, keyboard navigation).
+      Update TransactionForm tests to reflect the new selectors. Ensure
+      npm test (>=80% coverage) and npm run type-check pass cleanly.
 
 out_of_scope:
   - id: OOS-1
-    item: 'Dashboard analytics / summary cards (balances, trends).'
-    reason: 'Deferred to G-003 Financial Insights. Not part of the guided UX initiative.'
+    item: 'Changes to existing /categories or /wallets management pages.'
+    reason: 'Explicitly excluded — these pages remain as-is. The chip lists are an alternative selection UI within TransactionForm only.'
   - id: OOS-2
-    item: 'Dark mode / theming.'
-    reason: 'Deferred. Not in scope for v0.2.0.'
+    item: 'Changes to any select inputs outside TransactionForm.'
+    reason: 'Excluded — all other forms and pages keep their current dropdowns.'
   - id: OOS-3
-    item: 'Category budgeting (budgets per category, progress tracking).'
-    reason: 'Deferred to G-002 Manage Budgets. Separate future initiative.'
+    item: 'New database migrations.'
+    reason: 'Not needed — wallet color and category icon/color fields already exist in the schema.'
   - id: OOS-4
-    item: 'Wallet or category hierarchy / nesting.'
-    reason: 'Deferred. Categories remain flat per user as in v0.1.0.'
+    item: 'New server endpoints.'
+    reason: 'Not needed — existing GET/POST/PUT wallets and categories endpoints serve the inline dialogs.'
   - id: OOS-5
-    item: 'New backend endpoints beyond the category-join enhancement to GET /transactions.'
-    reason: 'Out of scope. All existing endpoints are sufficient.'
+    item: 'Client-side filtering of categories by transaction type.'
+    reason: 'Explicitly excluded — all categories (income + expense) are shown together in the chip list by design decision.'
   - id: OOS-6
-    item: 'Auth / SignIn / SignUp UI changes.'
-    reason: 'Out of scope. Auth pages are unchanged and not in the left nav.'
+    item: 'Changes to the transfer form dialog.'
+    reason: 'Excluded — the transfer form is unchanged and continues using its current selectors.'
   - id: OOS-7
-    item: 'Changes to the left nav (Home + Settings) or Settings page structure.'
-    reason: 'Out of scope per explicit user decision — Settings and nav stay as-is.'
+    item: 'Drag-to-reorder or other gestures beyond tap and long-press.'
+    reason: 'Deferred — not part of the initial chip-list feature. May be considered in a future iteration.'
   - id: OOS-8
-    item: 'Inline transaction editing from the table row.'
-    reason: 'Deferred. Editing an existing transaction is not part of the guided UX scope — the focus is on creation flow and contextual resource access.'
-  - id: OOS-9
-    item: 'Automatic category suggestions based on description.'
-    reason: 'Deferred to F-001 Expense Categorization. Requires a separate ML/suggestion feature.'
+    item: 'New npm dependencies.'
+    reason: 'Excluded unless a library is required and justifies the cost. Existing shadcn/ui primitives and lucide-react icons should suffice.'
 
 constraints:
-  - 'Left nav (Home + Settings) and Settings page (Wallets / Categories / User tabs) remain unchanged.'
-  - 'Auth pages (SignIn / SignUp) unchanged and absent from left nav.'
-  - 'All existing server APIs reused; category data added to existing transaction queries via a JOIN — no new endpoints or DB migrations required.'
-  - 'Wallet and category edit views reuse the SAME components rendered in Settings tabs; contextual access opens them in a stacked modal, not a separate page.'
-  - 'Desktop: right-click context menu on wallet/category labels. Mobile: long-press (touch-hold).'
-  - 'Transaction form state must survive the wallet/category edit round-trip (modal slide-out → slide-in pattern).'
+  - 'TransactionForm only — no changes to other forms or existing wallet/category pages.'
+  - 'Reuse existing shadcn/ui primitives (Dialog, Badge, Button, ScrollArea) and lucide-react icons.'
+  - 'No new npm dependencies unless justified and lightweight.'
+  - 'Wallets: show as badge with colored border + text (wallet name). No icon.'
+  - 'Categories: show icon glyph rendered in the category color. All types mixed together.'
+  - 'Inline edit and creation dialogs use the full existing form fields.'
   - 'npm test (>=80% coverage) and npm run type-check must remain green.'
-  - 'Responsive: context menu becomes action sheet on mobile; wizard works on all viewports.'
-  - 'Existing shadcn/ui component library used for modals, context menus, dropdown menus, and wizard steps.'
-  - 'No new npm dependencies unless a context-menu or wizard library is required and justifies the cost.'
+  - 'Horizontal scroll must work on touch (mobile) and with mouse/trackpad (desktop).'
+  - 'Long-press must work on touch devices; a desktop alternative (right-click or hover button) must also be supported.'
+  - 'Client API modules (api/wallets.ts, api/categories.ts) are reused — no new API calls needed.'
 
 success_criteria:
-  - 'A first-time user with zero wallets sees the 3-step onboarding wizard on Home and can complete wallet → category → transaction creation without leaving the wizard.'
-  - 'A returning user with zero wallets sees "You have no wallets yet — create your first wallet" on Home with a working CTA.'
-  - 'A returning user with wallets but zero categories sees "You have no categories yet — create your first category" on Home with a working CTA.'
-  - 'The transaction table shows a Category column with colored badges for each transaction.'
-  - 'Right-clicking a wallet name in a transaction row opens a context menu; selecting "View details" opens the wallet detail/edit view.'
-  - 'Long-pressing a category badge on mobile opens an action sheet with "View details" → opens the category detail/edit view.'
-  - 'In the Add Transaction dialog, clicking a "Create wallet" or "Create category" link slides in the creation form; submitting it slides back to the transaction form with all fields preserved.'
+  - 'In the Add Transaction form, wallets appear as a horizontally scrollable row of colored badges instead of a <select> dropdown.'
+  - 'In the Add Transaction form, categories appear as a horizontally scrollable row of colored icons instead of a <select> dropdown.'
+  - 'Tapping a wallet or category chip selects it and the selection is visually indicated.'
+  - 'Long-pressing a wallet or category chip on mobile opens an inline edit dialog with all fields prefilled.'
+  - 'Right-clicking (or equivalent desktop trigger) a chip opens the inline edit dialog.'
+  - 'The "View All" trigger opens a compact grid modal showing all wallets/categories; tapping one selects it and closes the modal.'
+  - 'The "+" trigger opens a full-form creation dialog; submitting creates the resource and adds it to the list.'
+  - 'Opening and closing the edit/creation dialogs preserves all fields in the TransactionForm (description, amount, etc.).'
   - 'npm test passes with >=80% coverage and npm run type-check exits clean.'
 
 references:
@@ -126,4 +118,3 @@ references:
   - specs/product/VISION_LATEST.yaml
   - specs/release-plan.yaml
   - specs/tech-architecture/TECH_STACK_LATEST.md
-  - specs/epics/e06-ui-remake/epic.yaml
