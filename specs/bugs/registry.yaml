@@ -1,0 +1,10 @@
+# Bug Registry
+# Format:
+# - id: BUG-NNN
+#   title: "..."
+#   status: open | in_progress | resolved
+#   severity: low | medium | high | critical
+#   epic: eNN-slug
+#   discovered: YYYY-MM-DD
+
+bugs: []
