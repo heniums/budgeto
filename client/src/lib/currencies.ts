@@ -168,6 +168,20 @@ export const CURRENCIES = [
 
 export type CurrencyCode = (typeof CURRENCIES)[number]['code'];
 
+export function isCurrencyCode(code: string): code is CurrencyCode {
+  return CURRENCIES.some((c) => c.code === code);
+}
+
+export function formatMoney(amount: string, currency: string): string {
+  const code = isCurrencyCode(currency) ? currency : 'USD';
+  const n = Number(amount);
+  if (!Number.isFinite(n)) return '—';
+  return Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: code,
+  }).format(n);
+}
+
 /**
  * Detect the user's preferred currency from the browser locale.
  * Uses Intl.NumberFormat to resolve the locale's currency, validates it

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { MockInstance } from 'vitest';
-import { detectLocaleCurrency } from './currencies';
+import { detectLocaleCurrency, formatMoney, isCurrencyCode } from './currencies';
 
 describe('detectLocaleCurrency', () => {
   let languageSpy: ReturnType<typeof vi.spyOn>;
@@ -64,5 +64,39 @@ describe('detectLocaleCurrency', () => {
     );
 
     expect(detectLocaleCurrency()).toBe('USD');
+  });
+});
+
+describe('isCurrencyCode', () => {
+  it('returns true for supported codes', () => {
+    expect(isCurrencyCode('USD')).toBe(true);
+    expect(isCurrencyCode('EUR')).toBe(true);
+  });
+
+  it('returns false for unsupported codes', () => {
+    expect(isCurrencyCode('XYZ')).toBe(false);
+    expect(isCurrencyCode('')).toBe(false);
+  });
+});
+
+describe('formatMoney', () => {
+  it('formats USD with two decimals', () => {
+    expect(formatMoney('50', 'USD')).toBe('$50.00');
+  });
+
+  it('formats negative USD', () => {
+    expect(formatMoney('-42.5', 'USD')).toBe('-$42.50');
+  });
+
+  it('formats JPY without decimals', () => {
+    expect(formatMoney('5000', 'JPY')).toBe('¥5,000');
+  });
+
+  it('falls back to USD for invalid currency', () => {
+    expect(formatMoney('100', 'XYZ')).toBe('$100.00');
+  });
+
+  it('returns em dash for non-numeric amount', () => {
+    expect(formatMoney('not-a-number', 'USD')).toBe('—');
   });
 });
