@@ -115,6 +115,7 @@ export function WalletList(): JSX.Element {
               <TableHead>Name</TableHead>
               <TableHead>Description</TableHead>
               <TableHead className="text-right">Balance</TableHead>
+              <TableHead className="text-right">Currency</TableHead>
               <TableHead className="text-right">Created</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -123,7 +124,7 @@ export function WalletList(): JSX.Element {
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center text-muted-foreground"
                 >
                   No wallets match your search.
@@ -176,6 +177,9 @@ export function WalletList(): JSX.Element {
                   </TableCell>
                   <TableCell className="text-right font-medium">
                     {wallet.balance}
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground">
+                    {wallet.currency}
                   </TableCell>
                   <TableCell className="text-right text-muted-foreground text-sm">
                     {formatDate(wallet.createdAt)}
