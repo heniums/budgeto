@@ -2,11 +2,12 @@
 # Rewritten by plan-release on 2026-07-15 for Dialog-based unified modals.
 
 release: '0.5.0'
-codename: 'Dialog Modals & Transaction Guards'
-status: planning
+codename: 'Dialog Modals, Transaction Guards & Richer List Views'
+status: released
 semantic_release: true
 bump_hint: minor
 created: '2026-07-15'
+released: '2026-07-16'
 description: >
   Refactor wallet and category management from slide-in Sheets to centered
   Dialog popups with a single unified always-editable view — no more
@@ -93,6 +94,7 @@ epics:
   - id: e11
     title: 'Dialog Modals & Transaction Guards'
     wsjf: 15
-    status: planned
-    capsule_dir: 'specs/epics/e11-unified-modals/'
+    status: done
+    completed_at: '2026-07-15'
+    capsule_dir: 'specs/epics/archive/e11-unified-modals/'
     note: 'Rewritten from Sheet-based to Dialog-based approach per updated planning-context.yaml.'

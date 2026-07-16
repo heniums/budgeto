@@ -1,27 +1,27 @@
 # Budgeto — Session State
 # Standardized 2026-07-15
 
-active_flow: develop_tdd
+active_flow: null
 active_epic_id: null
 active_story_id: null
-completed_epic: false
+completed_epic: true
 
 epic_cycle:
-  current_step: 2
-  next_skill: plan-work
+  current_step: null
+  next_skill: null
   story_bcps: 4
-  completed_steps: ['0', '1']
+  completed_steps: []
   audit_result: null
-  note: 'e11s02: plan-work then develop-tdd. Security review already done for e11.'
+  note: 'All 11 epics (e01-e11) completed and archived.'
 
 bug_cycle:
   current_step: null
   completed_steps: []
 
 release:
-  target_version: '0.4.0'
-  last_tag: null
-  last_publish: null
+  target_version: '0.5.0'
+  last_tag: 'v0.5.0'
+  last_publish: '2026-07-16'
   ci_verified: false
 
 metrics:
@@ -31,12 +31,12 @@ metrics:
   bcp_per_hour: null
 
 git:
-  branch: richer-list-views
-  hash: 'f6ab1d1'
-  pushed: false
+  branch: main
+  hash: 'dd8330d'
+  pushed: true
 
 handoff:
-  last_step_completed: 'organize-workspace: standardized specs/ layout (removed archive, added adr/bugs/requirements, fixed epic naming)'
+  last_step_completed: 'release-branch: tagged v0.5.0 (Dialog Modals, Transaction Guards & Richer List Views), pushed to origin, archived all epic capsules, cleaned up richer-list-views branch.'
   open_decisions: []
   required_reading:
     - specs/product/VISION_LATEST.yaml

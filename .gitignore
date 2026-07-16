@@ -8,3 +8,4 @@ coverage/
 .embedded-postgres/
 .DS_Store
 .pi-subagents/
+.hypa/
