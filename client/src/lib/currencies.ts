@@ -168,6 +168,46 @@ export const CURRENCIES = [
 
 export type CurrencyCode = (typeof CURRENCIES)[number]['code'];
 
+// ponytail: minimal locale→currency map; expand when needed.
+const LOCALE_CURRENCY_MAP: Record<string, CurrencyCode> = {
+  'en-US': 'USD',
+  'en-CA': 'CAD',
+  'en-GB': 'GBP',
+  'en-AU': 'AUD',
+  'en-NZ': 'NZD',
+  'de-DE': 'EUR',
+  'de-AT': 'EUR',
+  'de-CH': 'CHF',
+  'fr-FR': 'EUR',
+  'fr-CA': 'CAD',
+  'fr-CH': 'CHF',
+  'es-ES': 'EUR',
+  'es-MX': 'MXN',
+  'it-IT': 'EUR',
+  'pt-PT': 'EUR',
+  'pt-BR': 'BRL',
+  'nl-NL': 'EUR',
+  'ja-JP': 'JPY',
+  'ko-KR': 'KRW',
+  'zh-CN': 'CNY',
+  'zh-HK': 'HKD',
+  'zh-TW': 'TWD',
+  'ru-RU': 'RUB',
+  'pl-PL': 'PLN',
+  'sv-SE': 'SEK',
+  'da-DK': 'DKK',
+  'nb-NO': 'NOK',
+  'fi-FI': 'EUR',
+  'tr-TR': 'TRY',
+  'ar-SA': 'SAR',
+  'hi-IN': 'INR',
+  'th-TH': 'THB',
+  'vi-VN': 'VND',
+  'id-ID': 'IDR',
+  'ms-MY': 'MYR',
+  'fil-PH': 'PHP',
+};
+
 /**
  * Detect the user's preferred currency from the browser locale.
  * Falls back to 'USD' when detection fails.
@@ -175,18 +215,12 @@ export type CurrencyCode = (typeof CURRENCIES)[number]['code'];
 export function detectLocaleCurrency(): CurrencyCode {
   try {
     const locale = navigator.language;
-    // Intl.NumberFormat with style: 'currency' on a generic constructor
-    // doesn't exist, but `resolvedOptions()` on a currency instance works.
-    const parts = Intl.NumberFormat(locale, {
-      style: 'currency',
-      currency: 'USD',
-    }).resolvedOptions();
-    const detected = parts.currency;
-    if (CURRENCIES.some((c) => c.code === detected)) {
-      return detected as CurrencyCode;
+    const detected = LOCALE_CURRENCY_MAP[locale];
+    if (detected && CURRENCIES.some((c) => c.code === detected)) {
+      return detected;
     }
   } catch {
-    // Intl unavailable or throws — fall through.
+    // navigator or Intl unavailable — fall through.
   }
   return 'USD';
 }
