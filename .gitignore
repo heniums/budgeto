@@ -5,7 +5,9 @@ coverage/
 *.log
 .env
 .pgdata/
+.pgdata-test/
 .embedded-postgres/
 .DS_Store
+.pi/
 .pi-subagents/
 .hypa/
