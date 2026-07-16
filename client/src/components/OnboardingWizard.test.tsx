@@ -45,6 +45,7 @@ describe('OnboardingWizard', () => {
       name: 'My Wallet',
       description: '',
       color: '#1f8a4c',
+      currency: 'USD',
       balance: '0',
       createdAt: '',
       updatedAt: '',

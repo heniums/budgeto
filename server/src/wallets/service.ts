@@ -13,12 +13,14 @@ export const createWalletSchema = z.object({
   name: z.string().min(1).max(128),
   description: z.string().max(512).optional().default(''),
   color: z.string().max(32).optional().default('#1f8a4c'),
+  currency: z.string().max(3).optional().default('USD'),
 });
 
 export const updateWalletSchema = z.object({
   name: z.string().min(1).max(128).optional(),
   description: z.string().max(512).optional(),
   color: z.string().max(32).optional(),
+  currency: z.string().max(3).optional(),
 });
 
 export type CreateWalletInput = z.infer<typeof createWalletSchema>;
@@ -29,6 +31,7 @@ export interface WalletResponse {
   name: string;
   description: string;
   color: string;
+  currency: string;
   balance: string;
   createdAt: Date;
   updatedAt: Date;
@@ -46,6 +49,7 @@ export async function create(
     name: input.name,
     description: input.description,
     color: input.color,
+    currency: input.currency,
   });
   return formatWalletResponse(wallet);
 }
@@ -125,13 +129,14 @@ export async function remove(
 }
 
 function formatWalletResponse(
-  wallet: { id: string; name: string; description: string | null; color: string | null; createdAt: Date; updatedAt: Date },
+  wallet: { id: string; name: string; description: string | null; color: string | null; currency: string | null; createdAt: Date; updatedAt: Date },
 ): WalletResponse {
   return {
     id: wallet.id,
     name: wallet.name,
     description: wallet.description ?? '',
     color: wallet.color ?? '#1f8a4c',
+    currency: wallet.currency ?? 'USD',
     balance: '0',
     createdAt: wallet.createdAt,
     updatedAt: wallet.updatedAt,
@@ -139,13 +144,14 @@ function formatWalletResponse(
 }
 
 function formatWalletWithBalanceRow(
-  row: { id: string; name: string; description: string | null; color: string | null; balance: string; createdAt: Date; updatedAt: Date },
+  row: { id: string; name: string; description: string | null; color: string | null; currency: string | null; balance: string; createdAt: Date; updatedAt: Date },
 ): WalletResponse {
   return {
     id: row.id,
     name: row.name,
     description: row.description ?? '',
     color: row.color ?? '#1f8a4c',
+    currency: row.currency ?? 'USD',
     balance: row.balance,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

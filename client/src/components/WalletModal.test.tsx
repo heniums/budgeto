@@ -45,6 +45,7 @@ describe('WalletModal — create mode (no walletId)', () => {
       name: 'Savings',
       description: '',
       color: '#2f6fed',
+      currency: 'USD',
       balance: '0.00',
       createdAt: '',
       updatedAt: '',
@@ -64,6 +65,7 @@ describe('WalletModal — create mode (no walletId)', () => {
         name: 'Savings',
         description: '',
         color: '#1f8a4c',
+        currency: 'USD',
       });
     });
     await waitFor(() => {
@@ -94,6 +96,7 @@ const mockWallet = {
   name: 'Cash',
   description: 'Daily expenses',
   color: '#1f8a4c',
+  currency: 'USD',
   balance: '100.00',
   createdAt: '',
   updatedAt: '',
@@ -199,6 +202,7 @@ describe('WalletModal — edit mode (walletId provided)', () => {
         name: 'Bank',
         description: 'Daily expenses',
         color: '#1f8a4c',
+        currency: 'USD',
       });
     });
     await waitFor(() => {

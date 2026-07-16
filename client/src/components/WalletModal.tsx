@@ -26,11 +26,13 @@ import {
   LABEL,
   ERR,
 } from '../lib/constants';
+import { CURRENCIES, detectLocaleCurrency } from '../lib/currencies';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
   description: z.string().max(MAX_DESCRIPTION_LENGTH),
   color: z.string(),
+  currency: z.string(),
 });
 
 type WalletFormValues = z.infer<typeof walletSchema>;
@@ -58,7 +60,7 @@ export function WalletModal({
     formState: { errors, isSubmitting, isDirty },
   } = useForm<WalletFormValues>({
     resolver: zodResolver(walletSchema),
-    defaultValues: { name: '', description: '', color: DEFAULT_COLOR },
+    defaultValues: { name: '', description: '', color: DEFAULT_COLOR, currency: detectLocaleCurrency() },
   });
 
   const isCreate = !walletId;
@@ -68,7 +70,7 @@ export function WalletModal({
 
     if (isCreate) {
       setLoading(false);
-      reset({ name: '', description: '', color: DEFAULT_COLOR });
+      reset({ name: '', description: '', color: DEFAULT_COLOR, currency: detectLocaleCurrency() });
       setFormError(null);
       return;
     }
@@ -84,6 +86,7 @@ export function WalletModal({
           name: w.name,
           description: w.description,
           color: w.color,
+          currency: w.currency,
         });
         setLoading(false);
       })
@@ -104,6 +107,7 @@ export function WalletModal({
         name: values.name.trim(),
         description: values.description.trim(),
         color: values.color,
+        currency: values.currency,
       });
       onSuccess?.(w);
     } catch (err) {
@@ -121,6 +125,7 @@ export function WalletModal({
         name: values.name.trim(),
         description: values.description.trim(),
         color: values.color,
+        currency: values.currency,
       });
       onSuccess?.();
     } catch (err) {
@@ -197,6 +202,21 @@ export function WalletModal({
                 type="color"
                 {...register('color')}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="wallet-modal-currency">Currency</Label>
+              <select
+                id="wallet-modal-currency"
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                {...register('currency')}
+              >
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} — {c.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div
