@@ -24,7 +24,7 @@ describe('WalletModal — create mode (no walletId)', () => {
     cleanup();
   });
 
-  it('renders create form with name, description, and color fields', () => {
+  it('renders create form with name, description, color, and currency fields', () => {
     render(
       <WalletModal open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
     );
@@ -32,11 +32,20 @@ describe('WalletModal — create mode (no walletId)', () => {
     expect(screen.getByLabelText('Name')).toBeInTheDocument();
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
     expect(screen.getByLabelText('Color')).toBeInTheDocument();
+    expect(screen.getByLabelText('Currency')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
     // No Delete button in create mode
     expect(
       screen.queryByRole('button', { name: 'Delete' }),
     ).not.toBeInTheDocument();
+  });
+
+  it('defaults currency to USD in create mode', () => {
+    render(
+      <WalletModal open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
+    );
+
+    expect(screen.getByLabelText('Currency')).toHaveValue('USD');
   });
 
   it('calls createWallet and onSuccess on submit', async () => {
@@ -138,6 +147,25 @@ describe('WalletModal — edit mode (walletId provided)', () => {
       expect(getWallet).toHaveBeenCalledWith('w1');
     });
     expect(await screen.findByDisplayValue('Cash')).toBeInTheDocument();
+  });
+
+  it('prefills currency with the fetched wallet currency', async () => {
+    vi.mocked(getWallet).mockResolvedValue({
+      ...mockWallet,
+      currency: 'EUR',
+    });
+
+    render(
+      <WalletModal
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={vi.fn()}
+      />,
+    );
+
+    await screen.findByDisplayValue('Cash');
+    expect(screen.getByLabelText('Currency')).toHaveValue('EUR');
   });
 
   it('renders Save Changes button disabled when form is not dirty', async () => {
