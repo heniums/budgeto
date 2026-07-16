@@ -1,18 +1,19 @@
 # Budgeto — Session State
 # Standardized 2026-07-15
 
-active_flow: null
+active_flow: build_epic
 active_epic_id: null
-active_story_id: null
-completed_epic: true
+active_story_id: e51s03
+completed_epic: false
 
 epic_cycle:
-  current_step: null
-  next_skill: null
+  current_step: kickoff-branch
+  next_skill: develop-tdd
   story_bcps: 4
-  completed_steps: []
+  completed_steps:
+    - kickoff-branch
   audit_result: null
-  note: 'All 11 epics (e01-e11) completed and archived.'
+  note: 'Resuming in-progress per-wallet currency feature on feat/wallet-currency.'
 
 bug_cycle:
   current_step: null
@@ -25,24 +26,25 @@ release:
   ci_verified: false
 
 metrics:
-  story_start: null
+  story_start: '2026-07-17T19:14:00Z'
   story_end: null
   cycle_minutes: null
   bcp_per_hour: null
 
 git:
-  branch: main
-  hash: 'dd8330d'
-  pushed: true
+  branch: feat/wallet-currency
+  hash: 'd9f81c0'
+  pushed: false
 
 handoff:
-  last_step_completed: 'release-branch: tagged v0.5.0 (Dialog Modals, Transaction Guards & Richer List Views), pushed to origin, archived all epic capsules, cleaned up richer-list-views branch.'
-  open_decisions: []
+  last_step_completed: 'kickoff-branch: created feat/wallet-currency, committed WIP currency work, preflight green.'
+  open_decisions:
+    - 'Story ID e51s03 is informal — no epic capsule exists for this currency feature.'
   required_reading:
     - specs/product/VISION_LATEST.yaml
     - specs/product/SCOPE_LATEST.yaml
     - specs/release-plan.yaml
-  next_skill: survey-context
+  next_skill: develop-tdd
 
 two_pass_spec:
   journey_pass: pending
