@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { createWallet } from '../api/wallets';
 import { createCategory, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
+import { detectLocaleCurrency } from '../lib/currencies';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -69,6 +70,7 @@ export function OnboardingWizard({
         name: values.name.trim(),
         description: '',
         color: '#1f8a4c',
+        currency: detectLocaleCurrency(),
       });
       setWalletId(wallet.id);
       setStep(2);

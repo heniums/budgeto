@@ -45,6 +45,42 @@ describe('POST /wallets', () => {
     expect(response.body.currency).toBe('EUR');
   });
 
+  it('normalizes lowercase currency codes (201)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Lowercase Wallet', currency: 'eur' });
+    expect(response.status).toBe(201);
+    expect(response.body.currency).toBe('EUR');
+  });
+
+  it('rejects empty currency (400)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Empty Currency', currency: '' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects invalid currency code (400)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Invalid Currency', currency: 'XYZ' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects currency code that is too short (400)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Short Currency', currency: 'US' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('rejects missing name (400)', async () => {
     const response = await request(app)
       .post('/wallets')
@@ -206,6 +242,21 @@ describe('PUT /wallets/:id', () => {
       .get(`/wallets/${walletId}`)
       .set('Authorization', `Bearer ${token}`);
     expect(getResponse.body.currency).toBe('JPY');
+  });
+
+  it('rejects invalid currency update (400)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original' });
+    const walletId = created.body.id;
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ currency: 'XYZ' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
   it('rejects empty name update (400)', async () => {
