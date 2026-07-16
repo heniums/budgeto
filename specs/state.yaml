@@ -7,13 +7,14 @@ active_story_id: e51s03
 completed_epic: false
 
 epic_cycle:
-  current_step: kickoff-branch
-  next_skill: develop-tdd
+  current_step: develop-tdd
+  next_skill: verify-work
   story_bcps: 4
   completed_steps:
     - kickoff-branch
+    - develop-tdd
   audit_result: null
-  note: 'Resuming in-progress per-wallet currency feature on feat/wallet-currency.'
+  note: 'Per-wallet currency feature implemented: schema/API/client support, locale detection, list display, tests.'
 
 bug_cycle:
   current_step: null
@@ -33,18 +34,19 @@ metrics:
 
 git:
   branch: feat/wallet-currency
-  hash: 'd9f81c0'
+  hash: '1449f52'
   pushed: false
 
 handoff:
-  last_step_completed: 'kickoff-branch: created feat/wallet-currency, committed WIP currency work, preflight green.'
+  last_step_completed: 'develop-tdd: currency field wired through server/client, tests added, full preflight green.'
   open_decisions:
     - 'Story ID e51s03 is informal — no epic capsule exists for this currency feature.'
+    - 'Transaction amounts still hardcode $ in Home formatAmount; multi-currency display out of scope.'
   required_reading:
     - specs/product/VISION_LATEST.yaml
     - specs/product/SCOPE_LATEST.yaml
     - specs/release-plan.yaml
-  next_skill: develop-tdd
+  next_skill: verify-work
 
 two_pass_spec:
   journey_pass: pending
