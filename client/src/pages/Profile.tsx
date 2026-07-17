@@ -14,9 +14,7 @@ const nameSchema = z.object({
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, 'Current password is required.'),
-    newPassword: z
-      .string()
-      .min(8, 'Password must be at least 8 characters.'),
+    newPassword: z.string().min(8, 'Password must be at least 8 characters.'),
     confirmPassword: z
       .string()
       .min(8, 'Password must be at least 8 characters.'),
@@ -61,7 +59,11 @@ export function Profile(): JSX.Element {
     reset: resetPwForm,
   } = useForm<PasswordValues>({
     resolver: zodResolver(passwordSchema),
-    defaultValues: { currentPassword: '', newPassword: '', confirmPassword: '' },
+    defaultValues: {
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+    },
   });
 
   const handleSignOut = (): void => {
@@ -130,6 +132,7 @@ export function Profile(): JSX.Element {
                 type="text"
                 autoComplete="name"
                 autoFocus
+                placeholder="Your display name"
                 {...registerName('name')}
                 aria-invalid={nameErrors.name ? true : undefined}
                 aria-describedby={
@@ -184,6 +187,7 @@ export function Profile(): JSX.Element {
               id={pwIds.currentPassword}
               type="password"
               autoComplete="current-password"
+              placeholder="Current password"
               {...registerPw('currentPassword')}
               aria-invalid={pwErrors.currentPassword ? true : undefined}
               aria-describedby={
@@ -208,12 +212,11 @@ export function Profile(): JSX.Element {
               id={pwIds.newPassword}
               type="password"
               autoComplete="new-password"
+              placeholder="At least 8 characters"
               {...registerPw('newPassword')}
               aria-invalid={pwErrors.newPassword ? true : undefined}
               aria-describedby={
-                pwErrors.newPassword
-                  ? `${pwIds.newPassword}-error`
-                  : undefined
+                pwErrors.newPassword ? `${pwIds.newPassword}-error` : undefined
               }
             />
             {pwErrors.newPassword && (
@@ -227,13 +230,12 @@ export function Profile(): JSX.Element {
             )}
           </div>
           <div className="field">
-            <label htmlFor={pwIds.confirmPassword}>
-              Confirm new password
-            </label>
+            <label htmlFor={pwIds.confirmPassword}>Confirm new password</label>
             <input
               id={pwIds.confirmPassword}
               type="password"
               autoComplete="new-password"
+              placeholder="Re-enter new password"
               {...registerPw('confirmPassword')}
               aria-invalid={pwErrors.confirmPassword ? true : undefined}
               aria-describedby={

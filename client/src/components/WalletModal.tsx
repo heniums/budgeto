@@ -60,7 +60,12 @@ export function WalletModal({
     formState: { errors, isSubmitting, isDirty },
   } = useForm<WalletFormValues>({
     resolver: zodResolver(walletSchema),
-    defaultValues: { name: '', description: '', color: DEFAULT_COLOR, currency: detectLocaleCurrency() },
+    defaultValues: {
+      name: '',
+      description: '',
+      color: DEFAULT_COLOR,
+      currency: detectLocaleCurrency(),
+    },
   });
 
   const isCreate = !walletId;
@@ -70,7 +75,12 @@ export function WalletModal({
 
     if (isCreate) {
       setLoading(false);
-      reset({ name: '', description: '', color: DEFAULT_COLOR, currency: detectLocaleCurrency() });
+      reset({
+        name: '',
+        description: '',
+        color: DEFAULT_COLOR,
+        currency: detectLocaleCurrency(),
+      });
       setFormError(null);
       return;
     }
@@ -178,7 +188,12 @@ export function WalletModal({
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-name">{LABEL.NAME}</Label>
-              <Input id="wallet-modal-name" type="text" {...register('name')} />
+              <Input
+                id="wallet-modal-name"
+                type="text"
+                placeholder="e.g. Savings"
+                {...register('name')}
+              />
               {errors.name && (
                 <span role="alert" className="text-sm text-destructive">
                   {errors.name.message}
@@ -191,6 +206,7 @@ export function WalletModal({
               <Input
                 id="wallet-modal-desc"
                 type="text"
+                placeholder="Optional description"
                 {...register('description')}
               />
             </div>

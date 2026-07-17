@@ -196,7 +196,12 @@ export function CategoryModal({
 
             <div className="space-y-2">
               <Label htmlFor="cat-modal-name">{LABEL.NAME}</Label>
-              <Input id="cat-modal-name" type="text" {...register('name')} />
+              <Input
+                id="cat-modal-name"
+                type="text"
+                placeholder="e.g. Groceries"
+                {...register('name')}
+              />
               {errors.name && (
                 <span role="alert" className="text-sm text-destructive">
                   {errors.name.message}

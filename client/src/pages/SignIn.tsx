@@ -70,6 +70,7 @@ export function SignIn(): JSX.Element {
             type="email"
             autoComplete="email"
             autoFocus
+            placeholder="you@example.com"
             {...register('email')}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
@@ -91,6 +92,7 @@ export function SignIn(): JSX.Element {
             id={ids.password}
             type="password"
             autoComplete="current-password"
+            placeholder="Your password"
             {...register('password')}
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={

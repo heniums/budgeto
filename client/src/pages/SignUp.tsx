@@ -77,6 +77,7 @@ export function SignUp(): JSX.Element {
             id={ids.name}
             type="text"
             autoComplete="name"
+            placeholder="Jane Doe"
             {...register('name')}
             aria-invalid={errors.name ? true : undefined}
             aria-describedby={errors.name ? `${ids.name}-error` : undefined}
@@ -94,6 +95,7 @@ export function SignUp(): JSX.Element {
             id={ids.email}
             type="email"
             autoComplete="email"
+            placeholder="you@example.com"
             {...register('email')}
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
@@ -115,6 +117,7 @@ export function SignUp(): JSX.Element {
             id={ids.password}
             type="password"
             autoComplete="new-password"
+            placeholder="At least 8 characters"
             {...register('password')}
             aria-invalid={errors.password ? true : undefined}
             aria-describedby={
@@ -138,6 +141,7 @@ export function SignUp(): JSX.Element {
             id={ids.confirm}
             type="password"
             autoComplete="new-password"
+            placeholder="Re-enter password"
             {...register('confirm')}
             aria-invalid={errors.confirm ? true : undefined}
             aria-describedby={
