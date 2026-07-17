@@ -110,7 +110,8 @@ export function WalletList(): JSX.Element {
       ) : wallets.length === 0 ? (
         <p>No wallets yet.</p>
       ) : (
-        <Table>
+        <div className="rounded-md border">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -133,7 +134,14 @@ export function WalletList(): JSX.Element {
                 </TableRow>
               ) : (
                 filtered.map((wallet) => (
-                  <TableRow key={wallet.id}>
+                  <TableRow
+                    key={wallet.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      setSelectedWalletId(wallet.id);
+                      setModalMode('view');
+                    }}
+                  >
                     <TableCell>
                       <div
                         style={{
@@ -223,6 +231,7 @@ export function WalletList(): JSX.Element {
               )}
             </TableBody>
           </Table>
+          </div>
       )}
 
       <WalletModal
