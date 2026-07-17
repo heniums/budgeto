@@ -118,7 +118,8 @@ export function Categories(): JSX.Element {
       ) : categories.length === 0 ? (
         <p>No categories yet.</p>
       ) : (
-        <Table>
+        <div className="rounded-md border">
+          <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Name</TableHead>
@@ -142,7 +143,14 @@ export function Categories(): JSX.Element {
                 filtered.map((category) => {
                   const Icon = getIcon(category.icon);
                   return (
-                    <TableRow key={category.id}>
+                    <TableRow
+                      key={category.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => {
+                        setSelectedCategoryId(category.id);
+                        setModalMode('view');
+                      }}
+                    >
                       <TableCell>
                         <div
                           style={{
@@ -246,6 +254,7 @@ export function Categories(): JSX.Element {
               )}
             </TableBody>
           </Table>
+          </div>
       )}
 
       <CategoryModal
