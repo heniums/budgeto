@@ -18,7 +18,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { to: '/', label: 'Home', icon: HomeIcon, end: true },
+  { to: '/dashboard', label: 'Home', icon: HomeIcon, end: true },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 
