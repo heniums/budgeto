@@ -33,6 +33,7 @@ const mockWallets = [
     name: 'Cash',
     description: 'Daily cash',
     color: '#1f8a4c',
+    currency: 'USD',
     balance: '150.00',
     createdAt: '2025-01-15T10:00:00Z',
     updatedAt: '',
@@ -42,6 +43,7 @@ const mockWallets = [
     name: 'Savings',
     description: 'Long term',
     color: '#2f6fed',
+    currency: 'EUR',
     balance: '0',
     createdAt: '2025-03-01T10:00:00Z',
     updatedAt: '',
@@ -78,13 +80,21 @@ describe('WalletList page', () => {
     expect(await screen.findByText('Cash')).toBeInTheDocument();
     expect(screen.getByText('Savings')).toBeInTheDocument();
     expect(screen.getByText('Daily cash')).toBeInTheDocument();
-    expect(screen.getByText('150.00')).toBeInTheDocument();
+    expect(screen.getByText('$150.00')).toBeInTheDocument();
+    expect(screen.getByText('€0.00')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Edit Cash' }),
     ).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Delete Cash' }),
     ).toBeInTheDocument();
+  });
+
+  it('displays each wallet currency in the table', async () => {
+    renderList();
+    await screen.findByText('Cash');
+    expect(screen.getByText('USD')).toBeInTheDocument();
+    expect(screen.getByText('EUR')).toBeInTheDocument();
   });
 
   it('shows empty state when no wallets exist', async () => {

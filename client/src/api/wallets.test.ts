@@ -46,6 +46,7 @@ describe('wallets API client', () => {
       data: {
         id: 'w1',
         name: 'Savings',
+        currency: 'USD',
         balance: '0',
         createdAt: '2024-01-01',
         updatedAt: '2024-01-01',
@@ -59,7 +60,11 @@ describe('wallets API client', () => {
 
   it('getWallets sends GET and returns wallet list', async () => {
     mockGet.mockResolvedValue({
-      data: { wallets: [{ id: 'w1', name: 'Cash', balance: '100.00' }] },
+      data: {
+        wallets: [
+          { id: 'w1', name: 'Cash', currency: 'USD', balance: '100.00' },
+        ],
+      },
     });
     const result = await getWallets();
     expect(mockGet).toHaveBeenCalledWith('/wallets');
@@ -69,7 +74,7 @@ describe('wallets API client', () => {
 
   it('getWallet sends GET for single wallet', async () => {
     mockGet.mockResolvedValue({
-      data: { id: 'w1', name: 'Cash', balance: '50.00' },
+      data: { id: 'w1', name: 'Cash', currency: 'USD', balance: '50.00' },
     });
     const wallet = await getWallet('w1');
     expect(mockGet).toHaveBeenCalledWith('/wallets/w1');
@@ -79,7 +84,7 @@ describe('wallets API client', () => {
 
   it('updateWallet sends PUT with changes', async () => {
     mockPut.mockResolvedValue({
-      data: { id: 'w1', name: 'Updated', balance: '0' },
+      data: { id: 'w1', name: 'Updated', currency: 'USD', balance: '0' },
     });
     const wallet = await updateWallet('w1', { name: 'Updated' });
     expect(mockPut).toHaveBeenCalledWith('/wallets/w1', { name: 'Updated' });

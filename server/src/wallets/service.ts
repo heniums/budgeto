@@ -9,16 +9,187 @@ import {
 } from './repository';
 import { notFoundError } from '../errors';
 
+const SUPPORTED_CURRENCY_CODES = [
+  'AED',
+  'AFN',
+  'ALL',
+  'AMD',
+  'ANG',
+  'AOA',
+  'ARS',
+  'AUD',
+  'AWG',
+  'AZN',
+  'BAM',
+  'BBD',
+  'BDT',
+  'BGN',
+  'BHD',
+  'BIF',
+  'BMD',
+  'BND',
+  'BOB',
+  'BRL',
+  'BSD',
+  'BTN',
+  'BWP',
+  'BYN',
+  'BZD',
+  'CAD',
+  'CDF',
+  'CHF',
+  'CLP',
+  'CNY',
+  'COP',
+  'CRC',
+  'CUP',
+  'CVE',
+  'CZK',
+  'DJF',
+  'DKK',
+  'DOP',
+  'DZD',
+  'EGP',
+  'ERN',
+  'ETB',
+  'EUR',
+  'FJD',
+  'FKP',
+  'FOK',
+  'GBP',
+  'GEL',
+  'GGP',
+  'GHS',
+  'GIP',
+  'GMD',
+  'GNF',
+  'GTQ',
+  'GYD',
+  'HKD',
+  'HNL',
+  'HRK',
+  'HTG',
+  'HUF',
+  'IDR',
+  'ILS',
+  'IMP',
+  'INR',
+  'IQD',
+  'IRR',
+  'ISK',
+  'JEP',
+  'JMD',
+  'JOD',
+  'JPY',
+  'KES',
+  'KGS',
+  'KHR',
+  'KID',
+  'KMF',
+  'KRW',
+  'KWD',
+  'KYD',
+  'KZT',
+  'LAK',
+  'LBP',
+  'LKR',
+  'LRD',
+  'LSL',
+  'LYD',
+  'MAD',
+  'MDL',
+  'MGA',
+  'MKD',
+  'MMK',
+  'MNT',
+  'MOP',
+  'MRU',
+  'MUR',
+  'MVR',
+  'MWK',
+  'MXN',
+  'MYR',
+  'MZN',
+  'NAD',
+  'NGN',
+  'NIO',
+  'NOK',
+  'NPR',
+  'NZD',
+  'OMR',
+  'PAB',
+  'PEN',
+  'PGK',
+  'PHP',
+  'PKR',
+  'PLN',
+  'PYG',
+  'QAR',
+  'RON',
+  'RSD',
+  'RUB',
+  'RWF',
+  'SAR',
+  'SBD',
+  'SCR',
+  'SDG',
+  'SEK',
+  'SGD',
+  'SHP',
+  'SLE',
+  'SOS',
+  'SRD',
+  'SSP',
+  'STN',
+  'SYP',
+  'SZL',
+  'THB',
+  'TJS',
+  'TMT',
+  'TND',
+  'TOP',
+  'TRY',
+  'TTD',
+  'TVD',
+  'TWD',
+  'TZS',
+  'UAH',
+  'UGX',
+  'USD',
+  'UYU',
+  'UZS',
+  'VES',
+  'VND',
+  'VUV',
+  'WST',
+  'XAF',
+  'XCD',
+  'XDR',
+  'XOF',
+  'XPF',
+  'YER',
+  'ZAR',
+  'ZMW',
+  'ZWL',
+] as const;
+
+const currencyCodeSchema = z.preprocess(
+  (val) => (typeof val === 'string' ? val.toUpperCase() : val),
+  z.enum(SUPPORTED_CURRENCY_CODES),
+);
+
 export const createWalletSchema = z.object({
   name: z.string().min(1).max(128),
   description: z.string().max(512).optional().default(''),
   color: z.string().max(32).optional().default('#1f8a4c'),
+  currency: currencyCodeSchema.optional().default('USD'),
 });
 
 export const updateWalletSchema = z.object({
   name: z.string().min(1).max(128).optional(),
   description: z.string().max(512).optional(),
   color: z.string().max(32).optional(),
+  currency: currencyCodeSchema.optional(),
 });
 
 export type CreateWalletInput = z.infer<typeof createWalletSchema>;
@@ -29,6 +200,7 @@ export interface WalletResponse {
   name: string;
   description: string;
   color: string;
+  currency: string;
   balance: string;
   createdAt: Date;
   updatedAt: Date;
@@ -46,6 +218,7 @@ export async function create(
     name: input.name,
     description: input.description,
     color: input.color,
+    currency: input.currency,
   });
   return formatWalletResponse(wallet);
 }
@@ -66,10 +239,7 @@ export async function list(
  * Returns a single wallet by id, with balance. Throws if not found or
  * owned by a different user.
  */
-export async function get(
-  id: string,
-  userId: string,
-): Promise<WalletResponse> {
+export async function get(id: string, userId: string): Promise<WalletResponse> {
   const wallet = await findWalletById(id);
   if (!wallet) {
     throw notFoundError('Wallet not found');
@@ -110,10 +280,7 @@ export async function update(
  * Deletes a wallet after verifying ownership and confirming it has no
  * transactions.
  */
-export async function remove(
-  id: string,
-  userId: string,
-): Promise<void> {
+export async function remove(id: string, userId: string): Promise<void> {
   const wallet = await findWalletById(id);
   if (!wallet) {
     throw notFoundError('Wallet not found');
@@ -124,28 +291,43 @@ export async function remove(
   await deleteWallet(id);
 }
 
-function formatWalletResponse(
-  wallet: { id: string; name: string; description: string | null; color: string | null; createdAt: Date; updatedAt: Date },
-): WalletResponse {
+function formatWalletResponse(wallet: {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  currency: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}): WalletResponse {
   return {
     id: wallet.id,
     name: wallet.name,
     description: wallet.description ?? '',
     color: wallet.color ?? '#1f8a4c',
+    currency: wallet.currency ?? 'USD',
     balance: '0',
     createdAt: wallet.createdAt,
     updatedAt: wallet.updatedAt,
   };
 }
 
-function formatWalletWithBalanceRow(
-  row: { id: string; name: string; description: string | null; color: string | null; balance: string; createdAt: Date; updatedAt: Date },
-): WalletResponse {
+function formatWalletWithBalanceRow(row: {
+  id: string;
+  name: string;
+  description: string | null;
+  color: string | null;
+  currency: string | null;
+  balance: string;
+  createdAt: Date;
+  updatedAt: Date;
+}): WalletResponse {
   return {
     id: row.id,
     name: row.name,
     description: row.description ?? '',
     color: row.color ?? '#1f8a4c',
+    currency: row.currency ?? 'USD',
     balance: row.balance,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

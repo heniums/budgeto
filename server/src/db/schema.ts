@@ -21,6 +21,7 @@ export const wallets = pgTable('wallet', {
   name: text('name').notNull(),
   description: text('description').default(''),
   color: text('color').default('#1f8a4c'),
+  currency: text('currency').notNull().default('USD'),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),

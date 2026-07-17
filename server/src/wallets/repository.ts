@@ -31,6 +31,7 @@ export async function getWalletWithBalance(
       name: wallets.name,
       description: wallets.description,
       color: wallets.color,
+      currency: wallets.currency,
       createdAt: wallets.createdAt,
       updatedAt: wallets.updatedAt,
       balance: sql<string>`COALESCE(SUM(${transactions.amount}), 0)`,
@@ -52,6 +53,7 @@ export async function findWalletsByUserIdWithBalance(
       name: wallets.name,
       description: wallets.description,
       color: wallets.color,
+      currency: wallets.currency,
       createdAt: wallets.createdAt,
       updatedAt: wallets.updatedAt,
       balance: sql<string>`COALESCE(SUM(${transactions.amount}), 0)`,
@@ -76,7 +78,7 @@ export async function walletHasTransactions(
 
 export async function updateWallet(
   id: string,
-  input: Partial<Pick<NewWallet, 'name' | 'description' | 'color'>>,
+  input: Partial<Pick<NewWallet, 'name' | 'description' | 'color' | 'currency'>>,
 ): Promise<Wallet | undefined> {
   const [wallet] = await db
     .update(wallets)

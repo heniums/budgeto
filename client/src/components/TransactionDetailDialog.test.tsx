@@ -21,6 +21,7 @@ describe('TransactionDetailDialog', () => {
         onOpenChange={vi.fn()}
         transaction={sampleTx}
         walletName="Cash"
+        walletCurrency="USD"
         categoryColor="#ff6b6b"
         onEdit={vi.fn()}
         onDelete={vi.fn()}
@@ -41,18 +42,15 @@ describe('TransactionDetailDialog', () => {
         onOpenChange={vi.fn()}
         transaction={sampleTx}
         walletName="Cash"
+        walletCurrency="USD"
         categoryColor="#ff6b6b"
         onEdit={vi.fn()}
         onDelete={vi.fn()}
       />,
     );
 
-    expect(
-      screen.getByRole('button', { name: /edit/i }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /delete/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /edit/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /delete/i })).toBeInTheDocument();
   });
 
   it('calls onEdit when Edit button is clicked', async () => {
@@ -65,6 +63,7 @@ describe('TransactionDetailDialog', () => {
         onOpenChange={vi.fn()}
         transaction={sampleTx}
         walletName="Cash"
+        walletCurrency="USD"
         categoryColor="#ff6b6b"
         onEdit={onEdit}
         onDelete={vi.fn()}
@@ -85,6 +84,7 @@ describe('TransactionDetailDialog', () => {
         onOpenChange={vi.fn()}
         transaction={sampleTx}
         walletName="Cash"
+        walletCurrency="USD"
         categoryColor="#ff6b6b"
         onEdit={vi.fn()}
         onDelete={onDelete}
@@ -102,6 +102,7 @@ describe('TransactionDetailDialog', () => {
         onOpenChange={vi.fn()}
         transaction={{ ...sampleTx, description: '' }}
         walletName="Cash"
+        walletCurrency="USD"
         categoryColor="#ff6b6b"
         onEdit={vi.fn()}
         onDelete={vi.fn()}
@@ -118,6 +119,7 @@ describe('TransactionDetailDialog', () => {
         onOpenChange={vi.fn()}
         transaction={{ ...sampleTx, categoryId: null, categoryName: null }}
         walletName="Cash"
+        walletCurrency="USD"
         categoryColor="#ff6b6b"
         onEdit={vi.fn()}
         onDelete={vi.fn()}

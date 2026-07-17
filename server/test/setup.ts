@@ -43,6 +43,7 @@ export async function setup(): Promise<void> {
       "name" text NOT NULL,
       "description" text DEFAULT '',
       "color" text DEFAULT '#1f8a4c',
+      "currency" text NOT NULL DEFAULT 'USD',
       "created_at" timestamptz NOT NULL DEFAULT now(),
       "updated_at" timestamptz NOT NULL DEFAULT now()
     )

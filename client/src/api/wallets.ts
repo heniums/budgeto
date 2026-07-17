@@ -5,6 +5,7 @@ export interface WalletData {
   name: string;
   description: string;
   color: string;
+  currency: string;
   balance: string;
   createdAt: string;
   updatedAt: string;
@@ -14,12 +15,14 @@ export interface CreateWalletInput {
   name: string;
   description?: string;
   color?: string;
+  currency?: string;
 }
 
 export interface UpdateWalletInput {
   name?: string;
   description?: string;
   color?: string;
+  currency?: string;
 }
 
 export interface CreateTransactionInput {
