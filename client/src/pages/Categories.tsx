@@ -128,124 +128,124 @@ export function Categories(): JSX.Element {
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {filtered.length === 0 ? (
-              <TableRow>
-                <TableCell
-                  colSpan={5}
-                  className="text-center text-muted-foreground"
-                >
-                  No categories match your search.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filtered.map((category) => {
-                const Icon = getIcon(category.icon);
-                return (
-                  <TableRow key={category.id}>
-                    <TableCell>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        {Icon ? <Icon size={18} aria-hidden /> : null}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedCategoryId(category.id);
-                            setModalMode('view');
-                          }}
+            <TableBody>
+              {filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center text-muted-foreground"
+                  >
+                    No categories match your search.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filtered.map((category) => {
+                  const Icon = getIcon(category.icon);
+                  return (
+                    <TableRow key={category.id}>
+                      <TableCell>
+                        <div
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'inherit',
-                            textDecoration: 'underline',
-                            padding: 0,
-                            font: 'inherit',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
                           }}
                         >
-                          {category.name}
-                        </button>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={
-                          category.type === 'income' ? 'default' : 'secondary'
-                        }
-                      >
-                        {category.type}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            background: category.color,
-                            flexShrink: 0,
-                          }}
-                          aria-hidden
-                        />
-                        <span className="text-sm text-muted-foreground">
-                          {category.color}
-                        </span>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground text-sm">
-                      {formatDate(category.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          justifyContent: 'flex-end',
-                        }}
-                      >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedCategoryId(category.id);
-                            setModalMode('edit');
-                          }}
-                          aria-label={`Edit ${category.name}`}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() =>
-                            handleDelete(category.id, category.name)
+                          {Icon ? <Icon size={18} aria-hidden /> : null}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedCategoryId(category.id);
+                              setModalMode('view');
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'inherit',
+                              textDecoration: 'underline',
+                              padding: 0,
+                              font: 'inherit',
+                            }}
+                          >
+                            {category.name}
+                          </button>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            category.type === 'income' ? 'default' : 'secondary'
                           }
-                          disabled={deleting === category.id}
-                          aria-label={`Delete ${category.name}`}
                         >
-                          {deleting === category.id ? 'Deleting…' : 'Delete'}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                          {category.type}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div
+                          style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
+                          }}
+                        >
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              background: category.color,
+                              flexShrink: 0,
+                            }}
+                            aria-hidden
+                          />
+                          <span className="text-sm text-muted-foreground">
+                            {category.color}
+                          </span>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground text-sm">
+                        {formatDate(category.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div
+                          style={{
+                            display: 'flex',
+                            gap: '0.5rem',
+                            justifyContent: 'flex-end',
+                          }}
+                        >
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedCategoryId(category.id);
+                              setModalMode('edit');
+                            }}
+                            aria-label={`Edit ${category.name}`}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() =>
+                              handleDelete(category.id, category.name)
+                            }
+                            disabled={deleting === category.id}
+                            aria-label={`Delete ${category.name}`}
+                          >
+                            {deleting === category.id ? 'Deleting…' : 'Delete'}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
       )}
 
       <CategoryModal

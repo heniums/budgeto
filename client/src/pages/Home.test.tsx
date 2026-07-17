@@ -520,12 +520,16 @@ describe('Home transaction detail view', () => {
     cleanup();
   });
 
-  it('opens edit form when clicking a transaction row', async () => {
+  it('opens transaction detail then edit form when clicking a row', async () => {
     const user = userEvent.setup();
     renderHome();
     await screen.findByText('Groceries');
 
     await user.click(screen.getByText('Groceries'));
+
+    expect(await screen.findByText(/transaction details/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /edit/i }));
 
     expect(
       await screen.findByRole('button', { name: /save changes/i }),
@@ -539,11 +543,10 @@ describe('Home transaction detail view', () => {
     await screen.findByText('Groceries');
 
     await user.click(screen.getByText('Groceries'));
-    await screen.findByRole('button', { name: /save changes/i });
+    await screen.findByText(/transaction details/i);
 
-    await user.click(screen.getByText(/delete this transaction/i));
-
-    expect(await screen.findByText(/are you sure/i)).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /delete/i }));
+    await screen.findByText(/are you sure/i);
 
     await user.click(screen.getByRole('button', { name: /delete/i }));
 
@@ -578,9 +581,9 @@ describe('Home transaction detail view', () => {
 
     const amountCells = screen.getAllByText('$50.00');
     await user.click(amountCells[0]);
-    await screen.findByRole('button', { name: /save changes/i });
+    await screen.findByText(/transaction details/i);
 
-    await user.click(screen.getByText(/delete this transaction/i));
+    await user.click(screen.getByRole('button', { name: /delete/i }));
 
     expect(await screen.findByText(/part of a transfer/i)).toBeInTheDocument();
   });

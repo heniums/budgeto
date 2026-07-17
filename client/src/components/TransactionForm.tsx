@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { WalletSelectList } from './WalletSelectList';
 import { CategorySelectList } from './CategorySelectList';
+import { Money } from './Money';
 
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
@@ -253,15 +254,14 @@ export function TransactionForm({
 
         <div className="space-y-2">
           <Label>Amount</Label>
-          <p
-            className={`text-lg font-semibold ${
-              Number(viewValues.amount) < 0
-                ? 'text-destructive'
-                : 'text-foreground'
-            }`}
-          >
-            {Number(viewValues.amount) < 0 ? '-' : ''}$
-            {Math.abs(Number(viewValues.amount)).toFixed(2)}
+          <p className="text-lg font-semibold">
+            <Money
+              amount={viewValues.amount}
+              currency={
+                wallets.find((w) => w.id === viewValues.walletId)?.currency ??
+                'USD'
+              }
+            />
           </p>
         </div>
 

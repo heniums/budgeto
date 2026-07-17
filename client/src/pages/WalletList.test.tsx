@@ -80,7 +80,8 @@ describe('WalletList page', () => {
     expect(await screen.findByText('Cash')).toBeInTheDocument();
     expect(screen.getByText('Savings')).toBeInTheDocument();
     expect(screen.getByText('Daily cash')).toBeInTheDocument();
-    expect(screen.getByText('150.00')).toBeInTheDocument();
+    expect(screen.getByText('$150.00')).toBeInTheDocument();
+    expect(screen.getByText('€0.00')).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: 'Edit Cash' }),
     ).toBeInTheDocument();

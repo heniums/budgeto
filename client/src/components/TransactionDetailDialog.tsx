@@ -7,21 +7,17 @@ import {
 import { Button } from '@/components/ui/button';
 import type { TransactionData } from '../api/transactions';
 import dayjs from 'dayjs';
+import { Money } from './Money';
 
 interface TransactionDetailDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   transaction: TransactionData;
   walletName: string;
+  walletCurrency: string;
   categoryColor?: string;
   onEdit: () => void;
   onDelete: () => void;
-}
-
-function formatAmount(amount: string): string {
-  const n = Number(amount);
-  const sign = n < 0 ? '-' : '';
-  return `${sign}$${Math.abs(n).toFixed(2)}`;
 }
 
 function formatDate(iso: string): string {
@@ -34,6 +30,7 @@ export function TransactionDetailDialog({
   onOpenChange,
   transaction,
   walletName,
+  walletCurrency,
   categoryColor,
   onEdit,
   onDelete,
@@ -86,14 +83,8 @@ export function TransactionDetailDialog({
 
           <div>
             <span className="text-sm text-muted-foreground">Amount</span>
-            <p
-              className={`text-lg font-semibold ${
-                Number(transaction.amount) < 0
-                  ? 'text-destructive'
-                  : 'text-foreground'
-              }`}
-            >
-              {formatAmount(transaction.amount)}
+            <p className="text-lg font-semibold">
+              <Money amount={transaction.amount} currency={walletCurrency} />
             </p>
           </div>
         </div>

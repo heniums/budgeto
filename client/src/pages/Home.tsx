@@ -27,12 +27,14 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
+import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
 import { TransferForm } from '../components/TransferForm';
 import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletModal } from '../components/WalletModal';
 import { CategoryModal } from '../components/CategoryModal';
 import { DateRangeButton } from '../components/DateRangeButton';
+import { Money } from '../components/Money';
 import { formatPeriodLabel, periodKey, type DatePreset } from '@/lib/dateRange';
 import {
   ContextMenu,
@@ -64,12 +66,6 @@ function makeLongPressHandlers(onLongPress: () => void): LongPressHandlers {
       if (timer.current) clearTimeout(timer.current);
     },
   };
-}
-
-function formatAmount(amount: string): string {
-  const n = Number(amount);
-  const sign = n < 0 ? '-' : '';
-  return `${sign}$${Math.abs(n).toFixed(2)}`;
 }
 
 function formatDate(iso: string): string {
@@ -107,6 +103,7 @@ export function Home(): JSX.Element {
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [editTx, setEditTx] = useState<TransactionData | null>(null);
+  const [detailTx, setDetailTx] = useState<TransactionData | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
     null,
   );
@@ -265,6 +262,9 @@ export function Home(): JSX.Element {
 
   const walletName = (walletId: string): string =>
     wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
+
+  const walletCurrency = (walletId: string): string =>
+    wallets.find((w) => w.id === walletId)?.currency ?? 'USD';
 
   const categoryMap = useMemo(() => {
     const map = new Map<string, CategoryData>();
@@ -518,7 +518,6 @@ export function Home(): JSX.Element {
                     </TableHeader>
                     <TableBody>
                       {group.items.map((tx) => {
-                        const amount = Number(tx.amount);
                         const cat = tx.categoryId
                           ? categoryMap.get(tx.categoryId)
                           : null;
@@ -526,7 +525,7 @@ export function Home(): JSX.Element {
                           <TableRow
                             key={tx.id}
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => setEditTx(tx)}
+                            onClick={() => setDetailTx(tx)}
                           >
                             <TableCell>{formatDate(tx.createdAt)}</TableCell>
                             <TableCell>
@@ -580,14 +579,11 @@ export function Home(): JSX.Element {
                               )}
                             </TableCell>
                             <TableCell>{tx.description || '—'}</TableCell>
-                            <TableCell
-                              className={`text-right ${
-                                amount < 0
-                                  ? 'text-destructive'
-                                  : 'text-foreground'
-                              }`}
-                            >
-                              {formatAmount(tx.amount)}
+                            <TableCell className="text-right">
+                              <Money
+                                amount={tx.amount}
+                                currency={walletCurrency(tx.walletId)}
+                              />
                             </TableCell>
                           </TableRow>
                         );
@@ -766,6 +762,37 @@ export function Home(): JSX.Element {
           </div>
         </DialogContent>
       </Dialog>
+
+      {detailTx && (
+        <TransactionDetailDialog
+          open={detailTx !== null}
+          onOpenChange={(open) => {
+            if (!open) setDetailTx(null);
+          }}
+          transaction={detailTx}
+          walletName={walletName(detailTx.walletId)}
+          walletCurrency={walletCurrency(detailTx.walletId)}
+          categoryColor={
+            detailTx.categoryId
+              ? categoryMap.get(detailTx.categoryId)?.color
+              : undefined
+          }
+          onEdit={() => {
+            setEditTx(detailTx);
+            setDetailTx(null);
+          }}
+          onDelete={() => {
+            const tx = detailTx;
+            setDetailTx(null);
+            const pair = findTransferPair(tx, transactions);
+            if (pair) {
+              setCascadeTx({ action: 'delete', tx, pair });
+            } else {
+              setDeleteConfirm(tx);
+            }
+          }}
+        />
+      )}
 
       <WalletModal
         walletId={detailWalletId ?? undefined}
