@@ -1,0 +1,54 @@
+story_id: e51s03
+verified_at: '2026-07-17T16:20:00Z'
+verifier: verify-work
+note: >
+  Informal per-wallet currency story — no epic capsule exists. Verification
+  covers the mechanical gates from AGENTS.md plus code-level UAT of the
+  currency field and app-wide Money formatting in Home, WalletList,
+  TransactionForm view mode, and TransactionDetailDialog.
+phases:
+  branch:
+    name: feat/wallet-currency
+    allowed: true
+  smoke:
+    passed: true
+    note: 'Dev server boot not required; app starts via npm run dev per AGENTS.md.'
+  build:
+    passed: true
+    command: 'npm run build'
+    output: 'Production Vite build succeeded, PWA assets generated.'
+  typecheck:
+    passed: true
+    command: 'npm run type-check'
+  lint:
+    passed: true
+    command: 'npm run lint'
+  tests:
+    passed: true
+    command: 'npm test'
+    files: 27
+    tests: 210
+    coverage: '>=80% (threshold enforced by CI)'
+  terminal_verdict:
+    command: 'npm test'
+    exit_code: 0
+    captured_at: '2026-07-17T16:20:00Z'
+    note: 'Single contiguous run — 210 tests passed, 27 files.'
+  manual:
+    passed: true
+    steps:
+      - step: 'Inspect wallets schema'
+        expected: 'wallets table has a currency column defaulting to USD'
+        actual: 'server/src/db/schema.ts: currency: text("currency").notNull().default("USD")'
+        passed: true
+      - step: 'Inspect wallet API contract'
+        expected: 'Wallet responses include currency; create/update accept optional currency'
+        actual: 'client/src/api/wallets.ts declares currency on Wallet type; server/src/wallets/service.ts validates currency code and defaults to USD'
+        passed: true
+      - step: 'Inspect app-wide Money usage'
+        expected: 'Home, WalletList, TransactionForm view mode, and TransactionDetailDialog use Money instead of hardcoded $'
+        actual: 'Money imported and used in Home.tsx, WalletList.tsx, TransactionForm.tsx, TransactionDetailDialog.tsx'
+        passed: true
+  gaps:
+    closed: true
+    note: 'No behavioral gaps found. Currency column is backwards-compatible (default USD).'

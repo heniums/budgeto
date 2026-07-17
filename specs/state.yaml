@@ -7,14 +7,16 @@ active_story_id: e51s03
 completed_epic: false
 
 epic_cycle:
-  current_step: develop-tdd
-  next_skill: verify-work
+  current_step: audit
+  next_skill: finishing-a-development-branch
   story_bcps: 4
   completed_steps:
     - kickoff-branch
     - develop-tdd
-  audit_result: null
-  note: 'Per-wallet currency feature implemented: schema/API/client support, locale detection, list display, tests.'
+    - verify-work
+    - audit
+  audit_result: 'passed-gates; 2-important-resolved'
+  note: 'Audit (2026-07-17): type-check, lint, tests (210/210, 27 files) all green. Both Important review items resolved: (1) TransactionDetailDialog now mounted from Home with real walletCurrency via Money; row click opens detail, Edit/Delete wired. (2) Table-border refactor split to branch ref/table-border (commit abfd9b8), removed from currency branch. No Critical issues.'
 
 bug_cycle:
   current_step: null
@@ -28,25 +30,27 @@ release:
 
 metrics:
   story_start: '2026-07-17T19:14:00Z'
-  story_end: null
+  story_end: '2026-07-17T16:20:00Z'
   cycle_minutes: null
   bcp_per_hour: null
 
 git:
   branch: feat/wallet-currency
-  hash: '1449f52'
+  hash: 'a62619c'
   pushed: false
 
 handoff:
-  last_step_completed: 'develop-tdd: currency field wired through server/client, tests added, full preflight green.'
+  last_step_completed: 'audit: type-check, lint, tests (210/210) green via verification gates; code review surfaced 2 Important items (orphaned TransactionDetailDialog, bundled table-border refactors). No Critical issues.'
   open_decisions:
     - 'Story ID e51s03 is informal — no epic capsule exists for this currency feature.'
-    - 'Transaction amounts still hardcode $ in Home formatAmount; multi-currency display out of scope.'
+    - 'Transaction amounts now use Money component; currency conversion not implemented — transfers remain in each wallet currency.'
+    - 'audit-code is not an installed skill; audit performed via verification-before-completion gates + requesting-code-review. state.yaml next_skill updated to finishing-a-development-branch.'
   required_reading:
     - specs/product/VISION_LATEST.yaml
     - specs/product/SCOPE_LATEST.yaml
     - specs/release-plan.yaml
-  next_skill: verify-work
+    - specs/verifications/e51s03-verify.yaml
+  next_skill: finishing-a-development-branch
 
 two_pass_spec:
   journey_pass: pending
