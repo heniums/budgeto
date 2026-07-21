@@ -50,6 +50,7 @@ describe('transactions API client', () => {
             categoryId: 'c1',
             categoryName: 'Food',
             createdAt: '2024-01-01',
+            date: '2024-01-01',
           },
         ],
         total: 1,
@@ -109,6 +110,7 @@ describe('transactions API client', () => {
         amount: '50.00',
         description: 'Groceries',
         createdAt: '2024-01-01',
+        date: '2024-01-01',
       },
     });
     const tx = await getTransaction('t1');
@@ -135,6 +137,7 @@ describe('transactions API client', () => {
         description: 'Updated',
         categoryId: null,
         createdAt: '2024-01-01',
+        date: '2024-01-01',
       },
     });
     const result = await updateTransaction('t1', {
@@ -158,6 +161,7 @@ describe('transactions API client', () => {
         description: 'Deleted',
         categoryId: null,
         createdAt: '2024-01-01',
+        date: '2024-01-01',
       },
     });
     const result = await deleteTransaction('t1');

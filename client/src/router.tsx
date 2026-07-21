@@ -9,6 +9,7 @@ import { Settings } from './pages/Settings';
 import { Profile } from './pages/Profile';
 import { WalletList } from './pages/WalletList';
 import { Categories } from './pages/Categories';
+import { Budgets } from './pages/Budgets';
 
 export const routes: RouteObject[] = [
   { path: '/', element: <Landing /> },
@@ -22,6 +23,7 @@ export const routes: RouteObject[] = [
     ),
     children: [
       { path: '/dashboard', element: <Home /> },
+      { path: '/budgets', element: <Budgets /> },
       {
         path: '/settings',
         element: <Settings />,

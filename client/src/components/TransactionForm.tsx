@@ -23,6 +23,7 @@ const transactionSchema = z.object({
     }),
   description: z.string().max(512),
   categoryId: z.string().min(1, 'Please select a category.'),
+  date: z.string().min(1, 'Date is required.'),
 });
 
 type TransactionValues = z.infer<typeof transactionSchema>;
@@ -62,6 +63,7 @@ interface TransactionFormProps {
     amount: string;
     description: string;
     categoryId: string;
+    date: string;
   };
   editTxId?: string;
   onRefreshWallets?: () => void;
@@ -76,7 +78,7 @@ interface TransactionFormProps {
     walletName?: string;
     categoryName?: string;
     categoryColor?: string;
-    createdAt?: string;
+    date?: string;
   };
   onEdit?: () => void;
   onDelete?: () => void;
@@ -125,6 +127,7 @@ export function TransactionForm({
       amount: '',
       description: '',
       categoryId: '',
+      date: dayjs().format('YYYY-MM-DD'),
     },
   });
 
@@ -148,6 +151,7 @@ export function TransactionForm({
       setValue('amount', initialValues.amount);
       setValue('description', initialValues.description);
       setValue('categoryId', initialValues.categoryId);
+      setValue('date', initialValues.date);
     }
   }, [editMode, initialValues, setValue]);
 
@@ -172,6 +176,7 @@ export function TransactionForm({
           amount: values.amount,
           description: values.description,
           categoryId: values.categoryId || undefined,
+          date: values.date,
         });
         reset();
       }
@@ -232,11 +237,11 @@ export function TransactionForm({
           </div>
         )}
 
-        {viewValues.createdAt && (
+        {viewValues.date && (
           <div>
             <span className="text-sm text-muted-foreground">Date</span>
             <p className="text-sm font-medium">
-              {dayjs(viewValues.createdAt).format('M/D/YYYY')}
+              {dayjs(viewValues.date).format('M/D/YYYY')}
             </p>
           </div>
         )}
@@ -451,6 +456,16 @@ export function TransactionForm({
             role="button"
           >
             Don&apos;t see your category? Create one →
+          </span>
+        )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="tx-date">Date</Label>
+        <Input id="tx-date" type="date" {...register('date')} />
+        {errors.date && (
+          <span role="alert" className="text-sm text-destructive">
+            {errors.date.message}
           </span>
         )}
       </div>

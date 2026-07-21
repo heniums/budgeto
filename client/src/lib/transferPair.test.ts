@@ -2,9 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { findTransferPair } from './transferPair';
 import type { TransactionData } from '../api/transactions';
 
-function makeTx(
-  overrides: Partial<TransactionData> = {},
-): TransactionData {
+function makeTx(overrides: Partial<TransactionData> = {}): TransactionData {
   return {
     id: 't1',
     walletId: 'w1',
@@ -13,6 +11,7 @@ function makeTx(
     categoryId: null,
     categoryName: null,
     createdAt: '2026-01-01T10:00:00.000Z',
+    date: '2026-01-01',
     ...overrides,
   };
 }
@@ -52,6 +51,7 @@ describe('findTransferPair', () => {
       description: 'Transfer',
       amount: '50.00',
       createdAt: '2026-01-01T10:00:00.000Z',
+      date: '2026-01-01',
     });
     const other = makeTx({
       id: 't2',
@@ -69,6 +69,7 @@ describe('findTransferPair', () => {
       description: 'Transfer',
       amount: '50.00',
       createdAt: '2026-01-01T10:00:00.000Z',
+      date: '2026-01-01',
     });
     const other = makeTx({
       id: 't2',

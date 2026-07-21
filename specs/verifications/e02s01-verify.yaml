@@ -1,0 +1,73 @@
+story_id: e02s01
+title: Period computation and current period display
+risk: P1
+verified_at: "2026-07-21T15:15:00Z"
+verifier: verify-work
+phases:
+  smoke:
+    passed: true
+    api_health: '{"status":"ok"}'
+    client_html: '<title>Budgeto</title>'
+  build:
+    passed: true
+    command: "npm run build"
+    note: "4.01s, 7 precached entries, PWA sw.js generated"
+  typecheck:
+    passed: true
+    command: "npm run type-check"
+  lint:
+    passed: true
+    command: "npm run lint"
+  tests:
+    passed: true
+    server_tests: 185
+    client_tests: 223
+    total: 408
+    command: "npm test"
+  terminal_verdict:
+    command: "npm test"
+    exit_code: 0
+    captured_at: "2026-07-21T15:00:22Z"
+    note: "Single run — 408 tests, all passing. Server 185 in 22.42s, Client 223 in 11.74s."
+  security:
+    passed: true
+    findings: 0
+    verdict: "CLEAN — Zod-validated period param, Drizzle ORM queries, authenticated routes, ownership checks intact."
+  manual:
+    steps:
+      - step: "POST /budgets with period=monthly"
+        expected: "periodWindow computed for current month (July 2026: 07-01 to 07-31)"
+        actual: "periodWindow: { startDate: '2026-07-01', endDate: '2026-07-31' }"
+        passed: true
+      - step: "GET /budgets/:id?period=2025-01 (historical period)"
+        expected: "periodWindow computed for January 2025"
+        actual: "periodWindow: { startDate: '2025-01-01', endDate: '2025-01-31' }"
+        passed: true
+      - step: "GET /budgets?period=2025-06 (list with period)"
+        expected: "All budgets show periodWindow for June 2025"
+        actual: "periodWindow: { startDate: '2025-06-01', endDate: '2025-06-30' }"
+        passed: true
+      - step: "GET /budgets (no period, defaults to current)"
+        expected: "Current month periodWindow auto-computed"
+        actual: "periodWindow: { startDate: '2026-07-01', endDate: '2026-07-31' }"
+        passed: true
+      - step: "GET /budgets?period=invalid (bad format)"
+        expected: "400 VALIDATION_ERROR with descriptive message"
+        actual: "400: 'Period must be in YYYY-MM format'"
+        passed: true
+      - step: "POST /budgets with period=yearly"
+        expected: "periodWindow for current year"
+        actual: "periodWindow: { startDate: '2026-01-01', endDate: '2026-12-31' }"
+        passed: true
+      - step: "POST /budgets with period=custom, startDate/endDate"
+        expected: "periodWindow matches custom dates"
+        actual: "periodWindow: { startDate: '2026-01-01', endDate: '2026-03-31' }"
+        passed: true
+      - step: "PUT /budgets/:id { period: yearly } (update period type)"
+        expected: "periodWindow re-computed for yearly"
+        actual: "periodWindow: { startDate: '2026-01-01', endDate: '2026-12-31' }"
+        passed: true
+  gaps:
+    closed: true
+    count: 0
+    note: "No gaps found — all behavior matches spec requirements."

@@ -1,0 +1,48 @@
+workflow_mode: solo-git
+
+session:
+  id: bootstrap-001
+  started_at: 2026-01-19T00:00:00Z
+  active_flow: build_epic
+
+epic:
+  active_id: e02
+  active_story_id: e02s01
+  active_task_id: null
+
+git:
+  branch: feat/budgets
+  base_branch: main
+  status: clean
+  last_commit: c3c4eb1
+
+epic_cycle:
+  step: 4
+  fast_mode: false
+  story_bcps: 5
+  audit_result: null
+
+handoff:
+  next_skill: audit-code
+  reason: |
+    verify-work PASS for e02 (both stories). Full UAT gate green:
+    - Smoke: API + client boot OK
+    - Build: 4.01s, PASS
+    - TypeCheck: PASS
+    - Lint: PASS
+    - Tests: 408 tests PASS (185 server + 223 client)
+    - Security: CLEAN (Zod-validated, Drizzle ORM, auth gates intact)
+    - Manual UAT: 9/9 steps PASS (monthly, yearly, custom, period= param,
+      invalid format 400, update period type, list with period, default current)
+    - Gaps: 0
+    Evidence: specs/verifications/e02s01-verify.yaml, e02s02-verify.yaml
+  blocker: null
+
+metrics:
+  story_start: 2026-07-21T00:00:00Z
+
+notes: |
+  e02s01 period computation complete. Budget period type drives computed
+  periodWindow. startDate/endDate still stored in DB (removal out of scope).
+  Client form hides date fields unless period='custom'. Weekly period type
+  supported in computePeriodWindow but not yet in Zod schema/UI enum.

@@ -29,6 +29,7 @@ export interface CreateTransactionInput {
   amount: string;
   description?: string;
   categoryId?: string;
+  date?: string;
 }
 
 export interface TransferInput {
@@ -44,6 +45,7 @@ export interface TransactionResult {
   amount: string;
   description: string;
   categoryId: string | null;
+  date: string;
   createdAt: string;
 }
 

@@ -1,0 +1,18 @@
+epic_id: e01
+slug: budgets
+title: Budgets with multi-category limits
+status: in_progress
+priority: high
+bcps: 6
+
+stories:
+  - id: e01s01
+    title: Create budgets with multiple categories, icons, colors, and progress tracking
+    status: passing
+    bcps: 6
+
+summary: |
+  Redesign the budget feature so a budget can group multiple expense categories,
+  each with its own limit. Budgets have their own icon and color. The system tracks
+  spending per category and overall budget progress. Chart view is out of scope for
+  this story and will be handled separately.

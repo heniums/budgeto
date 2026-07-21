@@ -11,3 +11,4 @@ coverage/
 .pi/
 .pi-subagents/
 .hypa/
+.specs/

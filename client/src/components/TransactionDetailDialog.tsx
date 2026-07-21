@@ -46,7 +46,7 @@ export function TransactionDetailDialog({
           <div>
             <span className="text-sm text-muted-foreground">Date</span>
             <p className="text-sm font-medium">
-              {formatDate(transaction.createdAt)}
+              {formatDate(transaction.date)}
             </p>
           </div>
 

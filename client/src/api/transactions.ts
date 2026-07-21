@@ -7,6 +7,7 @@ export interface TransactionData {
   description: string;
   categoryId: string | null;
   categoryName: string | null;
+  date: string;
   createdAt: string;
 }
 
@@ -61,6 +62,7 @@ export interface UpdateTransactionInput {
   description?: string;
   categoryId?: string | null;
   walletId?: string;
+  date?: string;
 }
 
 export async function updateTransaction(

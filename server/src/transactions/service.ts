@@ -20,6 +20,7 @@ export const createTransactionSchema = z.object({
   }),
   description: z.string().max(512).optional().default(''),
   categoryId: z.string().uuid().optional(),
+  date: z.string().date().optional(),
 });
 
 export const transferSchema = z.object({
@@ -45,6 +46,7 @@ export const updateTransactionSchema = z.object({
   description: z.string().max(512).optional(),
   categoryId: z.string().uuid().optional().nullable(),
   walletId: z.string().uuid().optional(),
+  date: z.string().date().optional(),
 });
 
 export const listQuerySchema = z.object({
@@ -88,6 +90,7 @@ export async function create(
     amount: input.amount,
     description: input.description,
     categoryId: input.categoryId,
+    ...(input.date !== undefined && { date: input.date }),
   });
 
   return {
@@ -96,6 +99,7 @@ export async function create(
     amount: tx.amount,
     description: tx.description ?? '',
     categoryId: tx.categoryId ?? null,
+    date: tx.date,
     createdAt: tx.createdAt,
   };
 }
@@ -146,6 +150,7 @@ export async function update(
     ...(input.description !== undefined && { description: input.description }),
     ...(input.categoryId !== undefined && { categoryId: input.categoryId }),
     ...(input.walletId !== undefined && { walletId: input.walletId }),
+    ...(input.date !== undefined && { date: input.date }),
   });
 
   return {
@@ -154,6 +159,7 @@ export async function update(
     amount: updated.amount,
     description: updated.description ?? '',
     categoryId: updated.categoryId ?? null,
+    date: updated.date,
     createdAt: updated.createdAt,
   };
 }
@@ -172,6 +178,7 @@ export async function remove(userId: string, txId: string) {
     amount: deleted.amount,
     description: deleted.description ?? '',
     categoryId: deleted.categoryId ?? null,
+    date: deleted.date,
     createdAt: deleted.createdAt,
   };
 }
@@ -193,6 +200,7 @@ export async function list(userId: string, walletId: string) {
       amount: tx.amount,
       description: tx.description ?? '',
       categoryId: tx.categoryId ?? null,
+      date: tx.date,
       createdAt: tx.createdAt,
     })),
   };
@@ -206,6 +214,7 @@ export type UserTransactionsResult = {
     description: string;
     categoryId: string | null;
     categoryName: string | null;
+    date: string;
     createdAt: Date;
   }[];
   total: number;
@@ -252,6 +261,7 @@ export async function listByUser(
       categoryId: tx.categoryId ?? null,
       categoryName: tx.categoryName ?? null,
       createdAt: tx.createdAt,
+      date: tx.date,
     })),
     total,
   };
@@ -301,6 +311,7 @@ export async function transfer(userId: string, input: TransferInput) {
       amount: result.withdrawal.amount,
       description: result.withdrawal.description ?? '',
       categoryId: result.withdrawal.categoryId ?? null,
+      date: result.withdrawal.date,
       createdAt: result.withdrawal.createdAt,
     },
     targetTransaction: {
@@ -309,6 +320,7 @@ export async function transfer(userId: string, input: TransferInput) {
       amount: result.deposit.amount,
       description: result.deposit.description ?? '',
       categoryId: result.deposit.categoryId ?? null,
+      date: result.deposit.date,
       createdAt: result.deposit.createdAt,
     },
   };

@@ -5,7 +5,7 @@ export default defineConfig({
     globals: true,
     environment: 'node',
     fileParallelism: false,
-    include: ['server/test/**/*.test.ts'],
+    include: ['server/test/**/*.test.ts', 'server/src/**/*.test.ts'],
     globalSetup: ['./server/test/setup.ts'],
     coverage: {
       provider: 'v8',

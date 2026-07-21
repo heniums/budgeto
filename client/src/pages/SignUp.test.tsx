@@ -34,7 +34,7 @@ function renderSignUp(): void {
         <Routes>
           <Route path="/signup" element={<SignUp />} />
           <Route path="/login" element={<div>Sign in page</div>} />
-          <Route path="/" element={<div>Profile home</div>} />
+          <Route path="/dashboard" element={<div>Dashboard home</div>} />
           <Route path="*" element={<LocationSpy />} />
         </Routes>
       </MemoryRouter>
@@ -102,7 +102,7 @@ describe('SignUp form', () => {
     await user.type(screen.getByLabelText(/^password$/i), 'supersecret');
     await user.type(screen.getByLabelText(/confirm password/i), 'supersecret');
     await user.click(screen.getByRole('button', { name: /create account/i }));
-    expect(await screen.findByText('Profile home')).toBeInTheDocument();
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
     expect(vi.mocked(register)).toHaveBeenCalledWith({
       name: 'Ada',
       email: 'ada@example.com',
@@ -129,7 +129,7 @@ describe('SignUp form', () => {
       await screen.findByText(/email already registered/i),
     ).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.queryByText('Profile home')).not.toBeInTheDocument();
+      expect(screen.queryByText('Dashboard home')).not.toBeInTheDocument();
     });
   });
 });

@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "neon": {
+      "url": "https://mcp.neon.tech/mcp",
+      "auth": "oauth"
+    },
+    "vercel": {
+      "url": "https://mcp.vercel.com",
+      "auth": "oauth"
+    },
+    "github": {
+      "url": "https://api.githubcopilot.com/mcp/",
+      "auth": "bearer",
+      "bearerTokenEnv": "GITHUB_TOKEN"
+    },
+    "browsermcp": {
+      "command": "npx",
+      "args": ["@browsermcp/mcp@latest"]
+    }
+  }
+}

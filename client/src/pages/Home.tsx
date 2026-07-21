@@ -277,14 +277,14 @@ export function Home(): JSX.Element {
   const groups = useMemo<PeriodGroup[]>(() => {
     const result: PeriodGroup[] = [];
     for (const tx of transactions) {
-      const key = periodKey(tx.createdAt, datePreset);
+      const key = periodKey(tx.date, datePreset);
       const last = result[result.length - 1];
       if (last && last.key === key) {
         last.items.push(tx);
       } else {
         result.push({
           key,
-          label: formatPeriodLabel(tx.createdAt, datePreset),
+          label: formatPeriodLabel(tx.date, datePreset),
           items: [tx],
         });
       }
@@ -527,7 +527,7 @@ export function Home(): JSX.Element {
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => setDetailTx(tx)}
                           >
-                            <TableCell>{formatDate(tx.createdAt)}</TableCell>
+                            <TableCell>{formatDate(tx.date)}</TableCell>
                             <TableCell>
                               <ContextMenu>
                                 <ContextMenuTrigger
@@ -670,6 +670,7 @@ export function Home(): JSX.Element {
                 amount: editTx.amount,
                 description: editTx.description,
                 categoryId: editTx.categoryId ?? '',
+                date: editTx.date,
               }}
             />
           )}
