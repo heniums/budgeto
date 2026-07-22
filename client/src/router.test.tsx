@@ -100,13 +100,14 @@ describe('router guards', () => {
     expect(await screen.findByText('secret')).toBeInTheDocument();
   });
 
-  it('redirects the index route to /login when unauthenticated', async () => {
+  it('renders the landing page at the index route when unauthenticated', async () => {
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     render(
       <AuthProvider>
         <RouterProvider router={router} />
       </AuthProvider>,
     );
-    expect(await screen.findByText('Sign in')).toBeInTheDocument();
+    expect(await screen.findByText('Your Money,')).toBeInTheDocument();
+    expect(screen.getByText('Under Control')).toBeInTheDocument();
   });
 });

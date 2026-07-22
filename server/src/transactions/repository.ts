@@ -25,6 +25,7 @@ export interface TransactionRow {
   amount: string;
   description: string | null;
   createdAt: Date;
+  date: string;
   categoryId: string | null;
   categoryName: string | null;
 }
@@ -35,10 +36,10 @@ function buildTransactionConditions(
 ): ReturnType<typeof and> {
   const conditions: ReturnType<typeof eq>[] = [eq(wallets.userId, userId)];
   if (filters.from) {
-    conditions.push(gte(transactions.createdAt, new Date(filters.from)));
+    conditions.push(gte(transactions.date, filters.from));
   }
   if (filters.to) {
-    conditions.push(lte(transactions.createdAt, new Date(filters.to)));
+    conditions.push(lte(transactions.date, filters.to));
   }
   if (filters.walletId) {
     conditions.push(eq(transactions.walletId, filters.walletId));
@@ -110,7 +111,10 @@ export async function findTransactionById(
 export async function updateTransaction(
   txId: string,
   input: Partial<
-    Pick<NewTransaction, 'amount' | 'description' | 'categoryId' | 'walletId'>
+    Pick<
+      NewTransaction,
+      'amount' | 'description' | 'categoryId' | 'walletId' | 'date'
+    >
   >,
 ): Promise<Transaction> {
   const [tx] = await db
@@ -141,6 +145,7 @@ export async function findTransactionsByUserId(
       amount: transactions.amount,
       description: transactions.description,
       createdAt: transactions.createdAt,
+      date: transactions.date,
       categoryId: transactions.categoryId,
       categoryName: categories.name,
     })
@@ -165,4 +170,35 @@ export async function countTransactionsByUserId(
     .leftJoin(categories, eq(transactions.categoryId, categories.id))
     .where(where);
   return Number(row?.value ?? 0);
+}
+
+export async function sumTransactionsByUserAndCategoryAndMonth(
+  userId: string,
+  categoryId: string,
+  month: string,
+): Promise<string> {
+  const [year, monthIndex] = month.split('-').map(Number);
+  const start = new Date(Date.UTC(year, monthIndex - 1, 1))
+    .toISOString()
+    .slice(0, 10);
+  const end = new Date(Date.UTC(year, monthIndex, 0))
+    .toISOString()
+    .slice(0, 10);
+  const where = and(
+    eq(wallets.userId, userId),
+    eq(transactions.categoryId, categoryId),
+    gte(transactions.date, start),
+    lte(transactions.date, end),
+    lt(transactions.amount, '0'),
+  );
+  const [row] = await db
+    .select({ total: sql<string>`coalesce(sum(${transactions.amount}), '0')` })
+    .from(transactions)
+    .innerJoin(wallets, eq(transactions.walletId, wallets.id))
+    .where(where);
+  return row?.total ?? '0';
+}
+
+export async function deleteAllTransactions(): Promise<void> {
+  await db.delete(transactions);
 }

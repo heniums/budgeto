@@ -28,7 +28,7 @@ function renderAt(path: string, element: JSX.Element): void {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path={path} element={element} />
-          <Route path="/" element={<div>Profile home</div>} />
+          <Route path="/dashboard" element={<div>Dashboard home</div>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -65,7 +65,7 @@ describe('form accessibility', () => {
     await user.type(screen.getByLabelText(/confirm password/i), 'supersecret');
     await user.click(screen.getByLabelText(/confirm password/i));
     await user.keyboard('{Enter}');
-    expect(await screen.findByText('Profile home')).toBeInTheDocument();
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
     expect(vi.mocked(register)).toHaveBeenCalled();
   });
 
@@ -76,7 +76,7 @@ describe('form accessibility', () => {
     await user.type(screen.getByLabelText(/password/i), 'supersecret');
     await user.click(screen.getByLabelText(/password/i));
     await user.keyboard('{Enter}');
-    expect(await screen.findByText('Profile home')).toBeInTheDocument();
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
     expect(vi.mocked(login)).toHaveBeenCalled();
   });
 

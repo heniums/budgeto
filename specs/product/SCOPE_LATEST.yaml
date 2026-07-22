@@ -1,0 +1,41 @@
+core_value: Enable users to view budget performance across any historical time period without recreating budgets, using a persistent budget definition that acts as a filter over transactions.
+
+summary: |
+  Budgets currently require manual recreation for each time period (month/week/year), preventing users from tracking spending history or comparing performance across periods. This feature transforms budgets into persistent filter definitions that automatically apply to all time periods of their type.
+
+  A budget defines a period type (monthly/weekly/yearly), a set of categories, and spending limits per category. The system computes period windows on-the-fly and calculates spent vs. limit by querying transactions within each window. Users navigate through past periods to see historical spending performance against the same budget criteria.
+
+  This approach eliminates manual budget recreation while providing complete spending history and period-over-period comparison capabilities.
+
+in_scope:
+  - Budget definition with period type (monthly/weekly/yearly) and category limits
+  - Virtual period computation from budget period type
+  - Period navigation UI (current period + historical periods)
+  - Spent vs. limit calculation per category per period
+  - Transaction filtering by category and date range
+  - Budget persistence across all time periods
+
+out_of_scope:
+  - Rollover logic: Each period is independent, unspent amounts do not carry forward. Reason: Deferred — adds complexity without core value for initial release.
+  - Savings goals: Separate feature requiring different data model (accumulation vs. constraint). Reason: Not valuable — different mental model than spending budgets.
+  - Budget templates: Auto-populate rules for future periods. Reason: Deferred — virtual periods eliminate need for templates.
+  - Multi-currency support: Budget limits in different currencies. Reason: Deferred — depends on transaction multi-currency support, not yet implemented.
+  - Edit future period limits independently: Custom limits per period. Reason: Too risky — breaks budget consistency and complicates reporting.
+
+constraints:
+  - PostgreSQL database with Drizzle ORM
+  - Transaction data must exist for historical periods to show meaningful data
+  - Period computation must handle timezone considerations for date boundaries
+  - UI must support period navigation without page reload (performance requirement)
+  - Existing budget_categories table structure must be preserved
+
+success_criteria:
+  - User creates budget with period="monthly" and sees current month's spent vs. limit
+  - User navigates to previous month and sees same budget applied with different spent amounts
+  - User can navigate through at least 12 historical periods without performance degradation
+  - Period computation correctly handles month boundaries (28/30/31 days, leap years)
+  - Spent calculation accurately sums transactions matching category and date range
+  - Budget definition persists unchanged across all time periods
+
+references:
+  - specs/planning-context.yaml

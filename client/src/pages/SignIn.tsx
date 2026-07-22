@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
 import { ApiError } from '../api/client';
 import { login } from '../api/auth';
+import { FormError } from '../components/FormError';
+import { FormAlert } from '../components/FormAlert';
 
 const signInSchema = z.object({
   email: z
@@ -76,15 +78,10 @@ export function SignIn(): JSX.Element {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
           />
-          {errors.email && (
-            <span
-              id={`${ids.email}-error`}
-              role="alert"
-              className="field-error"
-            >
-              {errors.email.message}
-            </span>
-          )}
+          <FormError
+            id={`${ids.email}-error`}
+            message={errors.email?.message}
+          />
         </div>
 
         <div className="field">
@@ -100,22 +97,13 @@ export function SignIn(): JSX.Element {
               errors.password ? `${ids.password}-error` : undefined
             }
           />
-          {errors.password && (
-            <span
-              id={`${ids.password}-error`}
-              role="alert"
-              className="field-error"
-            >
-              {errors.password.message}
-            </span>
-          )}
+          <FormError
+            id={`${ids.password}-error`}
+            message={errors.password?.message}
+          />
         </div>
 
-        {errors.root && (
-          <div role="alert" className="form-error">
-            {errors.root.message}
-          </div>
-        )}
+        <FormAlert message={errors.root?.message} />
 
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Signing in…' : 'Sign in'}

@@ -11,3 +11,5 @@ coverage/
 .pi/
 .pi-subagents/
 .hypa/
+.specs/
+.mcp.json

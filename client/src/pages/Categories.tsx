@@ -17,6 +17,7 @@ import {
 } from '@/components/ui/table';
 import { getIcon } from '../lib/icons';
 import { CategoryModal } from '../components/CategoryModal';
+import { FormAlert } from '../components/FormAlert';
 
 export function Categories(): JSX.Element {
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -87,11 +88,7 @@ export function Categories(): JSX.Element {
     <main>
       <h1>Categories</h1>
 
-      {error && (
-        <div role="alert" className="form-error">
-          {error}
-        </div>
-      )}
+      <FormAlert message={error} />
 
       <div
         style={{

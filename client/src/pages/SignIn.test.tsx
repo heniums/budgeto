@@ -33,7 +33,7 @@ function renderSignIn(initialEntry: unknown = '/login'): void {
         <Routes>
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<div>Sign up page</div>} />
-          <Route path="/" element={<div>Profile home</div>} />
+          <Route path="/dashboard" element={<div>Dashboard home</div>} />
           <Route path="/settings" element={<div>Settings</div>} />
           <Route path="*" element={<LocationSpy />} />
         </Routes>
@@ -85,17 +85,17 @@ describe('SignIn form', () => {
       await screen.findByText(/invalid email or password/i),
     ).toBeInTheDocument();
     await waitFor(() => {
-      expect(screen.queryByText('Profile home')).not.toBeInTheDocument();
+      expect(screen.queryByText('Dashboard home')).not.toBeInTheDocument();
     });
   });
 
-  it('signs in and redirects to the profile on success', async () => {
+  it('signs in and redirects to the dashboard on success', async () => {
     const user = userEvent.setup();
     renderSignIn();
     await user.type(screen.getByLabelText(/email address/i), 'ada@example.com');
     await user.type(screen.getByLabelText(/password/i), 'supersecret');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(await screen.findByText('Profile home')).toBeInTheDocument();
+    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
     expect(vi.mocked(login)).toHaveBeenCalledWith({
       email: 'ada@example.com',
       password: 'supersecret',

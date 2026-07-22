@@ -64,6 +64,7 @@ describe('TransactionForm — prerequisite warnings', () => {
       description: 'Test',
       categoryId: null,
       createdAt: '',
+      date: '',
     });
     cleanup();
   });
@@ -305,6 +306,7 @@ describe('TransactionForm — edit mode', () => {
       categoryId: 'c1',
       categoryName: 'Food',
       createdAt: '2024-01-01',
+      date: '2024-01-01',
     });
     vi.mocked(createTransaction).mockResolvedValue({
       id: 't-new',
@@ -313,6 +315,7 @@ describe('TransactionForm — edit mode', () => {
       description: 'Test',
       categoryId: null,
       createdAt: '',
+      date: '',
     });
     cleanup();
   });
@@ -330,6 +333,7 @@ describe('TransactionForm — edit mode', () => {
             amount: '42.50',
             description: 'Groceries',
             categoryId: 'c1',
+            date: '2024-01-01',
           }}
           editTxId="t-edit"
         />
@@ -366,6 +370,7 @@ describe('TransactionForm — edit mode', () => {
             amount: '10',
             description: '',
             categoryId: 'c1',
+            date: '2024-01-01',
           }}
           editTxId="t-edit"
         />
@@ -396,6 +401,7 @@ describe('TransactionForm — edit mode', () => {
             amount: '100',
             description: 'Old',
             categoryId: 'c1',
+            date: '2024-01-01',
           }}
           editTxId="t-edit"
         />

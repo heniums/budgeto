@@ -1,0 +1,25 @@
+# specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
+feature_name: "Budget Recurring Periods"
+problem_statement: "Budgets are one-shot — users manually recreate the same budget every month/week/year and cannot track spending history across periods. Budgets should act as persistent filter/window definitions that automatically apply to all time periods of their type, allowing users to navigate through past periods and see spent vs. limit per category."
+constraints:
+  - "No rollover — each period is independent, unspent amounts do not carry forward"
+  - "Periods are virtual/computed — no separate period instances stored in database"
+  - "Budget defines period type (monthly/weekly/yearly/custom), categories, and limits; periods are computed on-the-fly from transactions"
+  - "Spent = SUM(transactions WHERE category IN budget.categories AND date IN period_window)"
+out_of_scope:
+  - "Rollover logic (carry unspent to next period)"
+  - "Edit future period limits independently"
+  - "Savings goals"
+  - "Budget templates / auto-populate rules"
+  - "Multi-currency support"
+key_decisions:
+  - decision: "Budget = persistent filter/window definition"
+    rationale: "User clarified budget acts as a window/view over transactions, not an envelope with allocated amounts"
+  - decision: "Periods computed from budget.period type, not stored"
+    rationale: "Budget defines period type (monthly/weekly/yearly); UI computes period windows on-the-fly from transactions"
+  - decision: "Keep budget_categories table with limit_amount"
+    rationale: "Budget categories act as filter criteria AND hold spending limits per category"
+  - decision: "Remove startDate/endDate from budgets table, compute from period type"
+    rationale: "Periods are virtual; startDate/endDate become computed properties based on period type and navigation"
+  - decision: "Period navigation in UI (current + past periods)"
+    rationale: "User wants to navigate through past months/weeks and see spent vs limit for each period"

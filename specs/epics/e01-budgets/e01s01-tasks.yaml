@@ -1,0 +1,95 @@
+story_id: e01s01
+title: Budgets with multiple categories, limits, icons, colors, and progress tracking
+status: passing
+bcps: 6
+tasks:
+  - id: 1
+    description: 'Generate Drizzle migration for new budgets + budgetCategories schema'
+    verify: 'test -f server/migrations/0008_redesign_budgets.sql'
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - 'Database'
+        - 'Migration'
+  - id: 2
+    description: 'Update server budgets repository for new budgets and budgetCategories tables'
+    verify: 'npm run type-check'
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - 'Repository'
+        - 'Database'
+  - id: 3
+    description: 'Update server budgets service with multi-category CRUD and allocation validation'
+    verify: 'npm run type-check'
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - 'Service'
+        - 'Business Logic'
+  - id: 4
+    description: 'Update server budgets controller with new Zod schemas'
+    verify: 'npm run type-check'
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - 'Controller'
+        - 'API'
+  - id: 5
+    description: 'Rewrite server budgets integration tests for new schema and API'
+    verify: 'npx vitest run server/test/budgets.test.ts'
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - 'Tests'
+        - 'Integration'
+  - id: 6
+    description: 'Update client budgets API types and functions'
+    verify: 'npm run type-check'
+    risk: P2
+    status: passing
+    allure:
+      severity: normal
+      categories:
+        - 'Client API'
+        - 'Types'
+  - id: 7
+    description: 'Redesign client Budgets page for multi-category budgets'
+    verify: 'npx vitest run --config client/vitest.config.ts client/src/pages/Budgets.test.tsx'
+    risk: P1
+    status: passing
+    allure:
+      severity: high
+      categories:
+        - 'UI'
+        - 'React'
+  - id: 8
+    description: 'Update client Budgets tests for new UI and API shapes'
+    verify: 'test -f client/src/pages/Budgets.test.tsx && grep -qF limitAmount client/src/pages/Budgets.test.tsx'
+    risk: P2
+    status: passing
+    allure:
+      severity: normal
+      categories:
+        - 'Tests'
+        - 'UI'
+  - id: 9
+    description: 'Run full preflight and fix any failing gates'
+    verify: 'npm test && npm run lint && npm run build'
+    risk: P0
+    status: passing
+    allure:
+      severity: critical
+      categories:
+        - 'Preflight'
+        - 'Quality Gates'

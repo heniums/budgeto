@@ -6,6 +6,7 @@ import { useAuth } from '../auth/AuthContext';
 import {
   Home as HomeIcon,
   Settings as SettingsIcon,
+  PieChart,
   LogOut,
   Menu,
 } from 'lucide-react';
@@ -19,6 +20,7 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { to: '/dashboard', label: 'Home', icon: HomeIcon, end: true },
+  { to: '/budgets', label: 'Budgets', icon: PieChart },
   { to: '/settings', label: 'Settings', icon: SettingsIcon },
 ];
 

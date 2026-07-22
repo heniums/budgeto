@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { WalletSelectList } from './WalletSelectList';
 import { CategorySelectList } from './CategorySelectList';
 import { Money } from './Money';
+import { FormError } from './FormError';
+import { FormAlert } from './FormAlert';
 
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
@@ -23,6 +25,7 @@ const transactionSchema = z.object({
     }),
   description: z.string().max(512),
   categoryId: z.string().min(1, 'Please select a category.'),
+  date: z.string().min(1, 'Date is required.'),
 });
 
 type TransactionValues = z.infer<typeof transactionSchema>;
@@ -62,6 +65,7 @@ interface TransactionFormProps {
     amount: string;
     description: string;
     categoryId: string;
+    date: string;
   };
   editTxId?: string;
   onRefreshWallets?: () => void;
@@ -76,7 +80,7 @@ interface TransactionFormProps {
     walletName?: string;
     categoryName?: string;
     categoryColor?: string;
-    createdAt?: string;
+    date?: string;
   };
   onEdit?: () => void;
   onDelete?: () => void;
@@ -125,6 +129,7 @@ export function TransactionForm({
       amount: '',
       description: '',
       categoryId: '',
+      date: dayjs().format('YYYY-MM-DD'),
     },
   });
 
@@ -148,6 +153,7 @@ export function TransactionForm({
       setValue('amount', initialValues.amount);
       setValue('description', initialValues.description);
       setValue('categoryId', initialValues.categoryId);
+      setValue('date', initialValues.date);
     }
   }, [editMode, initialValues, setValue]);
 
@@ -172,6 +178,7 @@ export function TransactionForm({
           amount: values.amount,
           description: values.description,
           categoryId: values.categoryId || undefined,
+          date: values.date,
         });
         reset();
       }
@@ -223,20 +230,13 @@ export function TransactionForm({
   if (viewMode && viewValues) {
     return (
       <div className="space-y-4">
-        {formError && (
-          <div
-            role="alert"
-            className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-          >
-            {formError}
-          </div>
-        )}
+        <FormAlert message={formError} />
 
-        {viewValues.createdAt && (
+        {viewValues.date && (
           <div>
             <span className="text-sm text-muted-foreground">Date</span>
             <p className="text-sm font-medium">
-              {dayjs(viewValues.createdAt).format('M/D/YYYY')}
+              {dayjs(viewValues.date).format('M/D/YYYY')}
             </p>
           </div>
         )}
@@ -344,14 +344,7 @@ export function TransactionForm({
             )}
           </div>
         )}
-      {formError && (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          {formError}
-        </div>
-      )}
+      <FormAlert message={formError} />
 
       <div className="space-y-2">
         <Label>Wallet</Label>
@@ -367,11 +360,7 @@ export function TransactionForm({
           onRefresh={onRefreshWallets}
           onEdit={onEditWallet}
         />
-        {errors.walletId && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.walletId.message}
-          </span>
-        )}
+        <FormError message={errors.walletId?.message} />
         {onCreateWallet && (
           <span
             className="text-xs text-muted-foreground underline cursor-pointer"
@@ -401,11 +390,7 @@ export function TransactionForm({
           placeholder="-50.00 or 100.00"
           {...register('amount')}
         />
-        {errors.amount && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.amount.message}
-          </span>
-        )}
+        <FormError message={errors.amount?.message} />
       </div>
 
       {/* Category selector */}
@@ -453,6 +438,12 @@ export function TransactionForm({
             Don&apos;t see your category? Create one →
           </span>
         )}
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="tx-date">Date</Label>
+        <Input id="tx-date" type="date" {...register('date')} />
+        <FormError message={errors.date?.message} />
       </div>
 
       <div className="flex gap-2">

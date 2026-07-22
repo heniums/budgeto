@@ -824,6 +824,7 @@ describe('GET /transactions — filtering & pagination', () => {
       createdAt: overrides.createdAt
         ? new Date(overrides.createdAt)
         : undefined,
+      date: overrides.createdAt ? overrides.createdAt.slice(0, 10) : undefined,
     });
   }
 

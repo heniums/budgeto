@@ -8,6 +8,8 @@ import { createCategory, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { detectLocaleCurrency } from '../lib/currencies';
 import { Button } from '@/components/ui/button';
+import { FormError } from './FormError';
+import { FormAlert } from './FormAlert';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -113,14 +115,7 @@ export function OnboardingWizard({
 
         <p className="text-sm text-muted-foreground">Step {step} of 3</p>
 
-        {formError && (
-          <div
-            role="alert"
-            className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-          >
-            {formError}
-          </div>
-        )}
+        <FormAlert message={formError} />
 
         {step === 1 && (
           <form
@@ -139,11 +134,7 @@ export function OnboardingWizard({
                 placeholder="e.g. Cash, Bank Account"
                 {...walletForm.register('name')}
               />
-              {walletForm.formState.errors.name && (
-                <span role="alert" className="text-sm text-destructive">
-                  {walletForm.formState.errors.name.message}
-                </span>
-              )}
+              <FormError message={walletForm.formState.errors.name?.message} />
             </div>
             <Button
               type="submit"
@@ -174,11 +165,7 @@ export function OnboardingWizard({
                 placeholder="e.g. Food, Rent"
                 {...categoryForm.register('name')}
               />
-              {categoryForm.formState.errors.name && (
-                <span role="alert" className="text-sm text-destructive">
-                  {categoryForm.formState.errors.name.message}
-                </span>
-              )}
+              <FormError message={categoryForm.formState.errors.name?.message} />
             </div>
             <div className="space-y-2">
               <Label>Type</Label>
