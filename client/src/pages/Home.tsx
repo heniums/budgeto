@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
+import { FormAlert } from '../components/FormAlert';
 import { TransferForm } from '../components/TransferForm';
 import { findTransferPair } from '../lib/transferPair';
 import { OnboardingWizard } from '../components/OnboardingWizard';
@@ -388,14 +389,7 @@ export function Home(): JSX.Element {
         </div>
       </div>
 
-      {error && (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          {error}
-        </div>
-      )}
+      <FormAlert message={error} />
 
       <div className="flex flex-wrap gap-3">
         <Input

@@ -5,6 +5,8 @@ import { z } from 'zod';
 import { transferFunds, type WalletData } from '../api/wallets';
 import { ApiError } from '../api/client';
 import { Input } from '@/components/ui/input';
+import { FormError } from './FormError';
+import { FormAlert } from './FormAlert';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 
@@ -70,14 +72,7 @@ export function TransferForm({
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
-      {formError && (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          {formError}
-        </div>
-      )}
+      <FormAlert message={formError} />
 
       <div className="space-y-2">
         <Label htmlFor="transfer-from">From</Label>
@@ -93,11 +88,7 @@ export function TransferForm({
             </option>
           ))}
         </select>
-        {errors.sourceId && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.sourceId.message}
-          </span>
-        )}
+        <FormError message={errors.sourceId?.message} />
       </div>
 
       <div className="space-y-2">
@@ -114,11 +105,7 @@ export function TransferForm({
             </option>
           ))}
         </select>
-        {errors.targetId && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.targetId.message}
-          </span>
-        )}
+        <FormError message={errors.targetId?.message} />
       </div>
 
       <div className="space-y-2">
@@ -130,11 +117,7 @@ export function TransferForm({
           placeholder="50.00"
           {...register('amount')}
         />
-        {errors.amount && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.amount.message}
-          </span>
-        )}
+        <FormError message={errors.amount?.message} />
       </div>
 
       <div className="space-y-2">

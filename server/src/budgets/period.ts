@@ -5,7 +5,7 @@ export interface PeriodWindow {
   endDate: string;
 }
 
-export type PeriodType = 'monthly' | 'yearly' | 'weekly' | 'custom';
+export type PeriodType = 'monthly' | 'yearly' | 'weekly' | 'daily' | 'custom';
 
 export function computePeriodWindow(
   period: PeriodType,
@@ -36,6 +36,11 @@ export function computePeriodWindow(
         endDate: monday.add(6, 'day').format('YYYY-MM-DD'),
       };
     }
+    case 'daily':
+      return {
+        startDate: ref.format('YYYY-MM-DD'),
+        endDate: ref.format('YYYY-MM-DD'),
+      };
     case 'custom':
       if (!customStartDate || !customEndDate) {
         throw new Error('Custom period requires startDate and endDate');

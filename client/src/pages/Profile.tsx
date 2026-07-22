@@ -6,6 +6,8 @@ import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
 import { changePassword, updateName } from '../api/auth';
 import { ApiError } from '../api/client';
+import { FormError } from '../components/FormError';
+import { FormAlert } from '../components/FormAlert';
 
 const nameSchema = z.object({
   name: z.string().min(1, 'Please enter a display name.'),
@@ -139,15 +141,10 @@ export function Profile(): JSX.Element {
                   nameErrors.name ? `${nameId}-error` : undefined
                 }
               />
-              {nameErrors.name && (
-                <span
-                  id={`${nameId}-error`}
-                  role="alert"
-                  className="field-error"
-                >
-                  {nameErrors.name.message}
-                </span>
-              )}
+              <FormError
+                id={`${nameId}-error`}
+                message={nameErrors.name?.message}
+              />
             </div>
             <div className="field-actions">
               <button type="submit" disabled={nameSaving}>
@@ -196,15 +193,10 @@ export function Profile(): JSX.Element {
                   : undefined
               }
             />
-            {pwErrors.currentPassword && (
-              <span
-                id={`${pwIds.currentPassword}-error`}
-                role="alert"
-                className="field-error"
-              >
-                {pwErrors.currentPassword.message}
-              </span>
-            )}
+            <FormError
+              id={`${pwIds.currentPassword}-error`}
+              message={pwErrors.currentPassword?.message}
+            />
           </div>
           <div className="field">
             <label htmlFor={pwIds.newPassword}>New password</label>
@@ -219,15 +211,10 @@ export function Profile(): JSX.Element {
                 pwErrors.newPassword ? `${pwIds.newPassword}-error` : undefined
               }
             />
-            {pwErrors.newPassword && (
-              <span
-                id={`${pwIds.newPassword}-error`}
-                role="alert"
-                className="field-error"
-              >
-                {pwErrors.newPassword.message}
-              </span>
-            )}
+            <FormError
+              id={`${pwIds.newPassword}-error`}
+              message={pwErrors.newPassword?.message}
+            />
           </div>
           <div className="field">
             <label htmlFor={pwIds.confirmPassword}>Confirm new password</label>
@@ -244,21 +231,12 @@ export function Profile(): JSX.Element {
                   : undefined
               }
             />
-            {pwErrors.confirmPassword && (
-              <span
-                id={`${pwIds.confirmPassword}-error`}
-                role="alert"
-                className="field-error"
-              >
-                {pwErrors.confirmPassword.message}
-              </span>
-            )}
+            <FormError
+              id={`${pwIds.confirmPassword}-error`}
+              message={pwErrors.confirmPassword?.message}
+            />
           </div>
-          {pwFormError && (
-            <div role="alert" className="form-error">
-              {pwFormError}
-            </div>
-          )}
+          <FormAlert message={pwFormError} />
           {pwSuccess && (
             <div role="status" className="form-success">
               {pwSuccess}

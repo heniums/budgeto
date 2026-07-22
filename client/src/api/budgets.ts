@@ -1,17 +1,18 @@
 import { apiClient } from './client';
+import type { CategoryData } from './categories';
+
+export type PeriodType = 'monthly' | 'yearly' | 'weekly' | 'daily' | 'custom';
 
 export interface BudgetCategoryData {
   categoryId: string;
-  categoryName?: string;
-  categoryColor?: string;
-  categoryIcon?: string;
+  category: CategoryData | null;
   limitAmount: string;
   spent: string;
   remaining: string;
-  percentage: number;
 }
 
 export interface PeriodWindow {
+  type: PeriodType;
   startDate: string;
   endDate: string;
 }
@@ -22,12 +23,13 @@ export interface BudgetData {
   name: string;
   icon: string;
   color: string;
-  period: 'monthly' | 'yearly' | 'custom';
-  periodWindow: PeriodWindow;
+  period: {
+    type: PeriodType;
+    window: PeriodWindow;
+  };
   totalAmount: string;
   spent: string;
   remaining: string;
-  percentage: number;
   categories: BudgetCategoryData[];
   createdAt: string;
   updatedAt: string;
@@ -42,7 +44,7 @@ export interface CreateBudgetInput {
   name: string;
   icon?: string;
   color?: string;
-  period?: 'monthly' | 'yearly' | 'custom';
+  period?: PeriodType;
   startDate?: string;
   endDate?: string;
   totalAmount: string;
@@ -53,7 +55,7 @@ export interface UpdateBudgetInput {
   name?: string;
   icon?: string;
   color?: string;
-  period?: 'monthly' | 'yearly' | 'custom';
+  period?: PeriodType;
   startDate?: string;
   endDate?: string;
   totalAmount?: string;

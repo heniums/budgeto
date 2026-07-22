@@ -33,7 +33,7 @@ export const createBudgetSchema = z
     name: z.string().min(1, 'Name is required'),
     icon: z.string().min(1).default('wallet'),
     color: z.string().min(1).default('#1f8a4c'),
-    period: z.enum(['monthly', 'yearly', 'custom']).default('monthly'),
+    period: z.enum(['monthly', 'yearly', 'weekly', 'daily', 'custom']).default('monthly'),
     startDate: z.string().date('Invalid start date').optional(),
     endDate: z.string().date('Invalid end date').optional(),
     totalAmount: z
@@ -61,7 +61,7 @@ export const updateBudgetSchema = z
     name: z.string().min(1).optional(),
     icon: z.string().min(1).optional(),
     color: z.string().min(1).optional(),
-    period: z.enum(['monthly', 'yearly', 'custom']).optional(),
+    period: z.enum(['monthly', 'yearly', 'weekly', 'daily', 'custom']).optional(),
     startDate: z.string().date().optional(),
     endDate: z.string().date().optional(),
     totalAmount: z

@@ -5,6 +5,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
 import { login as apiLogin, register as apiRegister } from '../api/auth';
+import { FormError } from '../components/FormError';
+import { FormAlert } from '../components/FormAlert';
 
 const signUpSchema = z
   .object({
@@ -82,11 +84,10 @@ export function SignUp(): JSX.Element {
             aria-invalid={errors.name ? true : undefined}
             aria-describedby={errors.name ? `${ids.name}-error` : undefined}
           />
-          {errors.name && (
-            <span id={`${ids.name}-error`} role="alert" className="field-error">
-              {errors.name.message}
-            </span>
-          )}
+          <FormError
+            id={`${ids.name}-error`}
+            message={errors.name?.message}
+          />
         </div>
 
         <div className="field">
@@ -100,15 +101,10 @@ export function SignUp(): JSX.Element {
             aria-invalid={errors.email ? true : undefined}
             aria-describedby={errors.email ? `${ids.email}-error` : undefined}
           />
-          {errors.email && (
-            <span
-              id={`${ids.email}-error`}
-              role="alert"
-              className="field-error"
-            >
-              {errors.email.message}
-            </span>
-          )}
+          <FormError
+            id={`${ids.email}-error`}
+            message={errors.email?.message}
+          />
         </div>
 
         <div className="field">
@@ -124,15 +120,10 @@ export function SignUp(): JSX.Element {
               errors.password ? `${ids.password}-error` : undefined
             }
           />
-          {errors.password && (
-            <span
-              id={`${ids.password}-error`}
-              role="alert"
-              className="field-error"
-            >
-              {errors.password.message}
-            </span>
-          )}
+          <FormError
+            id={`${ids.password}-error`}
+            message={errors.password?.message}
+          />
         </div>
 
         <div className="field">
@@ -148,22 +139,13 @@ export function SignUp(): JSX.Element {
               errors.confirm ? `${ids.confirm}-error` : undefined
             }
           />
-          {errors.confirm && (
-            <span
-              id={`${ids.confirm}-error`}
-              role="alert"
-              className="field-error"
-            >
-              {errors.confirm.message}
-            </span>
-          )}
+          <FormError
+            id={`${ids.confirm}-error`}
+            message={errors.confirm?.message}
+          />
         </div>
 
-        {errors.root && (
-          <div role="alert" className="form-error">
-            {errors.root.message}
-          </div>
-        )}
+        <FormAlert message={errors.root?.message} />
 
         <button type="submit" disabled={isSubmitting}>
           {isSubmitting ? 'Creating account…' : 'Create account'}

@@ -42,22 +42,33 @@ const budgetData = {
   name: 'Monthly Budget',
   icon: 'wallet',
   color: '#1f8a4c',
-  period: 'monthly' as const,
-  periodWindow: { startDate: '2024-03-01', endDate: '2024-03-31' },
+  period: {
+    type: 'monthly' as const,
+    window: {
+      type: 'monthly' as const,
+      startDate: '2024-03-01',
+      endDate: '2024-03-31',
+    },
+  },
   totalAmount: '1000.00',
   spent: '50.00',
   remaining: '950.00',
-  percentage: 5,
   categories: [
     {
       categoryId: 'c1',
-      categoryName: 'Groceries',
-      categoryColor: '#ff5733',
-      categoryIcon: 'ShoppingCart',
+      category: {
+        id: 'c1',
+        userId: 'u1',
+        name: 'Groceries',
+        type: 'expense' as const,
+        color: '#ff5733',
+        icon: 'ShoppingCart',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
       limitAmount: '500.00',
       spent: '50.00',
       remaining: '450.00',
-      percentage: 10,
     },
   ],
   createdAt: '2024-01-01T00:00:00Z',
@@ -81,7 +92,7 @@ describe('budgets API client', () => {
     mockGet.mockResolvedValue({ data: budgetData });
     const budget = await getBudget('b1', '2024-03');
     expect(mockGet).toHaveBeenCalledWith('/budgets/b1?period=2024-03');
-    expect(budget.periodWindow.startDate).toBe('2024-03-01');
+    expect(budget.period.window.startDate).toBe('2024-03-01');
   });
 
   it('getBudgets sends GET to list endpoint', async () => {

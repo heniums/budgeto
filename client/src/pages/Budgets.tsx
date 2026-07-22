@@ -15,6 +15,7 @@ import {
 import { BudgetCard } from '../components/BudgetCard';
 import { BudgetForm } from '../components/BudgetForm';
 import { BudgetPeriodNav } from '../components/BudgetPeriodNav';
+import { FormAlert } from '../components/FormAlert';
 
 export function Budgets(): JSX.Element {
   const [budgets, setBudgets] = useState<BudgetData[]>([]);
@@ -126,14 +127,7 @@ export function Budgets(): JSX.Element {
         </Dialog>
       </div>
 
-      {error && !dialogOpen && (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          {error}
-        </div>
-      )}
+      {!dialogOpen && <FormAlert message={error} />}
 
       <BudgetPeriodNav period={period} onChange={setPeriod} />
 

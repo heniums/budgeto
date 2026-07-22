@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
+import { FormAlert } from '../components/FormAlert';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
@@ -79,11 +80,7 @@ export function WalletList(): JSX.Element {
     <main>
       <h1>Wallets</h1>
 
-      {error && (
-        <div role="alert" className="form-error">
-          {error}
-        </div>
-      )}
+      <FormAlert message={error} />
 
       <div
         style={{

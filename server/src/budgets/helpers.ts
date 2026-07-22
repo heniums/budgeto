@@ -5,30 +5,13 @@ import {
   sumTransactionsByUserAndCategoryAndRange,
 } from './repository';
 import { resolveStoredDates } from './period';
-
-const PERCENTAGE_CAP = 100;
-
-function computePercentage(spent: string, total: string): number {
-  const totalNum = Number(total);
-  if (!totalNum) return 0;
-  const raw = Math.min(PERCENTAGE_CAP, (Number(spent) / totalNum) * 100);
-  return Math.round(raw * 100) / 100;
-}
+import type { PeriodType } from './period';
 
 async function buildCategoryResponse(
   userId: string,
   window: { startDate: string; endDate: string },
   category: { categoryId: string; limitAmount: string },
-): Promise<{
-  categoryId: string;
-  categoryName?: string;
-  categoryColor?: string;
-  categoryIcon?: string;
-  limitAmount: string;
-  spent: string;
-  remaining: string;
-  percentage: number;
-}> {
+): Promise<BudgetCategoryResponse> {
   const categoryRow = await findCategoryById(category.categoryId);
   const spentRaw = await sumTransactionsByUserAndCategoryAndRange(
     userId,
@@ -43,13 +26,25 @@ async function buildCategoryResponse(
   ).toFixed(2);
   return {
     categoryId: category.categoryId,
-    categoryName: categoryRow?.name,
-    categoryColor: categoryRow?.color,
-    categoryIcon: categoryRow?.icon,
+    category: categoryRow
+      ? {
+          id: categoryRow.id,
+          userId: categoryRow.userId,
+          name: categoryRow.name,
+          type: categoryRow.type,
+          color: categoryRow.color,
+          icon: categoryRow.icon,
+          createdAt: categoryRow.createdAt instanceof Date
+            ? categoryRow.createdAt.toISOString()
+            : String(categoryRow.createdAt),
+          updatedAt: categoryRow.updatedAt instanceof Date
+            ? categoryRow.updatedAt.toISOString()
+            : String(categoryRow.updatedAt),
+        }
+      : null,
     limitAmount: category.limitAmount,
     spent: spentAbs,
     remaining,
-    percentage: computePercentage(spentAbs, category.limitAmount),
   };
 }
 
@@ -63,10 +58,9 @@ async function buildBudgetResponseData(
   referenceDate?: Date,
 ): Promise<{
   periodWindow: { startDate: string; endDate: string };
-  categoryResponses: Awaited<ReturnType<typeof buildCategoryResponse>>[];
+  categoryResponses: BudgetCategoryResponse[];
   totalSpent: string;
   totalRemaining: string;
-  percentage: number;
 }> {
   const periodWindow = resolveStoredDates(
     period,
@@ -86,8 +80,7 @@ async function buildBudgetResponseData(
     0,
     Number(totalAmount) - Number(totalSpent),
   ).toFixed(2);
-  const percentage = computePercentage(totalSpent, totalAmount);
-  return { periodWindow, categoryResponses, totalSpent, totalRemaining, percentage };
+  return { periodWindow, categoryResponses, totalSpent, totalRemaining };
 }
 
 export async function applyCategoryChanges(
@@ -120,13 +113,19 @@ interface BudgetResponseInput {
 
 export interface BudgetCategoryResponse {
   categoryId: string;
-  categoryName?: string;
-  categoryColor?: string;
-  categoryIcon?: string;
+  category: {
+    id: string;
+    userId: string;
+    name: string;
+    type: string;
+    color: string;
+    icon: string;
+    createdAt: string;
+    updatedAt: string;
+  } | null;
   limitAmount: string;
   spent: string;
   remaining: string;
-  percentage: number;
 }
 
 export interface BudgetResponse {
@@ -135,12 +134,17 @@ export interface BudgetResponse {
   name: string;
   icon: string;
   color: string;
-  period: string;
-  periodWindow: { startDate: string; endDate: string };
+  period: {
+    type: PeriodType;
+    window: {
+      type: PeriodType;
+      startDate: string;
+      endDate: string;
+    };
+  };
   totalAmount: string;
   spent: string;
   remaining: string;
-  percentage: number;
   categories: BudgetCategoryResponse[];
   createdAt: Date;
   updatedAt: Date;
@@ -151,7 +155,7 @@ export async function formatBudgetResponse(
   categories: { categoryId: string; limitAmount: string }[],
   referenceDate?: Date,
 ): Promise<BudgetResponse> {
-  const { periodWindow, categoryResponses, totalSpent, totalRemaining, percentage } =
+  const { periodWindow, categoryResponses, totalSpent, totalRemaining } =
     await buildBudgetResponseData(
       budget.userId,
       budget.period,
@@ -161,18 +165,24 @@ export async function formatBudgetResponse(
       categories,
       referenceDate,
     );
+  const periodType = budget.period as PeriodType;
   return {
     id: budget.id,
     userId: budget.userId,
     name: budget.name,
     icon: budget.icon,
     color: budget.color,
-    period: budget.period,
-    periodWindow,
+    period: {
+      type: periodType,
+      window: {
+        type: periodType,
+        startDate: periodWindow.startDate,
+        endDate: periodWindow.endDate,
+      },
+    },
     totalAmount: budget.totalAmount,
     spent: totalSpent,
     remaining: totalRemaining,
-    percentage,
     categories: categoryResponses,
     createdAt: budget.createdAt,
     updatedAt: budget.updatedAt,

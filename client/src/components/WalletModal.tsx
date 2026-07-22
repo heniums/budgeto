@@ -19,6 +19,8 @@ import {
   type WalletData,
 } from '../api/wallets';
 import { ApiError } from '../api/client';
+import { FormError } from './FormError';
+import { FormAlert } from './FormAlert';
 import {
   DEFAULT_COLOR,
   MAX_DESCRIPTION_LENGTH,
@@ -177,14 +179,7 @@ export function WalletModal({
             noValidate
             className="space-y-4 mt-6"
           >
-            {formError && (
-              <div
-                role="alert"
-                className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-              >
-                {formError}
-              </div>
-            )}
+            <FormAlert message={formError} />
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-name">{LABEL.NAME}</Label>
@@ -194,11 +189,7 @@ export function WalletModal({
                 placeholder="e.g. Savings"
                 {...register('name')}
               />
-              {errors.name && (
-                <span role="alert" className="text-sm text-destructive">
-                  {errors.name.message}
-                </span>
-              )}
+              <FormError message={errors.name?.message} />
             </div>
 
             <div className="space-y-2">

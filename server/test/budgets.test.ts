@@ -93,10 +93,9 @@ describe('POST /budgets', () => {
     expect(response.body.categories).toHaveLength(2);
     expect(response.body.spent).toBe('0.00');
     expect(response.body.remaining).toBe('1000.00');
-    expect(response.body.percentage).toBe(0);
     expect(response.body.id).toBeDefined();
-    expect(response.body.periodWindow.startDate).toBe(currentMonthStart);
-    expect(response.body.periodWindow.endDate).toBe(currentMonthEnd);
+    expect(response.body.period.window.startDate).toBe(currentMonthStart);
+    expect(response.body.period.window.endDate).toBe(currentMonthEnd);
     // startDate/endDate should not be in response
     expect(response.body.startDate).toBeUndefined();
     expect(response.body.endDate).toBeUndefined();
@@ -116,8 +115,8 @@ describe('POST /budgets', () => {
         categories: [{ categoryId: groceries.id, limitAmount: '300.00' }],
       });
     expect(response.status).toBe(201);
-    expect(response.body.periodWindow.startDate).toBe('2024-01-01');
-    expect(response.body.periodWindow.endDate).toBe('2024-01-31');
+    expect(response.body.period.window.startDate).toBe('2024-01-01');
+    expect(response.body.period.window.endDate).toBe('2024-01-31');
   });
 
   it('rejects custom period without dates (400)', async () => {
@@ -252,14 +251,12 @@ describe('GET /budgets', () => {
     expect(response.body.budgets).toHaveLength(1);
     expect(response.body.budgets[0].spent).toBe('50.00');
     expect(response.body.budgets[0].remaining).toBe('450.00');
-    expect(response.body.budgets[0].percentage).toBe(10);
     expect(response.body.budgets[0].categories[0].spent).toBe('50.00');
     expect(response.body.budgets[0].categories[0].remaining).toBe('150.00');
-    expect(response.body.budgets[0].categories[0].percentage).toBe(25);
-    expect(response.body.budgets[0].periodWindow.startDate).toBe(
+    expect(response.body.budgets[0].period.window.startDate).toBe(
       currentMonthStart,
     );
-    expect(response.body.budgets[0].periodWindow.endDate).toBe(currentMonthEnd);
+    expect(response.body.budgets[0].period.window.endDate).toBe(currentMonthEnd);
   });
 
   it('ignores a transaction outside the current period (200)', async () => {
@@ -315,8 +312,8 @@ describe('GET /budgets', () => {
 
     expect(response.status).toBe(200);
     expect(response.body.budgets).toHaveLength(1);
-    expect(response.body.budgets[0].periodWindow.startDate).toBe('2024-03-01');
-    expect(response.body.budgets[0].periodWindow.endDate).toBe('2024-03-31');
+    expect(response.body.budgets[0].period.window.startDate).toBe('2024-03-01');
+    expect(response.body.budgets[0].period.window.endDate).toBe('2024-03-31');
   });
 });
 
@@ -349,9 +346,9 @@ describe('GET /budgets/:id', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.periodWindow.startDate).toBe('2024-03-01');
-    expect(response.body.periodWindow.endDate).toBe('2024-03-31');
-    expect(response.body.period).toBe('monthly');
+    expect(response.body.period.window.startDate).toBe('2024-03-01');
+    expect(response.body.period.window.endDate).toBe('2024-03-31');
+    expect(response.body.period.type).toBe('monthly');
   });
 
   it('computes spent for the requested period, ignoring transactions outside it (200)', async () => {
@@ -426,9 +423,9 @@ describe('GET /budgets/:id', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.periodWindow.startDate).toBe('2024-01-01');
-    expect(response.body.periodWindow.endDate).toBe('2024-12-31');
-    expect(response.body.period).toBe('yearly');
+    expect(response.body.period.window.startDate).toBe('2024-01-01');
+    expect(response.body.period.window.endDate).toBe('2024-12-31');
+    expect(response.body.period.type).toBe('yearly');
   });
 
   it('returns current period window when no period param is provided (200)', async () => {
@@ -448,8 +445,8 @@ describe('GET /budgets/:id', () => {
       .set('Authorization', `Bearer ${token}`);
 
     expect(response.status).toBe(200);
-    expect(response.body.periodWindow.startDate).toBe(currentMonthStart);
-    expect(response.body.periodWindow.endDate).toBe(currentMonthEnd);
+    expect(response.body.period.window.startDate).toBe(currentMonthStart);
+    expect(response.body.period.window.endDate).toBe(currentMonthEnd);
   });
 
   it('rejects invalid period format (400)', async () => {
@@ -502,8 +499,8 @@ describe('PUT /budgets/:id', () => {
       .send({ totalAmount: '750.00' });
     expect(response.status).toBe(200);
     expect(response.body.totalAmount).toBe('750.00');
-    expect(response.body.periodWindow.startDate).toBe(currentMonthStart);
-    expect(response.body.periodWindow.endDate).toBe(currentMonthEnd);
+    expect(response.body.period.window.startDate).toBe(currentMonthStart);
+    expect(response.body.period.window.endDate).toBe(currentMonthEnd);
   });
 
   it('rejects a lower total than category limits (400)', async () => {

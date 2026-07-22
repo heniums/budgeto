@@ -2,7 +2,19 @@ import dayjs from 'dayjs';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Money } from './Money';
-import type { BudgetData } from '../api/budgets';
+import type { BudgetData, BudgetCategoryData } from '../api/budgets';
+
+function catPercentage(cat: BudgetCategoryData): number {
+  const limit = Number(cat.limitAmount);
+  if (!limit) return 0;
+  return Math.min(100, Math.round((Number(cat.spent) / limit) * 10000) / 100);
+}
+
+function budgetPercentage(budget: BudgetData): number {
+  const total = Number(budget.totalAmount);
+  if (!total) return 0;
+  return Math.min(100, Math.round((Number(budget.spent) / total) * 10000) / 100);
+}
 
 interface BudgetCardProps {
   budget: BudgetData;
@@ -32,10 +44,10 @@ export function BudgetCard({
           <div>
             <h2 className="font-semibold">{budget.name}</h2>
             <p className="text-xs text-muted-foreground">
-              {budget.period} ·{' '}
-              {dayjs(budget.periodWindow.startDate).format('MMM D')}
+              {budget.period.type} ·{' '}
+              {dayjs(budget.period.window.startDate).format('MMM D')}
               {' – '}
-              {dayjs(budget.periodWindow.endDate).format('MMM D, YYYY')}
+              {dayjs(budget.period.window.endDate).format('MMM D, YYYY')}
             </p>
           </div>
         </div>
@@ -58,7 +70,7 @@ export function BudgetCard({
       </div>
 
       <div className="space-y-1">
-        <Progress value={budget.percentage} />
+        <Progress value={budgetPercentage(budget)} />
         <div className="flex justify-between text-xs text-muted-foreground">
           <span>
             <Money amount={budget.spent} currency="USD" /> /{' '}
@@ -66,7 +78,7 @@ export function BudgetCard({
           </span>
           <span>
             <Money amount={budget.remaining} currency="USD" /> left (
-            {budget.percentage}%)
+            {budgetPercentage(budget)}%)
           </span>
         </div>
       </div>
@@ -75,9 +87,9 @@ export function BudgetCard({
         {budget.categories.map((cat) => (
           <div key={cat.categoryId} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span>{cat.categoryName}</span>
+              <span>{cat.category?.name ?? 'Unknown'}</span>
               <span className="text-xs text-muted-foreground">
-                {cat.percentage}%
+                {catPercentage(cat)}%
               </span>
             </div>
             <div className="flex items-center justify-between text-sm">
@@ -89,7 +101,7 @@ export function BudgetCard({
                 <Money amount={cat.remaining} currency="USD" /> left
               </span>
             </div>
-            <Progress value={cat.percentage} />
+            <Progress value={catPercentage(cat)} />
           </div>
         ))}
       </div>

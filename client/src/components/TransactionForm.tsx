@@ -12,6 +12,8 @@ import { Button } from '@/components/ui/button';
 import { WalletSelectList } from './WalletSelectList';
 import { CategorySelectList } from './CategorySelectList';
 import { Money } from './Money';
+import { FormError } from './FormError';
+import { FormAlert } from './FormAlert';
 
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
@@ -228,14 +230,7 @@ export function TransactionForm({
   if (viewMode && viewValues) {
     return (
       <div className="space-y-4">
-        {formError && (
-          <div
-            role="alert"
-            className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-          >
-            {formError}
-          </div>
-        )}
+        <FormAlert message={formError} />
 
         {viewValues.date && (
           <div>
@@ -349,14 +344,7 @@ export function TransactionForm({
             )}
           </div>
         )}
-      {formError && (
-        <div
-          role="alert"
-          className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
-        >
-          {formError}
-        </div>
-      )}
+      <FormAlert message={formError} />
 
       <div className="space-y-2">
         <Label>Wallet</Label>
@@ -372,11 +360,7 @@ export function TransactionForm({
           onRefresh={onRefreshWallets}
           onEdit={onEditWallet}
         />
-        {errors.walletId && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.walletId.message}
-          </span>
-        )}
+        <FormError message={errors.walletId?.message} />
         {onCreateWallet && (
           <span
             className="text-xs text-muted-foreground underline cursor-pointer"
@@ -406,11 +390,7 @@ export function TransactionForm({
           placeholder="-50.00 or 100.00"
           {...register('amount')}
         />
-        {errors.amount && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.amount.message}
-          </span>
-        )}
+        <FormError message={errors.amount?.message} />
       </div>
 
       {/* Category selector */}
@@ -463,11 +443,7 @@ export function TransactionForm({
       <div className="space-y-2">
         <Label htmlFor="tx-date">Date</Label>
         <Input id="tx-date" type="date" {...register('date')} />
-        {errors.date && (
-          <span role="alert" className="text-sm text-destructive">
-            {errors.date.message}
-          </span>
-        )}
+        <FormError message={errors.date?.message} />
       </div>
 
       <div className="flex gap-2">

@@ -11,7 +11,7 @@ const sampleTx = {
   categoryId: 'c1',
   categoryName: 'Food',
   createdAt: '2024-06-15T10:30:00.000Z',
-  date: '2024-06-15',
+  date: '2024-06-15T10:30:00.000Z',
 };
 
 describe('TransactionDetailDialog', () => {
