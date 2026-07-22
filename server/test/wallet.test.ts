@@ -349,3 +349,133 @@ describe('DELETE /wallets/:id', () => {
     expect(response.status).toBe(404);
   });
 });
+
+describe('POST /wallets/:id/adjust', () => {
+  let token: string;
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+  });
+
+  it('adjusts a wallet balance upward and creates a Balance Adjustment category (200)', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Checking' });
+    const walletId = wallet.body.id;
+
+    const response = await request(app)
+      .post(`/wallets/${walletId}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: '100.00' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.balance).toBe('100.00');
+
+    // Verify a "Balance Adjustment" category was auto-created
+    const categories = await request(app)
+      .get('/categories')
+      .set('Authorization', `Bearer ${token}`);
+    expect(categories.status).toBe(200);
+    const adjustmentCat = categories.body.categories.find(
+      (c: { name: string }) => c.name === 'Balance Adjustment',
+    );
+    expect(adjustmentCat).toBeDefined();
+  });
+
+  it('adjusts a wallet balance downward reusing existing category (200)', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Checking' });
+    const walletId = wallet.body.id;
+
+    // First adjustment: 0 → 100
+    await request(app)
+      .post(`/wallets/${walletId}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: '100.00' });
+
+    // Second adjustment: 100 → 50
+    const response = await request(app)
+      .post(`/wallets/${walletId}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: '50.00' });
+
+    expect(response.status).toBe(200);
+    expect(response.body.balance).toBe('50.00');
+
+    // Verify only one "Balance Adjustment" category exists
+    const categories = await request(app)
+      .get('/categories')
+      .set('Authorization', `Bearer ${token}`);
+    const adjustmentCats = categories.body.categories.filter(
+      (c: { name: string }) => c.name === 'Balance Adjustment',
+    );
+    expect(adjustmentCats).toHaveLength(1);
+  });
+
+  it('rejects missing targetBalance (400)', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Checking' });
+
+    const response = await request(app)
+      .post(`/wallets/${wallet.body.id}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({});
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects non-numeric targetBalance (400)', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Checking' });
+
+    const response = await request(app)
+      .post(`/wallets/${wallet.body.id}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: 'abc' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns 404 for a non-existent wallet', async () => {
+    const response = await request(app)
+      .post('/wallets/00000000-0000-0000-0000-000000000000/adjust')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: '100.00' });
+
+    expect(response.status).toBe(404);
+  });
+
+  it("returns 404 for another user's wallet", async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'My Wallet' });
+
+    const otherUser = await register({
+      name: 'Other',
+      email: 'other-adjust@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+    });
+
+    const response = await request(app)
+      .post(`/wallets/${wallet.body.id}/adjust`)
+      .set('Authorization', `Bearer ${otherToken}`)
+      .send({ targetBalance: '100.00' });
+
+    expect(response.status).toBe(404);
+  });
+});
