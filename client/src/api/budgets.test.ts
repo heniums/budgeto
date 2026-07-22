@@ -42,6 +42,7 @@ const budgetData = {
   name: 'Monthly Budget',
   icon: 'wallet',
   color: '#1f8a4c',
+  type: 'spending' as const,
   period: {
     type: 'monthly' as const,
     window: {

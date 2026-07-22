@@ -106,6 +106,7 @@ export async function updateBudget(
       | 'name'
       | 'icon'
       | 'color'
+      | 'type'
       | 'period'
       | 'startDate'
       | 'endDate'

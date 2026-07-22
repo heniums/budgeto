@@ -80,6 +80,7 @@ describe('POST /budgets', () => {
         name: 'Monthly Spending',
         icon: 'wallet',
         color: '#1f8a4c',
+        type: 'spending',
         period: 'monthly',
         totalAmount: '1000.00',
         categories: [

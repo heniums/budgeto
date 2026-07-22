@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import {
   getBudgets,
@@ -25,11 +25,6 @@ export function Budgets(): JSX.Element {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null);
   const [period, setPeriod] = useState(() => dayjs().format('YYYY-MM'));
-
-  const expenseCategories = useMemo(
-    () => categories.filter((c) => c.type === 'expense'),
-    [categories],
-  );
 
   const loadData = async (periodParam?: string): Promise<void> => {
     setLoading(true);
@@ -119,7 +114,7 @@ export function Budgets(): JSX.Element {
           {dialogOpen && (
             <BudgetForm
               editingBudget={editingBudget}
-              expenseCategories={expenseCategories}
+              categories={categories}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
             />

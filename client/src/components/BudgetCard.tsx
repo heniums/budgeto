@@ -42,7 +42,12 @@ export function BudgetCard({
             {budget.icon}
           </span>
           <div>
-            <h2 className="font-semibold">{budget.name}</h2>
+            <h2 className="font-semibold">
+              {budget.name}
+              <span className="ml-2 text-xs font-normal text-muted-foreground capitalize">
+                ({budget.type === 'spending' ? 'Spending' : 'Saving'} Budget)
+              </span>
+            </h2>
             <p className="text-xs text-muted-foreground">
               {budget.period.type} ·{' '}
               {dayjs(budget.period.window.startDate).format('MMM D')}

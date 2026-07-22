@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -30,6 +30,7 @@ const budgetSchema = z
     name: z.string().min(1, 'Name is required.'),
     icon: z.string().min(1, 'Icon is required.'),
     color: z.string().min(1, 'Color is required.'),
+    type: z.enum(['spending', 'saving']),
     period: z.enum(['daily', 'weekly', 'monthly', 'yearly', 'custom']),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
@@ -84,19 +85,17 @@ type BudgetValues = z.infer<typeof budgetSchema>;
 
 interface BudgetFormProps {
   editingBudget: BudgetData | null;
-  expenseCategories: CategoryData[];
+  categories: CategoryData[];
   onSuccess: () => void;
   onCancel: () => void;
 }
 
 export function BudgetForm({
   editingBudget,
-  expenseCategories,
+  categories,
   onSuccess,
   onCancel,
 }: BudgetFormProps): JSX.Element {
-  const [error, setError] = useState<string | null>(null);
-
   const {
     register,
     handleSubmit,
@@ -104,6 +103,8 @@ export function BudgetForm({
     control,
     watch,
     setValue,
+    setError,
+    clearErrors,
     formState: { errors, isSubmitting },
   } = useForm<BudgetValues>({
     resolver: zodResolver(budgetSchema),
@@ -114,6 +115,7 @@ export function BudgetForm({
       period: 'monthly',
       startDate: '',
       endDate: '',
+      type: 'spending',
       totalAmount: '',
       categories: [],
     },
@@ -139,6 +141,7 @@ export function BudgetForm({
         name: editingBudget.name,
         icon: editingBudget.icon,
         color: editingBudget.color,
+        type: editingBudget.type,
         period: editingBudget.period.type,
         startDate: editingBudget.period.window.startDate,
         endDate: editingBudget.period.window.endDate,
@@ -153,6 +156,7 @@ export function BudgetForm({
         name: '',
         icon: 'wallet',
         color: '#1f8a4c',
+        type: 'spending',
         period: 'monthly',
         startDate: '',
         endDate: '',
@@ -160,17 +164,18 @@ export function BudgetForm({
         categories: [],
       });
     }
-    setError(null);
+    clearErrors('root');
   }, [editingBudget, reset]);
 
   const onSubmit = async (values: BudgetValues): Promise<void> => {
-    setError(null);
+    clearErrors('root');
     try {
       if (editingBudget) {
         await updateBudget(editingBudget.id, {
           name: values.name,
           icon: values.icon,
           color: values.color,
+          type: values.type,
           period: values.period as PeriodType,
           startDate: values.period === 'custom' ? values.startDate : undefined,
           endDate: values.period === 'custom' ? values.endDate : undefined,
@@ -182,6 +187,7 @@ export function BudgetForm({
           name: values.name,
           icon: values.icon,
           color: values.color,
+          type: values.type,
           period: values.period as PeriodType,
           startDate: values.period === 'custom' ? values.startDate : undefined,
           endDate: values.period === 'custom' ? values.endDate : undefined,
@@ -192,9 +198,9 @@ export function BudgetForm({
       onSuccess();
     } catch (err: unknown) {
       if (err instanceof ApiError) {
-        setError(err.message);
+        setError('root', { message: err.message });
       } else {
-        setError('Failed to save budget.');
+        setError('root', { message: 'Failed to save budget.' });
       }
     }
   };
@@ -211,11 +217,25 @@ export function BudgetForm({
         noValidate
         className="space-y-4"
       >
-        <FormAlert message={error ?? (errors.root?.message as string | undefined)} />
+        <FormAlert message={errors.root?.message} />
         <div className="space-y-2">
           <Label htmlFor="budget-name">Name</Label>
           <Input id="budget-name" {...register('name')} />
           <FormError message={errors.name?.message} />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Type</Label>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2">
+              <input type="radio" value="spending" {...register('type')} />
+              Spending
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" value="saving" {...register('type')} />
+              Saving
+            </label>
+          </div>
         </div>
 
         <div className="space-y-2">
@@ -326,7 +346,7 @@ export function BudgetForm({
               index={index}
               categoryId={watch(`categories.${index}.categoryId`) ?? ''}
               limitAmount={watch(`categories.${index}.limitAmount`) ?? ''}
-              expenseCategories={expenseCategories}
+              categories={categories}
               usedCategoryIds={usedCategoryIds}
               onCategoryChange={(value) =>
                 setValue(`categories.${index}.categoryId`, value, {

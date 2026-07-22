@@ -58,6 +58,7 @@ const mockBudgets = [
     name: 'Monthly Spending',
     icon: 'Wallet',
     color: '#1f8a4c',
+    type: 'spending' as const,
     period: {
       type: 'monthly' as const,
       window: {

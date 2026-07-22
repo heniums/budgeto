@@ -12,7 +12,7 @@ interface CategoryBudgetFieldProps {
   index: number;
   categoryId: string;
   limitAmount: string;
-  expenseCategories: CategoryData[];
+  categories: CategoryData[];
   usedCategoryIds: Set<string>;
   onCategoryChange: (value: string) => void;
   onLimitChange: (value: string) => void;
@@ -24,7 +24,7 @@ export function CategoryBudgetField({
   index,
   categoryId,
   limitAmount,
-  expenseCategories,
+  categories,
   usedCategoryIds,
   onCategoryChange,
   onLimitChange,
@@ -41,7 +41,7 @@ export function CategoryBudgetField({
           className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
         >
           <option value="">Select category</option>
-          {expenseCategories
+          {categories
             .filter(
               (c) => !usedCategoryIds.has(c.id) || c.id === categoryId,
             )

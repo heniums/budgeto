@@ -77,6 +77,7 @@ export const budgets = pgTable('budget', {
     .notNull()
     .references(() => users.id, { onDelete: 'cascade' }),
   name: text('name').notNull(),
+  type: text('type').notNull().default('spending'),
   icon: text('icon').notNull().default('wallet'),
   color: text('color').notNull().default('#1f8a4c'),
   period: text('period').notNull().default('monthly'),

@@ -23,6 +23,7 @@ export interface BudgetData {
   name: string;
   icon: string;
   color: string;
+  type: 'spending' | 'saving';
   period: {
     type: PeriodType;
     window: PeriodWindow;
@@ -44,6 +45,7 @@ export interface CreateBudgetInput {
   name: string;
   icon?: string;
   color?: string;
+  type?: 'spending' | 'saving';
   period?: PeriodType;
   startDate?: string;
   endDate?: string;
@@ -55,6 +57,7 @@ export interface UpdateBudgetInput {
   name?: string;
   icon?: string;
   color?: string;
+  type?: 'spending' | 'saving';
   period?: PeriodType;
   startDate?: string;
   endDate?: string;

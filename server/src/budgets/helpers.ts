@@ -103,6 +103,7 @@ interface BudgetResponseInput {
   name: string;
   icon: string;
   color: string;
+  type: string;
   period: string;
   startDate: string;
   endDate: string;
@@ -134,6 +135,7 @@ export interface BudgetResponse {
   name: string;
   icon: string;
   color: string;
+  type: 'spending' | 'saving';
   period: {
     type: PeriodType;
     window: {
@@ -172,6 +174,7 @@ export async function formatBudgetResponse(
     name: budget.name,
     icon: budget.icon,
     color: budget.color,
+    type: budget.type as 'spending' | 'saving',
     period: {
       type: periodType,
       window: {

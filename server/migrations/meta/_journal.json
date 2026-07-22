@@ -64,6 +64,13 @@
       "when": 1787203200000,
       "tag": "0008_redesign_budgets",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1784708891738,
+      "tag": "0009_foamy_blade",
+      "breakpoints": true
     }
   ]
 }
