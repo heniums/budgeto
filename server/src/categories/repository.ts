@@ -31,7 +31,7 @@ export async function findCategoryById(
 
 export async function updateCategory(
   id: string,
-  input: Partial<Pick<NewCategory, 'name' | 'type' | 'color' | 'icon'>>,
+  input: Partial<Pick<NewCategory, 'name' | 'color' | 'icon'>>,
 ): Promise<Category | undefined> {
   const [category] = await db
     .update(categories)

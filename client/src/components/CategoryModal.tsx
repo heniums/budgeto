@@ -33,7 +33,6 @@ import {
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
-  type: z.enum(['income', 'expense']),
   color: z.string(),
   icon: z.string(),
 });
@@ -67,7 +66,6 @@ export function CategoryModal({
     resolver: zodResolver(categorySchema),
     defaultValues: {
       name: '',
-      type: 'expense',
       color: DEFAULT_COLOR,
       icon: DEFAULT_ICON_NAME,
     },
@@ -85,7 +83,6 @@ export function CategoryModal({
       setLoading(false);
       reset({
         name: '',
-        type: 'expense',
         color: DEFAULT_COLOR,
         icon: DEFAULT_ICON_NAME,
       });
@@ -102,7 +99,6 @@ export function CategoryModal({
         if (!active) return;
         reset({
           name: c.name,
-          type: c.type,
           color: c.color,
           icon: c.icon,
         });
@@ -123,7 +119,6 @@ export function CategoryModal({
     try {
       const cat = await createCategory({
         name: values.name.trim(),
-        type: values.type,
         color: values.color,
         icon: values.icon,
       });
@@ -141,7 +136,6 @@ export function CategoryModal({
     try {
       await updateCategory(categoryId, {
         name: values.name.trim(),
-        type: values.type,
         color: values.color,
         icon: values.icon,
       });
@@ -198,20 +192,6 @@ export function CategoryModal({
                 {...register('name')}
               />
               <FormError message={errors.name?.message} />
-            </div>
-
-            <div className="space-y-2">
-              <Label>{LABEL.TYPE}</Label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-2">
-                  <input type="radio" value="expense" {...register('type')} />
-                  Expense
-                </label>
-                <label className="flex items-center gap-2">
-                  <input type="radio" value="income" {...register('type')} />
-                  Income
-                </label>
-              </div>
             </div>
 
             <div className="space-y-2">

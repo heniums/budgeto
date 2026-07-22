@@ -25,7 +25,6 @@ const walletSchema = z.object({
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required.').max(128),
-  type: z.enum(['income', 'expense']),
 });
 
 type WalletValues = z.infer<typeof walletSchema>;
@@ -53,7 +52,7 @@ export function OnboardingWizard({
 
   const categoryForm = useForm<CategoryValues>({
     resolver: zodResolver(categorySchema),
-    defaultValues: { name: '', type: 'expense' },
+    defaultValues: { name: '' },
   });
 
   const handleDismiss = (): void => {
@@ -90,7 +89,6 @@ export function OnboardingWizard({
     try {
       const category: CategoryData = await createCategory({
         name: values.name.trim(),
-        type: values.type,
         color: '#ff6b6b',
         icon: 'Tag',
       });
@@ -166,27 +164,6 @@ export function OnboardingWizard({
                 {...categoryForm.register('name')}
               />
               <FormError message={categoryForm.formState.errors.name?.message} />
-            </div>
-            <div className="space-y-2">
-              <Label>Type</Label>
-              <div className="flex gap-4">
-                <label className="flex items-center gap-1.5 text-sm">
-                  <input
-                    type="radio"
-                    value="expense"
-                    {...categoryForm.register('type')}
-                  />
-                  Expense
-                </label>
-                <label className="flex items-center gap-1.5 text-sm">
-                  <input
-                    type="radio"
-                    value="income"
-                    {...categoryForm.register('type')}
-                  />
-                  Income
-                </label>
-              </div>
             </div>
             <Button
               type="submit"

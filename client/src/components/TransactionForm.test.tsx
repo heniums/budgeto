@@ -202,14 +202,12 @@ describe('TransactionForm — prerequisite warnings', () => {
       {
         id: 'c1',
         name: 'Food',
-        type: 'expense' as const,
         color: '#ff6b6b',
         icon: 'UtensilsCrossed',
       },
       {
         id: 'c2',
         name: 'Salary',
-        type: 'income' as const,
         color: '#1f8a4c',
         icon: 'BriefcaseBusiness',
       },
@@ -234,14 +232,12 @@ describe('TransactionForm — prerequisite warnings', () => {
       {
         id: 'c1',
         name: 'Food',
-        type: 'expense' as const,
         color: '#ff6b6b',
         icon: 'UtensilsCrossed',
       },
       {
         id: 'c2',
         name: 'Salary',
-        type: 'income' as const,
         color: '#1f8a4c',
         icon: 'BriefcaseBusiness',
       },
@@ -290,7 +286,6 @@ describe('TransactionForm — edit mode', () => {
     {
       id: 'c1',
       name: 'Food',
-      type: 'expense' as const,
       color: '#ff6b6b',
       icon: 'UtensilsCrossed',
     },

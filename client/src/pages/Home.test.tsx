@@ -117,7 +117,6 @@ const mockCategories = [
     id: 'c1',
     userId: 'u1',
     name: 'Food',
-    type: 'expense' as const,
     color: '#ff6b6b',
     icon: 'UtensilsCrossed',
     createdAt: '2026-01-01T00:00:00Z',

@@ -22,7 +22,6 @@ const mockCategory = {
   id: 'c1',
   userId: 'u1',
   name: 'Groceries',
-  type: 'expense' as const,
   color: '#ff6b6b',
   icon: 'ShoppingCart',
   createdAt: '',
@@ -35,7 +34,7 @@ describe('CategoryModal — create mode (no categoryId)', () => {
     cleanup();
   });
 
-  it('renders create form with name, type, color, and icon grid', () => {
+  it('renders create form with name, color, and icon grid', () => {
     render(
       <CategoryModal open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
     );
@@ -68,7 +67,6 @@ describe('CategoryModal — create mode (no categoryId)', () => {
     await waitFor(() => {
       expect(createCategory).toHaveBeenCalledWith({
         name: 'Food',
-        type: 'expense',
         color: '#1f8a4c',
         icon: 'Tag',
       });
@@ -178,7 +176,6 @@ describe('CategoryModal — edit mode (categoryId provided)', () => {
     await waitFor(() => {
       expect(updateCategory).toHaveBeenCalledWith('c1', {
         name: 'Food',
-        type: 'expense',
         color: '#ff6b6b',
         icon: 'ShoppingCart',
       });

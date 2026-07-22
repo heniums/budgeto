@@ -323,7 +323,6 @@ export function Home(): JSX.Element {
                   categories={categories.map((c) => ({
                     id: c.id,
                     name: c.name,
-                    type: c.type,
                     color: c.color,
                     icon: c.icon,
                   }))}
@@ -622,7 +621,6 @@ export function Home(): JSX.Element {
               categories={categories.map((c) => ({
                 id: c.id,
                 name: c.name,
-                type: c.type,
                 color: c.color,
                 icon: c.icon,
               }))}

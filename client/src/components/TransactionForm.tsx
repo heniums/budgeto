@@ -35,7 +35,6 @@ interface TransactionFormProps {
   categories?: {
     id: string;
     name: string;
-    type: 'income' | 'expense';
     color: string;
     icon: string;
   }[];
@@ -55,7 +54,6 @@ interface TransactionFormProps {
     name: string;
     color: string;
     icon: string;
-    type: 'income' | 'expense';
   }) => void;
   autoSelectWalletId?: string;
   autoSelectCategoryId?: string;

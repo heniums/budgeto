@@ -32,7 +32,6 @@ const mockCategories = [
     id: 'c1',
     userId: 'u1',
     name: 'Groceries',
-    type: 'expense' as const,
     color: '#ff5733',
     icon: 'ShoppingCart',
     createdAt: '2025-01-15T10:00:00Z',
@@ -42,7 +41,6 @@ const mockCategories = [
     id: 'c2',
     userId: 'u1',
     name: 'Salary',
-    type: 'income' as const,
     color: '#33ff57',
     icon: 'BriefcaseBusiness',
     createdAt: '2025-03-01T10:00:00Z',
@@ -77,13 +75,10 @@ describe('Categories page', () => {
     expect(await screen.findByText('Categories')).toBeInTheDocument();
   });
 
-  it('lists categories in a table with name, type, color, and date', async () => {
+  it('lists categories in a table with name, color, and date', async () => {
     renderList();
     expect(await screen.findByText('Groceries')).toBeInTheDocument();
     expect(screen.getByText('Salary')).toBeInTheDocument();
-    // Type badges
-    expect(screen.getByText('expense')).toBeInTheDocument();
-    expect(screen.getByText('income')).toBeInTheDocument();
     // Color hex values
     expect(screen.getByText('#ff5733')).toBeInTheDocument();
     // Icons (2 categories, each has an SVG icon)
@@ -113,20 +108,6 @@ describe('Categories page', () => {
 
     const searchInput = screen.getByLabelText('Search categories');
     await user.type(searchInput, 'sal');
-
-    await waitFor(() => {
-      expect(screen.queryByText('Groceries')).not.toBeInTheDocument();
-    });
-    expect(screen.getByText('Salary')).toBeInTheDocument();
-  });
-
-  it('filters categories by type via search input', async () => {
-    const user = userEvent.setup();
-    renderList();
-    await screen.findByText('Groceries');
-
-    const searchInput = screen.getByLabelText('Search categories');
-    await user.type(searchInput, 'income');
 
     await waitFor(() => {
       expect(screen.queryByText('Groceries')).not.toBeInTheDocument();

@@ -16,7 +16,6 @@ export interface CategoryItem {
   name: string;
   color: string;
   icon: string;
-  type: 'income' | 'expense';
 }
 
 interface CategorySelectListProps {

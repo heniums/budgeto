@@ -14,33 +14,21 @@ beforeAll(() => {
 const categories = [
   {
     id: 'c1',
-    userId: 'u1',
     name: 'Food',
-    type: 'expense' as const,
     color: '#ef4444',
     icon: 'UtensilsCrossed',
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 'c2',
-    userId: 'u1',
     name: 'Salary',
-    type: 'income' as const,
     color: '#22c55e',
     icon: 'BriefcaseBusiness',
-    createdAt: '',
-    updatedAt: '',
   },
   {
     id: 'c3',
-    userId: 'u1',
     name: 'Car',
-    type: 'expense' as const,
     color: '#3b82f6',
     icon: 'Car',
-    createdAt: '',
-    updatedAt: '',
   },
 ];
 
@@ -207,13 +195,9 @@ describe('CategorySelectList — callbacks', () => {
 
     expect(onEdit).toHaveBeenCalledWith({
       id: 'c1',
-      userId: 'u1',
       name: 'Food',
-      type: 'expense',
       color: '#ef4444',
       icon: 'UtensilsCrossed',
-      createdAt: '',
-      updatedAt: '',
     });
   });
 
