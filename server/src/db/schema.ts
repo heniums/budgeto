@@ -60,7 +60,6 @@ export const categories = pgTable('category', {
     .notNull()
     .references(() => users.id),
   name: text('name').notNull(),
-  type: text('type').notNull(),
   color: text('color').notNull(),
   icon: text('icon').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true })
