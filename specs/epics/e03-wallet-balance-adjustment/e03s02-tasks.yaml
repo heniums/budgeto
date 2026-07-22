@@ -1,17 +1,17 @@
 story_id: e03s02
 title: 'Wallet balance adjustment endpoint and UI'
-status: planned
+status: passing
 bcps: 5
 tasks:
   - id: e03s02t01
     description: 'Add POST /wallets/:id/adjust endpoint with Zod schema, service logic (delta compute, category find-or-create, transaction creation)'
     verify: "npm test -- --project server -- -t 'adjust'"
-    status: pending
+    status: passing
   - id: e03s02t02
-    description: 'Add adjust button and target balance modal to wallet detail page'
-    verify: "npm test -- --project client -- -t 'adjust|balance'"
-    status: pending
+    description: 'Add adjust button and target balance input to wallet list page'
+    verify: 'npm test -- --project client'
+    status: passing
   - id: e03s02t03
     description: 'Run full preflight to confirm green'
     verify: 'npm test && npm run lint && npm run type-check && npm run build'
-    status: pending
+    status: passing

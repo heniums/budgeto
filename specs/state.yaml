@@ -7,14 +7,14 @@ session:
 
 epic:
   active_id: e03
-  active_story_id: e03s01
+  active_story_id: e03s02
   active_task_id: null
 
 git:
   branch: feat/wallet-balance-adjustment
   base_branch: main
   status: clean
-  last_commit: 1d28363
+  last_commit: 230b679
 
 epic_cycle:
   step: 0
@@ -23,14 +23,15 @@ epic_cycle:
   audit_result: null
 
 handoff:
-  next_skill: develop-tdd
+  next_skill: verify-work
   reason: |
-    Planning complete for e03 (wallet-balance-adjustment).
-    SCOPE_LATEST.yaml written. Epic capsule with 2 stories:
-    e03s01 (remove category type, 5 BCPs) and
-    e03s02 (adjustment endpoint + UI, 5 BCPs).
-    Ready to start TDD on e03s01.
+    e03 wallet-balance-adjustment implemented. Both stories passing:
+    - e03s01: category type column removed (DB, server, client)
+    - e03s02: balance adjustment endpoint + client UI
+    Preflight green: 409 tests (187 server + 222 client).
+    Ready for UAT verification.
   blocker: null
 
 notes: |
-  e02 (budgets) shipped. Starting e03 wallet-balance-adjustment.
+  e03 complete. 5 commits: schema → category removal → adjustment tests →
+  adjustment endpoint → adjustment UI.
