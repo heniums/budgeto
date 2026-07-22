@@ -103,3 +103,18 @@ export async function updateWallet(
 export async function deleteWallet(id: string): Promise<void> {
   await apiClient.delete(`/wallets/${id}`);
 }
+
+export interface AdjustBalanceInput {
+  targetBalance: string;
+}
+
+export async function adjustBalance(
+  walletId: string,
+  input: AdjustBalanceInput,
+): Promise<WalletData> {
+  const response = await apiClient.post<WalletData>(
+    `/wallets/${walletId}/adjust`,
+    input,
+  );
+  return response.data;
+}
