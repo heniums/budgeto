@@ -5,6 +5,7 @@ import {
   getHandler,
   updateHandler,
   deleteHandler,
+  adjustHandler,
 } from './controller';
 import { transferHandler } from '../transactions/controller';
 import transactionsRouter from '../transactions/router';
@@ -17,6 +18,7 @@ router.post('/transfer', transferHandler);
 
 router.post('/', createHandler);
 router.get('/', listHandler);
+router.post('/:id/adjust', adjustHandler);
 router.get('/:id', getHandler);
 router.put('/:id', updateHandler);
 router.delete('/:id', deleteHandler);
