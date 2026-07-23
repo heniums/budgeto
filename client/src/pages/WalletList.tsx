@@ -2,7 +2,6 @@ import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   getWallets,
   deleteWallet,
-  adjustBalance,
   type WalletData,
 } from '../api/wallets';
 import { Button } from '@/components/ui/button';
@@ -18,6 +17,7 @@ import {
 import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
 import { FormAlert } from '../components/FormAlert';
+import { WalletAdjust } from '../components/WalletAdjust';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
@@ -30,9 +30,6 @@ export function WalletList(): JSX.Element {
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
-  const [adjustTarget, setAdjustTarget] = useState('');
-  const [adjustError, setAdjustError] = useState<string | null>(null);
-  const [adjusting, setAdjusting] = useState(false);
 
   const load = (): void => {
     setLoading(true);
@@ -76,33 +73,6 @@ export function WalletList(): JSX.Element {
     }
   };
 
-  const handleAdjust = async (walletId: string): Promise<void> => {
-    setAdjustError(null);
-    const target = adjustTarget.trim();
-
-    if (!target) {
-      setAdjustError('Target balance is required.');
-      return;
-    }
-    if (!Number.isFinite(Number(target))) {
-      setAdjustError('Target balance must be a valid number.');
-      return;
-    }
-
-    setAdjusting(true);
-    try {
-      await adjustBalance(walletId, { targetBalance: target });
-      setAdjustingId(null);
-      setAdjustTarget('');
-      load();
-    } catch (err: unknown) {
-      setAdjustError(
-        err instanceof Error ? err.message : 'Failed to adjust balance',
-      );
-    } finally {
-      setAdjusting(false);
-    }
-  };
 
   const formatDate = (iso: string): string => {
     if (!iso) return '—';
@@ -258,8 +228,6 @@ export function WalletList(): JSX.Element {
                               setAdjustingId(
                                 adjustingId === wallet.id ? null : wallet.id,
                               );
-                              setAdjustTarget('');
-                              setAdjustError(null);
                             }}
                             aria-label={`Adjust ${wallet.name}`}
                           >
@@ -278,57 +246,12 @@ export function WalletList(): JSX.Element {
                       </TableCell>
                     </TableRow>
                     {adjustingId === wallet.id && (
-                      <TableRow key={`${wallet.id}-adjust`}>
-                        <TableCell colSpan={6}>
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: '0.5rem',
-                              alignItems: 'center',
-                              padding: '0.5rem 0',
-                            }}
-                          >
-                            <span className="text-sm text-muted-foreground">
-                              Adjust to:
-                            </span>
-                            <Input
-                              type="number"
-                              step="0.01"
-                              placeholder="Target balance"
-                              value={adjustTarget}
-                              onChange={(e) => setAdjustTarget(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') handleAdjust(wallet.id);
-                              }}
-                              style={{ maxWidth: '160px' }}
-                              aria-label="Target balance"
-                              disabled={adjusting}
-                            />
-                            <Button
-                              size="sm"
-                              onClick={() => handleAdjust(wallet.id)}
-                              disabled={adjusting || !adjustTarget.trim()}
-                            >
-                              {adjusting ? 'Adjusting…' : 'Apply'}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                setAdjustingId(null);
-                                setAdjustError(null);
-                              }}
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                          {adjustError && (
-                            <p className="text-sm text-destructive">
-                              {adjustError}
-                            </p>
-                          )}
-                        </TableCell>
-                      </TableRow>
+                      <WalletAdjust
+                        key={`${wallet.id}-adjust`}
+                        walletId={wallet.id}
+                        onSuccess={() => { load(); setAdjustingId(null); }}
+                        onCancel={() => setAdjustingId(null)}
+                      />
                     )}
                   </Fragment>
                 ))
