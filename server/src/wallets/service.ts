@@ -6,12 +6,12 @@ import {
   updateWallet,
   deleteWallet,
   getWalletWithBalance,
+  adjustBalanceAtomic,
 } from './repository';
 import {
   createCategory,
   findCategoriesByUserId,
 } from '../categories/repository';
-import { createTransaction } from '../transactions/repository';
 import { notFoundError } from '../errors';
 
 const SUPPORTED_CURRENCY_CODES = [
@@ -198,9 +198,12 @@ export const updateWalletSchema = z.object({
 });
 
 export const adjustBalanceSchema = z.object({
-  targetBalance: z.string().refine((val) => !isNaN(Number(val)), {
-    message: 'targetBalance must be a valid number',
-  }),
+  targetBalance: z
+    .string()
+    .min(1, 'targetBalance is required')
+    .refine((val) => !isNaN(Number(val)), {
+      message: 'targetBalance must be a valid number',
+    }),
 });
 
 export type CreateWalletInput = z.infer<typeof createWalletSchema>;
@@ -323,16 +326,7 @@ export async function adjustBalance(
     throw notFoundError('Wallet not found');
   }
 
-  const withBalance = await getWalletWithBalance(id);
-  if (!withBalance) {
-    throw notFoundError('Wallet not found');
-  }
-
   const target = input.targetBalance;
-  const current = withBalance.balance;
-  const delta = (
-    Math.round((Number(target) - Number(current)) * 100) / 100
-  ).toString();
 
   // Find or create "Balance Adjustment" category
   const userCategories = await findCategoriesByUserId(userId);
@@ -349,13 +343,24 @@ export async function adjustBalance(
     });
   }
 
-  // Create the balancing transaction
-  await createTransaction({
-    walletId: id,
-    amount: delta,
-    description: `Balance adjusted from ${current} to ${target}`,
-    categoryId: adjustmentCategory.id,
-  });
+  // Get current balance for the description (read-only, informational)
+  const withBalance = await getWalletWithBalance(id);
+  const currentBalance = withBalance?.balance ?? '0';
+
+  // Atomically lock, compute delta, and insert transaction
+  try {
+    await adjustBalanceAtomic(
+      id,
+      target,
+      adjustmentCategory.id,
+      `Balance adjusted from ${currentBalance} to ${target}`,
+    );
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
+      throw notFoundError('Wallet not found');
+    }
+    throw err;
+  }
 
   // Return the updated wallet with new balance
   const updated = await getWalletWithBalance(id);

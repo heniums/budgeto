@@ -105,3 +105,43 @@ export async function deleteAllWallets(): Promise<void> {
 }
 
 export type { Wallet };
+
+export async function adjustBalanceAtomic(
+  walletId: string,
+  targetBalance: string,
+  categoryId: string,
+  description: string,
+): Promise<void> {
+  await db.transaction(async (tx) => {
+    // Lock the wallet row to prevent concurrent balance reads
+    const [locked] = await tx
+      .select()
+      .from(wallets)
+      .where(eq(wallets.id, walletId))
+      .for('update');
+
+    if (!locked) {
+      throw new Error('WALLET_NOT_FOUND');
+    }
+
+    // Compute current balance within the locked transaction
+    const [balanceRow] = await tx
+      .select({
+        balance: sql<string>`COALESCE(SUM(${transactions.amount}), 0)`,
+      })
+      .from(transactions)
+      .where(eq(transactions.walletId, walletId));
+
+    const current = balanceRow?.balance ?? '0';
+    const delta = (
+      Math.round((Number(targetBalance) - Number(current)) * 100) / 100
+    ).toString();
+
+    await tx.insert(transactions).values({
+      walletId,
+      amount: delta,
+      description,
+      categoryId,
+    });
+  });
+}

@@ -16,7 +16,6 @@ export const LABEL = {
   NAME: 'Name',
   DESCRIPTION: 'Description',
   COLOR: 'Color',
-  TYPE: 'Type',
   ICON: 'Icon',
 } as const;
 

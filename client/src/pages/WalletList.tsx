@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import {
   getWallets,
   deleteWallet,
@@ -32,6 +32,7 @@ export function WalletList(): JSX.Element {
   const [adjustingId, setAdjustingId] = useState<string | null>(null);
   const [adjustTarget, setAdjustTarget] = useState('');
   const [adjustError, setAdjustError] = useState<string | null>(null);
+  const [adjusting, setAdjusting] = useState(false);
 
   const load = (): void => {
     setLoading(true);
@@ -77,6 +78,7 @@ export function WalletList(): JSX.Element {
 
   const handleAdjust = async (walletId: string): Promise<void> => {
     setAdjustError(null);
+    setAdjusting(true);
     try {
       await adjustBalance(walletId, { targetBalance: adjustTarget });
       setAdjustingId(null);
@@ -86,6 +88,8 @@ export function WalletList(): JSX.Element {
       setAdjustError(
         err instanceof Error ? err.message : 'Failed to adjust balance',
       );
+    } finally {
+      setAdjusting(false);
     }
   };
 
@@ -153,7 +157,7 @@ export function WalletList(): JSX.Element {
                 </TableRow>
               ) : (
                 filtered.map((wallet) => (
-                  <>
+                  <Fragment key={wallet.id}>
                     <TableRow
                       key={wallet.id}
                       className="cursor-pointer hover:bg-muted/50"
@@ -287,12 +291,14 @@ export function WalletList(): JSX.Element {
                               }}
                               style={{ maxWidth: '160px' }}
                               aria-label="Target balance"
+                              disabled={adjusting}
                             />
                             <Button
                               size="sm"
                               onClick={() => handleAdjust(wallet.id)}
+                              disabled={adjusting}
                             >
-                              Apply
+                              {adjusting ? 'Adjusting…' : 'Apply'}
                             </Button>
                             <Button
                               variant="ghost"
@@ -313,7 +319,7 @@ export function WalletList(): JSX.Element {
                         </TableCell>
                       </TableRow>
                     )}
-                  </>
+                  </Fragment>
                 ))
               )}
             </TableBody>

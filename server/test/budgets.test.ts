@@ -151,7 +151,7 @@ describe('POST /budgets', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
-  it('accepts income categories (201)', async () => {
+  it('accepts any category in budget (201)', async () => {
     const salary = await createCategory(token, 'Salary');
     const response = await request(app)
       .post('/budgets')
