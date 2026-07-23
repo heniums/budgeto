@@ -6,7 +6,6 @@ import {
 } from '../api/categories';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
 import {
   Table,
   TableBody,
@@ -53,10 +52,7 @@ export function Categories(): JSX.Element {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     if (!q) return categories;
-    return categories.filter(
-      (c) =>
-        c.name.toLowerCase().includes(q) || c.type.toLowerCase().includes(q),
-    );
+    return categories.filter((c) => c.name.toLowerCase().includes(q));
   }, [categories, search]);
 
   const handleDelete = async (id: string, name: string): Promise<void> => {
@@ -117,20 +113,19 @@ export function Categories(): JSX.Element {
       ) : (
         <div className="rounded-md border">
           <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Color</TableHead>
-              <TableHead className="text-right">Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead className="text-right">Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={5}
+                    colSpan={4}
                     className="text-center text-muted-foreground"
                   >
                     No categories match your search.
@@ -176,15 +171,6 @@ export function Categories(): JSX.Element {
                             {category.name}
                           </button>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            category.type === 'income' ? 'default' : 'secondary'
-                          }
-                        >
-                          {category.type}
-                        </Badge>
                       </TableCell>
                       <TableCell>
                         <div
@@ -251,7 +237,7 @@ export function Categories(): JSX.Element {
               )}
             </TableBody>
           </Table>
-          </div>
+        </div>
       )}
 
       <CategoryModal

@@ -61,7 +61,6 @@ const budgetData = {
         id: 'c1',
         userId: 'u1',
         name: 'Groceries',
-        type: 'expense' as const,
         color: '#ff5733',
         icon: 'ShoppingCart',
         createdAt: '2024-01-01T00:00:00Z',

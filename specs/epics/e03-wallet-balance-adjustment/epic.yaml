@@ -1,0 +1,14 @@
+epic_id: e03
+slug: wallet-balance-adjustment
+title: 'Wallet Balance Adjustment'
+status: planned
+bcps: 10
+stories:
+  - id: e03s01
+    title: 'Remove category type column'
+    bcps: 5
+    delta: REMOVED
+  - id: e03s02
+    title: 'Wallet balance adjustment endpoint and UI'
+    bcps: 5
+    delta: ADDED

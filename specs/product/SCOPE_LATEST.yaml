@@ -1,41 +1,50 @@
-core_value: Enable users to view budget performance across any historical time period without recreating budgets, using a persistent budget definition that acts as a filter over transactions.
+core_value: Let users set a wallet balance to an exact target number with a single action, backed by an auto-created audit trail transaction.
 
-summary: |
-  Budgets currently require manual recreation for each time period (month/week/year), preventing users from tracking spending history or comparing performance across periods. This feature transforms budgets into persistent filter definitions that automatically apply to all time periods of their type.
+summary: >
+  Wallets today compute their balance from the sum of all linked transactions,
+  but there is no way to directly set that balance to a desired target. Users
+  must manually craft offsetting transactions — slow, error-prone, and opaque.
 
-  A budget defines a period type (monthly/weekly/yearly), a set of categories, and spending limits per category. The system computes period windows on-the-fly and calculates spent vs. limit by querying transactions within each window. Users navigate through past periods to see historical spending performance against the same budget criteria.
+  This feature adds a dedicated adjustment endpoint that accepts a target
+  balance, computes the delta against the current computed balance, and creates
+  a balancing transaction linked to a "Balance Adjustment" category. The
+  category is auto-created per-user on first use.
 
-  This approach eliminates manual budget recreation while providing complete spending history and period-over-period comparison capabilities.
+  As an enabler, the legacy `type` column (income/expense) is removed from the
+  categories table. Income vs. expense is already determined by transaction
+  amount sign; the category-level type creates a false coupling that blocks a
+  single category from serving both direction adjustments.
 
 in_scope:
-  - Budget definition with period type (monthly/weekly/yearly) and category limits
-  - Virtual period computation from budget period type
-  - Period navigation UI (current period + historical periods)
-  - Spent vs. limit calculation per category per period
-  - Transaction filtering by category and date range
-  - Budget persistence across all time periods
+  - Remove `type` column from categories table (DB migration + all layers)
+  - New `POST /wallets/:id/adjust` endpoint accepting target balance
+  - Auto-create "Balance Adjustment" category for user on first adjustment
+  - Compute delta = target - current and create an adjustment transaction
+  - Client UI: adjust button on wallet detail with target balance input
 
 out_of_scope:
-  - Rollover logic: Each period is independent, unspent amounts do not carry forward. Reason: Deferred — adds complexity without core value for initial release.
-  - Savings goals: Separate feature requiring different data model (accumulation vs. constraint). Reason: Not valuable — different mental model than spending budgets.
-  - Budget templates: Auto-populate rules for future periods. Reason: Deferred — virtual periods eliminate need for templates.
-  - Multi-currency support: Budget limits in different currencies. Reason: Deferred — depends on transaction multi-currency support, not yet implemented.
-  - Edit future period limits independently: Custom limits per period. Reason: Too risky — breaks budget consistency and complicates reporting.
+  - Editing or deleting adjustment transactions: Reason — existing transaction CRUD already covers this.
+  - Recurring/scheduled adjustments: Reason — deferred; no evidence of user demand yet.
+  - Bulk adjustments across multiple wallets: Reason — deferred; adds UI complexity without proven need.
+  - Adjustment history beyond the normal transaction list: Reason — the transaction list with a category filter already provides this view.
+  - Backfill or import of legacy category types: Reason — not applicable; categories without a type column simply have no type.
 
 constraints:
-  - PostgreSQL database with Drizzle ORM
-  - Transaction data must exist for historical periods to show meaningful data
-  - Period computation must handle timezone considerations for date boundaries
-  - UI must support period navigation without page reload (performance requirement)
-  - Existing budget_categories table structure must be preserved
+  - PostgreSQL + Drizzle ORM; migration must be generated via `npx drizzle-kit generate`
+  - Category removal must not break the budgets validateCategories check
+  - Transaction list `type` filter already uses amount sign, not category type — must remain functional
+  - Adjustment endpoint must verify wallet ownership before processing
+  - The delta transaction must be created atomically (single request, no partial state)
 
 success_criteria:
-  - User creates budget with period="monthly" and sees current month's spent vs. limit
-  - User navigates to previous month and sees same budget applied with different spent amounts
-  - User can navigate through at least 12 historical periods without performance degradation
-  - Period computation correctly handles month boundaries (28/30/31 days, leap years)
-  - Spent calculation accurately sums transactions matching category and date range
-  - Budget definition persists unchanged across all time periods
+  - Wallet at $342.17, user adjusts to $500.00 → one $157.83 transaction created under "Balance Adjustment"
+  - Wallet at $500.00, user adjusts to $200.00 → one -$300.00 transaction created under same category
+  - First-ever adjustment auto-creates the "Balance Adjustment" category for that user
+  - Second adjustment reuses the existing category
+  - Category create/edit forms no longer show a type selector
+  - Budget creation no longer rejects non-expense categories
+  - Transaction list filter by income/expense continues to work (amount-sign-based)
+  - All existing tests pass (updated for removed category type)
 
 references:
   - specs/planning-context.yaml

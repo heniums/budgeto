@@ -10,7 +10,11 @@ import {
 } from './repository';
 import { findCategoryById } from '../categories/repository';
 import { notFoundError, validationError } from '../errors';
-import { resolveStoredDates, resolveUpdateDates, parsePeriodReference } from './period';
+import {
+  resolveStoredDates,
+  resolveUpdateDates,
+  parsePeriodReference,
+} from './period';
 import { formatBudgetResponse, applyCategoryChanges } from './helpers';
 import type { BudgetResponse } from './helpers';
 import dayjs from 'dayjs';
@@ -34,7 +38,9 @@ export const createBudgetSchema = z
     icon: z.string().min(1).default('wallet'),
     color: z.string().min(1).default('#1f8a4c'),
     type: z.enum(['spending', 'saving']).default('spending'),
-    period: z.enum(['monthly', 'yearly', 'weekly', 'daily', 'custom']).default('monthly'),
+    period: z
+      .enum(['monthly', 'yearly', 'weekly', 'daily', 'custom'])
+      .default('monthly'),
     startDate: z.string().date('Invalid start date').optional(),
     endDate: z.string().date('Invalid end date').optional(),
     totalAmount: z
@@ -63,7 +69,9 @@ export const updateBudgetSchema = z
     icon: z.string().min(1).optional(),
     color: z.string().min(1).optional(),
     type: z.enum(['spending', 'saving']).optional(),
-    period: z.enum(['monthly', 'yearly', 'weekly', 'daily', 'custom']).optional(),
+    period: z
+      .enum(['monthly', 'yearly', 'weekly', 'daily', 'custom'])
+      .optional(),
     startDate: z.string().date().optional(),
     endDate: z.string().date().optional(),
     totalAmount: z
@@ -81,7 +89,8 @@ export const updateBudgetSchema = z
       return !!data.startDate && !!data.endDate;
     },
     {
-      message: 'Start date and end date must both be provided for custom periods',
+      message:
+        'Start date and end date must both be provided for custom periods',
       path: ['startDate'],
     },
   );
@@ -106,9 +115,6 @@ async function validateCategories(
     const category = await findCategoryById(cat.categoryId);
     if (!category || category.userId !== userId) {
       throw notFoundError(`Category ${cat.categoryId} not found`);
-    }
-    if (category.type !== 'expense') {
-      throw validationError('Budgets can only include expense categories');
     }
     sum += Number(cat.limitAmount);
   }
@@ -267,7 +273,8 @@ export async function update(
     color: input.color,
     type: input.type,
     period: input.period,
-    startDate: input.period || input.startDate ? storedDates.startDate : undefined,
+    startDate:
+      input.period || input.startDate ? storedDates.startDate : undefined,
     endDate: input.period || input.endDate ? storedDates.endDate : undefined,
     totalAmount: input.totalAmount,
   });

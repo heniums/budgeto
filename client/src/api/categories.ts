@@ -4,7 +4,6 @@ export interface CategoryData {
   id: string;
   userId: string;
   name: string;
-  type: 'income' | 'expense';
   color: string;
   icon: string;
   createdAt: string;
@@ -13,14 +12,12 @@ export interface CategoryData {
 
 export interface CreateCategoryInput {
   name: string;
-  type: 'income' | 'expense';
   color: string;
   icon: string;
 }
 
 export interface UpdateCategoryInput {
   name?: string;
-  type?: 'income' | 'expense';
   color?: string;
   icon?: string;
 }

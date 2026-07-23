@@ -33,61 +33,22 @@ describe('POST /categories', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
     expect(response.status).toBe(201);
     expect(response.body.name).toBe('Groceries');
-    expect(response.body.type).toBe('expense');
     expect(response.body.color).toBe('#FF5733');
     expect(response.body.icon).toBe('shopping-cart');
     expect(response.body.id).toBeDefined();
     expect(response.body.createdAt).toBeDefined();
   });
 
-  it('creates an income category (201)', async () => {
-    const response = await request(app)
-      .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Salary',
-        type: 'income',
-        color: '#33FF57',
-        icon: 'banknote',
-      });
-    expect(response.status).toBe(201);
-    expect(response.body.type).toBe('income');
-  });
-
   it('rejects missing name (400)', async () => {
     const response = await request(app)
       .post('/categories')
       .set('Authorization', `Bearer ${token}`)
-      .send({ type: 'expense', color: '#FF5733', icon: 'shopping-cart' });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe('VALIDATION_ERROR');
-  });
-
-  it('rejects missing type (400)', async () => {
-    const response = await request(app)
-      .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Groceries', color: '#FF5733', icon: 'shopping-cart' });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe('VALIDATION_ERROR');
-  });
-
-  it('rejects invalid type (400)', async () => {
-    const response = await request(app)
-      .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Groceries',
-        type: 'invalid',
-        color: '#FF5733',
-        icon: 'shopping-cart',
-      });
+      .send({ color: '#FF5733', icon: 'shopping-cart' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
@@ -96,7 +57,7 @@ describe('POST /categories', () => {
     const response = await request(app)
       .post('/categories')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Groceries', type: 'expense', icon: 'shopping-cart' });
+      .send({ name: 'Groceries', icon: 'shopping-cart' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
@@ -107,7 +68,6 @@ describe('POST /categories', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: 'not-a-color',
         icon: 'shopping-cart',
       });
@@ -119,7 +79,7 @@ describe('POST /categories', () => {
     const response = await request(app)
       .post('/categories')
       .set('Authorization', `Bearer ${token}`)
-      .send({ name: 'Groceries', type: 'expense', color: '#FF5733' });
+      .send({ name: 'Groceries', color: '#FF5733' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
@@ -127,7 +87,6 @@ describe('POST /categories', () => {
   it('rejects unauthenticated requests (401)', async () => {
     const response = await request(app).post('/categories').send({
       name: 'Groceries',
-      type: 'expense',
       color: '#FF5733',
       icon: 'shopping-cart',
     });
@@ -157,7 +116,6 @@ describe('GET /categories', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -166,7 +124,6 @@ describe('GET /categories', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Salary',
-        type: 'income',
         color: '#33FF57',
         icon: 'banknote',
       });
@@ -200,7 +157,6 @@ describe('GET /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -211,7 +167,6 @@ describe('GET /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Groceries');
-    expect(response.body.type).toBe('expense');
     expect(response.body.color).toBe('#FF5733');
     expect(response.body.icon).toBe('shopping-cart');
   });
@@ -253,7 +208,6 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -264,7 +218,6 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Food',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -278,7 +231,6 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -289,13 +241,11 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Salary',
-        type: 'income',
         color: '#33FF57',
         icon: 'banknote',
       });
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Salary');
-    expect(response.body.type).toBe('income');
     expect(response.body.color).toBe('#33FF57');
     expect(response.body.icon).toBe('banknote');
   });
@@ -306,7 +256,6 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -318,7 +267,6 @@ describe('PUT /categories/:id', () => {
       .send({ name: 'Food' });
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Food');
-    expect(response.body.type).toBe('expense');
     expect(response.body.color).toBe('#FF5733');
     expect(response.body.icon).toBe('shopping-cart');
   });
@@ -329,36 +277,10 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Food',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
     expect(response.status).toBe(404);
-  });
-
-  it('rejects invalid type (400)', async () => {
-    const created = await request(app)
-      .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Groceries',
-        type: 'expense',
-        color: '#FF5733',
-        icon: 'shopping-cart',
-      });
-    const categoryId = created.body.id;
-
-    const response = await request(app)
-      .put(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Groceries',
-        type: 'invalid',
-        color: '#FF5733',
-        icon: 'shopping-cart',
-      });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
   it('rejects invalid color format on update (400)', async () => {
@@ -367,7 +289,6 @@ describe('PUT /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -386,7 +307,6 @@ describe('PUT /categories/:id', () => {
       .put('/categories/00000000-0000-0000-0000-000000000000')
       .send({
         name: 'Food',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -408,7 +328,6 @@ describe('DELETE /categories/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -447,7 +366,6 @@ describe('category ownership enforcement', () => {
       .set('Authorization', `Bearer ${userAToken}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -468,7 +386,6 @@ describe('category ownership enforcement', () => {
       .set('Authorization', `Bearer ${userAToken}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -481,7 +398,6 @@ describe('category ownership enforcement', () => {
       .set('Authorization', `Bearer ${userBToken}`)
       .send({
         name: 'Hacked',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });
@@ -495,7 +411,6 @@ describe('category ownership enforcement', () => {
       .set('Authorization', `Bearer ${userAToken}`)
       .send({
         name: 'Groceries',
-        type: 'expense',
         color: '#FF5733',
         icon: 'shopping-cart',
       });

@@ -65,13 +65,12 @@ describe('transaction table schema', () => {
 });
 
 describe('category table schema', () => {
-  it('has id, user_id, name, type, color, icon, created_at, updated_at columns', async () => {
+  it('has id, user_id, name, color, icon, created_at, updated_at columns', async () => {
     const { categories } = await importSchema();
 
     expect(categories.id).toBeDefined();
     expect(categories.userId).toBeDefined();
     expect(categories.name).toBeDefined();
-    expect(categories.type).toBeDefined();
     expect(categories.color).toBeDefined();
     expect(categories.icon).toBeDefined();
     expect(categories.createdAt).toBeDefined();
@@ -84,7 +83,6 @@ describe('category table schema', () => {
     expect(categories.id.notNull).toBe(true);
     expect(categories.userId.notNull).toBe(true);
     expect(categories.name.notNull).toBe(true);
-    expect(categories.type.notNull).toBe(true);
     expect(categories.color.notNull).toBe(true);
     expect(categories.icon.notNull).toBe(true);
     expect(categories.createdAt.notNull).toBe(true);

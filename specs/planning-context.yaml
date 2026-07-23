@@ -1,25 +1,30 @@
-# specs/planning-context.yaml — written by elaborate-spec; consumed by scope-work and slice-tasks
-feature_name: "Budget Recurring Periods"
-problem_statement: "Budgets are one-shot — users manually recreate the same budget every month/week/year and cannot track spending history across periods. Budgets should act as persistent filter/window definitions that automatically apply to all time periods of their type, allowing users to navigate through past periods and see spent vs. limit per category."
+feature_name: 'Wallet Balance Adjustment'
+problem_statement: >
+  Wallets have a computed balance (SUM of transaction amounts) but no way to
+  directly set it to a target number. Users must manually create offsetting
+  transactions, which is slow, error-prone, and lacks a clear audit trail.
 constraints:
-  - "No rollover — each period is independent, unspent amounts do not carry forward"
-  - "Periods are virtual/computed — no separate period instances stored in database"
-  - "Budget defines period type (monthly/weekly/yearly/custom), categories, and limits; periods are computed on-the-fly from transactions"
-  - "Spent = SUM(transactions WHERE category IN budget.categories AND date IN period_window)"
+  - 'Balance Adjustment category must be auto-created per-user on first use'
+  - 'Adjustment amount = target - current (positive = add, negative = subtract)'
+  - 'Existing transaction CRUD handles editing/deleting adjustment transactions'
+  - 'Category type column must be removed first (enabler for clean model)'
 out_of_scope:
-  - "Rollover logic (carry unspent to next period)"
-  - "Edit future period limits independently"
-  - "Savings goals"
-  - "Budget templates / auto-populate rules"
-  - "Multi-currency support"
+  - 'Editing/deleting adjustment transactions (existing CRUD covers it)'
+  - 'Recurring adjustments'
+  - 'Adjustment history beyond normal transaction list'
+  - 'Bulk adjustments across multiple wallets'
 key_decisions:
-  - decision: "Budget = persistent filter/window definition"
-    rationale: "User clarified budget acts as a window/view over transactions, not an envelope with allocated amounts"
-  - decision: "Periods computed from budget.period type, not stored"
-    rationale: "Budget defines period type (monthly/weekly/yearly); UI computes period windows on-the-fly from transactions"
-  - decision: "Keep budget_categories table with limit_amount"
-    rationale: "Budget categories act as filter criteria AND hold spending limits per category"
-  - decision: "Remove startDate/endDate from budgets table, compute from period type"
-    rationale: "Periods are virtual; startDate/endDate become computed properties based on period type and navigation"
-  - decision: "Period navigation in UI (current + past periods)"
-    rationale: "User wants to navigate through past months/weeks and see spent vs limit for each period"
+  - decision: 'Remove `type` column from categories table'
+    rationale: >
+      Income/expense is already determined by transaction amount sign. The
+      category type creates a false coupling — a single "Balance Adjustment"
+      category can serve both directions without a type field.
+  - decision: "Single 'Balance Adjustment' category per user, auto-created"
+    rationale: >
+      Avoids cluttering the category list. One category serves all adjustment
+      transactions regardless of direction.
+  - decision: 'New dedicated endpoint POST /wallets/:id/adjust'
+    rationale: >
+      Keeps adjustment logic separate from generic wallet update. Clear intent,
+      easier to audit, and the endpoint can own the category-creation +
+      transaction-creation atomic flow.

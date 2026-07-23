@@ -1,5 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getWallets, deleteWallet, type WalletData } from '../api/wallets';
+import { Fragment, useEffect, useMemo, useState } from 'react';
+import {
+  getWallets,
+  deleteWallet,
+  type WalletData,
+} from '../api/wallets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -13,6 +17,7 @@ import {
 import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
 import { FormAlert } from '../components/FormAlert';
+import { WalletAdjust } from '../components/WalletAdjust';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
@@ -24,6 +29,7 @@ export function WalletList(): JSX.Element {
   );
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [adjustingId, setAdjustingId] = useState<string | null>(null);
 
   const load = (): void => {
     setLoading(true);
@@ -67,6 +73,7 @@ export function WalletList(): JSX.Element {
     }
   };
 
+
   const formatDate = (iso: string): string => {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString(undefined, {
@@ -109,17 +116,17 @@ export function WalletList(): JSX.Element {
       ) : (
         <div className="rounded-md border">
           <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Description</TableHead>
-              <TableHead className="text-right">Balance</TableHead>
-              <TableHead className="text-right">Currency</TableHead>
-              <TableHead className="text-right">Created</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
+                <TableHead className="text-right">Currency</TableHead>
+                <TableHead className="text-right">Created</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
@@ -131,104 +138,127 @@ export function WalletList(): JSX.Element {
                 </TableRow>
               ) : (
                 filtered.map((wallet) => (
-                  <TableRow
-                    key={wallet.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => {
-                      setSelectedWalletId(wallet.id);
-                      setModalMode('view');
-                    }}
-                  >
-                    <TableCell>
-                      <div
-                        style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '0.5rem',
-                        }}
-                      >
-                        <span
+                  <Fragment key={wallet.id}>
+                    <TableRow
+                      key={wallet.id}
+                      className="cursor-pointer hover:bg-muted/50"
+                      onClick={() => {
+                        setSelectedWalletId(wallet.id);
+                        setModalMode('view');
+                      }}
+                    >
+                      <TableCell>
+                        <div
                           style={{
-                            display: 'inline-block',
-                            width: 12,
-                            height: 12,
-                            borderRadius: '50%',
-                            background: wallet.color,
-                            flexShrink: 0,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.5rem',
                           }}
-                          aria-hidden
+                        >
+                          <span
+                            style={{
+                              display: 'inline-block',
+                              width: 12,
+                              height: 12,
+                              borderRadius: '50%',
+                              background: wallet.color,
+                              flexShrink: 0,
+                            }}
+                            aria-hidden
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setSelectedWalletId(wallet.id);
+                              setModalMode('view');
+                            }}
+                            style={{
+                              background: 'none',
+                              border: 'none',
+                              cursor: 'pointer',
+                              color: 'inherit',
+                              textDecoration: 'underline',
+                              padding: 0,
+                              font: 'inherit',
+                            }}
+                          >
+                            {wallet.name}
+                          </button>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground">
+                        {wallet.description || '—'}
+                      </TableCell>
+                      <TableCell className="text-right font-medium">
+                        <Money
+                          amount={wallet.balance}
+                          currency={wallet.currency}
                         />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setSelectedWalletId(wallet.id);
-                            setModalMode('view');
-                          }}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground">
+                        {wallet.currency}
+                      </TableCell>
+                      <TableCell className="text-right text-muted-foreground text-sm">
+                        {formatDate(wallet.createdAt)}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div
                           style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: 'inherit',
-                            textDecoration: 'underline',
-                            padding: 0,
-                            font: 'inherit',
+                            display: 'flex',
+                            gap: '0.5rem',
+                            justifyContent: 'flex-end',
                           }}
                         >
-                          {wallet.name}
-                        </button>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {wallet.description || '—'}
-                    </TableCell>
-                    <TableCell className="text-right font-medium">
-                      <Money
-                        amount={wallet.balance}
-                        currency={wallet.currency}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedWalletId(wallet.id);
+                              setModalMode('edit');
+                            }}
+                            aria-label={`Edit ${wallet.name}`}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setAdjustingId(
+                                adjustingId === wallet.id ? null : wallet.id,
+                              );
+                            }}
+                            aria-label={`Adjust ${wallet.name}`}
+                          >
+                            Adjust
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleDelete(wallet.id, wallet.name)}
+                            disabled={deleting === wallet.id}
+                            aria-label={`Delete ${wallet.name}`}
+                          >
+                            {deleting === wallet.id ? 'Deleting…' : 'Delete'}
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                    {adjustingId === wallet.id && (
+                      <WalletAdjust
+                        key={`${wallet.id}-adjust`}
+                        walletId={wallet.id}
+                        onSuccess={() => { load(); setAdjustingId(null); }}
+                        onCancel={() => setAdjustingId(null)}
                       />
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {wallet.currency}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground text-sm">
-                      {formatDate(wallet.createdAt)}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div
-                        style={{
-                          display: 'flex',
-                          gap: '0.5rem',
-                          justifyContent: 'flex-end',
-                        }}
-                      >
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedWalletId(wallet.id);
-                            setModalMode('edit');
-                          }}
-                          aria-label={`Edit ${wallet.name}`}
-                        >
-                          Edit
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleDelete(wallet.id, wallet.name)}
-                          disabled={deleting === wallet.id}
-                          aria-label={`Delete ${wallet.name}`}
-                        >
-                          {deleting === wallet.id ? 'Deleting…' : 'Delete'}
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                    )}
+                  </Fragment>
                 ))
               )}
             </TableBody>
           </Table>
-          </div>
+        </div>
       )}
 
       <WalletModal

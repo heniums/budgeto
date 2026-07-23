@@ -54,7 +54,6 @@ describe('OnboardingWizard', () => {
       id: 'c-new',
       userId: 'u1',
       name: 'Food',
-      type: 'expense',
       color: '#ff6b6b',
       icon: 'UtensilsCrossed',
       createdAt: '',

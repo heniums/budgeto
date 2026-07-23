@@ -10,7 +10,6 @@ import { notFoundError } from '../errors';
 
 export const createCategorySchema = z.object({
   name: z.string().min(1).max(128),
-  type: z.enum(['income', 'expense']),
   color: z
     .string()
     .regex(
@@ -22,7 +21,6 @@ export const createCategorySchema = z.object({
 
 export const updateCategorySchema = z.object({
   name: z.string().min(1).max(128).optional(),
-  type: z.enum(['income', 'expense']).optional(),
   color: z
     .string()
     .regex(
@@ -40,7 +38,6 @@ export interface CategoryResponse {
   id: string;
   userId: string;
   name: string;
-  type: string;
   color: string;
   icon: string;
   createdAt: Date;
@@ -54,7 +51,6 @@ export async function create(
   const category = await createCategory({
     userId,
     name: input.name,
-    type: input.type,
     color: input.color,
     icon: input.icon,
   });
@@ -118,7 +114,6 @@ function formatCategoryResponse(category: {
   id: string;
   userId: string;
   name: string;
-  type: string;
   color: string;
   icon: string;
   createdAt: Date;
@@ -128,7 +123,6 @@ function formatCategoryResponse(category: {
     id: category.id,
     userId: category.userId,
     name: category.name,
-    type: category.type,
     color: category.color,
     icon: category.icon,
     createdAt: category.createdAt,

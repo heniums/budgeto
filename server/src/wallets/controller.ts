@@ -3,11 +3,13 @@ import { getUser } from '../auth/middleware';
 import {
   createWalletSchema,
   updateWalletSchema,
+  adjustBalanceSchema,
   create,
   list,
   get,
   update,
   remove,
+  adjustBalance,
 } from './service';
 
 export async function createHandler(
@@ -77,6 +79,21 @@ export async function deleteHandler(
     const user = getUser(req);
     await remove(req.params.id, user.sub);
     res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function adjustHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const input = adjustBalanceSchema.parse(req.body);
+    const user = getUser(req);
+    const wallet = await adjustBalance(req.params.id, user.sub, input);
+    res.status(200).json(wallet);
   } catch (error) {
     next(error);
   }

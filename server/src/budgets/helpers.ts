@@ -31,15 +31,16 @@ async function buildCategoryResponse(
           id: categoryRow.id,
           userId: categoryRow.userId,
           name: categoryRow.name,
-          type: categoryRow.type,
           color: categoryRow.color,
           icon: categoryRow.icon,
-          createdAt: categoryRow.createdAt instanceof Date
-            ? categoryRow.createdAt.toISOString()
-            : String(categoryRow.createdAt),
-          updatedAt: categoryRow.updatedAt instanceof Date
-            ? categoryRow.updatedAt.toISOString()
-            : String(categoryRow.updatedAt),
+          createdAt:
+            categoryRow.createdAt instanceof Date
+              ? categoryRow.createdAt.toISOString()
+              : String(categoryRow.createdAt),
+          updatedAt:
+            categoryRow.updatedAt instanceof Date
+              ? categoryRow.updatedAt.toISOString()
+              : String(categoryRow.updatedAt),
         }
       : null,
     limitAmount: category.limitAmount,
@@ -69,9 +70,7 @@ async function buildBudgetResponseData(
     referenceDate,
   );
   const categoryResponses = await Promise.all(
-    categories.map((cat) =>
-      buildCategoryResponse(userId, periodWindow, cat),
-    ),
+    categories.map((cat) => buildCategoryResponse(userId, periodWindow, cat)),
   );
   const totalSpent = categoryResponses
     .reduce((acc, c) => acc + Number(c.spent), 0)
@@ -118,7 +117,6 @@ export interface BudgetCategoryResponse {
     id: string;
     userId: string;
     name: string;
-    type: string;
     color: string;
     icon: string;
     createdAt: string;

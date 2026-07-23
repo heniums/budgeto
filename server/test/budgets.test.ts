@@ -27,14 +27,12 @@ async function createTestUser(
 async function createCategory(
   token: string,
   name: string,
-  type: 'income' | 'expense' = 'expense',
 ): Promise<{ id: string }> {
   const response = await request(app)
     .post('/categories')
     .set('Authorization', `Bearer ${token}`)
     .send({
       name,
-      type,
       color: '#FF5733',
       icon: 'shopping-cart',
     });
@@ -153,19 +151,19 @@ describe('POST /budgets', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
-  it('rejects income categories (400)', async () => {
-    const salary = await createCategory(token, 'Salary', 'income');
+  it('accepts any category in budget (201)', async () => {
+    const salary = await createCategory(token, 'Salary');
     const response = await request(app)
       .post('/budgets')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        name: 'Bad Budget',
+        name: 'Budget With Income Category',
         period: 'monthly',
         totalAmount: '100.00',
         categories: [{ categoryId: salary.id, limitAmount: '50.00' }],
       });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe('VALIDATION_ERROR');
+    expect(response.status).toBe(201);
+    expect(response.body.name).toBe('Budget With Income Category');
   });
 
   it('rejects invalid category (404)', async () => {
@@ -257,7 +255,9 @@ describe('GET /budgets', () => {
     expect(response.body.budgets[0].period.window.startDate).toBe(
       currentMonthStart,
     );
-    expect(response.body.budgets[0].period.window.endDate).toBe(currentMonthEnd);
+    expect(response.body.budgets[0].period.window.endDate).toBe(
+      currentMonthEnd,
+    );
   });
 
   it('ignores a transaction outside the current period (200)', async () => {

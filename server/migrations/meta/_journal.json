@@ -71,6 +71,13 @@
       "when": 1784708891738,
       "tag": "0009_foamy_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1784722239151,
+      "tag": "0010_normal_liz_osborn",
+      "breakpoints": true
     }
   ]
 }

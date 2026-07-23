@@ -32,7 +32,7 @@ async function createCategory(token: string, name = 'Food'): Promise<string> {
   const response = await request(app)
     .post('/categories')
     .set('Authorization', `Bearer ${token}`)
-    .send({ name, type: 'expense', color: '#ff0000', icon: 'Tag' });
+    .send({ name, color: '#ff0000', icon: 'Tag' });
   return response.body.id;
 }
 

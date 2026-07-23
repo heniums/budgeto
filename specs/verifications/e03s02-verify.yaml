@@ -1,0 +1,45 @@
+story_id: e03s02
+verified_at: '2026-07-22T19:45:00Z'
+verifier: verify-work
+phases:
+  smoke:
+    passed: true
+    note: 'GET /health → {"status":"ok"}'
+  build:
+    passed: true
+  typecheck:
+    passed: true
+  lint:
+    passed: true
+  tests:
+    passed: true
+    adjust_tests: '6 tests pass'
+  terminal_verdict:
+    command: 'npm test -- --project server -- -t adjust'
+    exit_code: 0
+    captured_at: '2026-07-22T19:33:00Z'
+    note: 'Single run — all 6 adjust tests pass'
+  manual:
+    steps:
+      - step: 'Adjust wallet balance 0→100'
+        expected: 'Balance=100, category auto-created'
+        actual: 'Balance=100, category created with color #6b7280'
+        passed: true
+      - step: 'Adjust wallet balance 100→50'
+        expected: 'Balance=50, category reused'
+        actual: 'Balance=50, one Balance Adjustment category'
+        passed: true
+      - step: 'Adjust wallet balance to -25'
+        expected: 'Balance=-25'
+        actual: 'Balance=-25'
+        passed: true
+      - step: 'Transaction descriptions'
+        expected: "'Balance adjusted from X to Y'"
+        actual: 'Correct descriptions on all transactions'
+        passed: true
+      - step: 'Client serves with Adjust button'
+        expected: 'Wallets page renders with Adjust button'
+        actual: 'Client serves on :5173, WalletList has Adjust button'
+        passed: true
+  gaps:
+    closed: true
