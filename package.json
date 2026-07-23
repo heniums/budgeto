@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Budgeto - personal finance & budgeting PWA with TypeScript, React, Express and PostgreSQL.",
   "scripts": {
-    "dev": "concurrently -n db,server,client -c blue,green,magenta \"npm:db\" \"npm:dev:server\" \"npm:dev:client\"",
+    "dev": "tsx scripts/dev.mts",
     "db": "node scripts/start-db.mts",
     "db:migrate": "npx drizzle-kit migrate",
     "dev:server": "tsx watch server/src/index.ts",
