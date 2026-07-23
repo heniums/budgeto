@@ -78,9 +78,20 @@ export function WalletList(): JSX.Element {
 
   const handleAdjust = async (walletId: string): Promise<void> => {
     setAdjustError(null);
+    const target = adjustTarget.trim();
+
+    if (!target) {
+      setAdjustError('Target balance is required.');
+      return;
+    }
+    if (!Number.isFinite(Number(target))) {
+      setAdjustError('Target balance must be a valid number.');
+      return;
+    }
+
     setAdjusting(true);
     try {
-      await adjustBalance(walletId, { targetBalance: adjustTarget });
+      await adjustBalance(walletId, { targetBalance: target });
       setAdjustingId(null);
       setAdjustTarget('');
       load();
@@ -296,7 +307,7 @@ export function WalletList(): JSX.Element {
                             <Button
                               size="sm"
                               onClick={() => handleAdjust(wallet.id)}
-                              disabled={adjusting}
+                              disabled={adjusting || !adjustTarget.trim()}
                             >
                               {adjusting ? 'Adjusting…' : 'Apply'}
                             </Button>

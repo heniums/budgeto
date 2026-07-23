@@ -33,6 +33,7 @@ import {
   getWallet,
   updateWallet,
   deleteWallet,
+  adjustBalance,
 } from './wallets';
 import { ApiError } from './client';
 
@@ -95,6 +96,40 @@ describe('wallets API client', () => {
     mockDelete.mockResolvedValue({ data: undefined });
     await expect(deleteWallet('w1')).resolves.toBeUndefined();
     expect(mockDelete).toHaveBeenCalledWith('/wallets/w1');
+  });
+
+  it('adjustBalance sends POST to /wallets/:id/adjust and returns wallet', async () => {
+    mockPost.mockResolvedValue({
+      data: {
+        id: 'w1',
+        name: 'Cash',
+        description: '',
+        color: '#1f8a4c',
+        currency: 'USD',
+        balance: '200.00',
+        createdAt: '2024-01-01',
+        updatedAt: '2024-01-01',
+      },
+    });
+    const wallet = await adjustBalance('w1', { targetBalance: '200.00' });
+    expect(mockPost).toHaveBeenCalledWith('/wallets/w1/adjust', {
+      targetBalance: '200.00',
+    });
+    expect(wallet.balance).toBe('200.00');
+  });
+
+  it('throws ApiError on adjustBalance errors', async () => {
+    const apiError = new ApiError('Bad request', 400, 'VALIDATION_ERROR');
+    mockPost.mockRejectedValue(apiError);
+    await expect(
+      adjustBalance('w1', { targetBalance: 'bad' }),
+    ).rejects.toBeInstanceOf(ApiError);
+    await expect(
+      adjustBalance('w1', { targetBalance: 'bad' }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: 'VALIDATION_ERROR',
+    });
   });
 
   it('throws ApiError on errors', async () => {

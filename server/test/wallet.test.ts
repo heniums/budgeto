@@ -446,6 +446,36 @@ describe('POST /wallets/:id/adjust', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
+  it('rejects Infinity targetBalance (400)', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Checking' });
+
+    const response = await request(app)
+      .post(`/wallets/${wallet.body.id}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: 'Infinity' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects -Infinity targetBalance (400)', async () => {
+    const wallet = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Checking' });
+
+    const response = await request(app)
+      .post(`/wallets/${wallet.body.id}/adjust`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: '-Infinity' });
+
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('returns 404 for a non-existent wallet', async () => {
     const response = await request(app)
       .post('/wallets/00000000-0000-0000-0000-000000000000/adjust')

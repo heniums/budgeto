@@ -110,7 +110,6 @@ export async function adjustBalanceAtomic(
   walletId: string,
   targetBalance: string,
   categoryId: string,
-  description: string,
 ): Promise<void> {
   await db.transaction(async (tx) => {
     // Lock the wallet row to prevent concurrent balance reads
@@ -136,6 +135,8 @@ export async function adjustBalanceAtomic(
     const delta = (
       Math.round((Number(targetBalance) - Number(current)) * 100) / 100
     ).toString();
+
+    const description = `Balance adjusted from ${current} to ${targetBalance}`;
 
     await tx.insert(transactions).values({
       walletId,

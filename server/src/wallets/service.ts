@@ -201,8 +201,8 @@ export const adjustBalanceSchema = z.object({
   targetBalance: z
     .string()
     .min(1, 'targetBalance is required')
-    .refine((val) => !isNaN(Number(val)), {
-      message: 'targetBalance must be a valid number',
+    .refine((val) => Number.isFinite(Number(val)), {
+      message: 'targetBalance must be a valid finite number',
     }),
 });
 
@@ -343,9 +343,6 @@ export async function adjustBalance(
     });
   }
 
-  // Get current balance for the description (read-only, informational)
-  const withBalance = await getWalletWithBalance(id);
-  const currentBalance = withBalance?.balance ?? '0';
 
   // Atomically lock, compute delta, and insert transaction
   try {
@@ -353,7 +350,6 @@ export async function adjustBalance(
       id,
       target,
       adjustmentCategory.id,
-      `Balance adjusted from ${currentBalance} to ${target}`,
     );
   } catch (err: unknown) {
     if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
