@@ -199,3 +199,47 @@ export function detectLocaleCurrency(): CurrencyCode {
   }
   return 'USD';
 }
+
+/** A single currency entry used by `filterCurrencies`. */
+export interface CurrencyEntry {
+  code: CurrencyCode;
+  name: string;
+}
+
+/**
+ * Filter and rank currencies by a search query.
+ * Matches against both code and name, case-insensitively.
+ * Ranking priority: exact code match > code prefix > name prefix > name includes.
+ * Returns at most 50 results; an empty query returns the first 50.
+ */
+export function filterCurrencies(query: string): CurrencyEntry[] {
+  const q = query.trim().toLowerCase();
+  if (q.length === 0) return CURRENCIES.slice(0, 50);
+
+  const results: { entry: CurrencyEntry; priority: number }[] = [];
+  for (const c of CURRENCIES) {
+    const code = c.code.toLowerCase();
+    const name = c.name.toLowerCase();
+    let priority = 0;
+    if (code === q) {
+      priority = 4;
+    } else if (code.startsWith(q)) {
+      priority = 3;
+    } else if (name.startsWith(q)) {
+      priority = 2;
+    } else if (name.includes(q)) {
+      priority = 1;
+    }
+    if (priority > 0) {
+      results.push({ entry: c, priority });
+    }
+  }
+
+  results.sort((a, b) => {
+    const pd = b.priority - a.priority;
+    if (pd !== 0) return pd;
+    return a.entry.code.localeCompare(b.entry.code);
+  });
+
+  return results.slice(0, 50).map((r) => r.entry);
+}

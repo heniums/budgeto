@@ -4,6 +4,26 @@
 /** Default wallet/category accent colour (Budgeto brand green). */
 export const DEFAULT_COLOR = '#1f8a4c';
 
+/** Curated preset colour palette for the colour picker. */
+export const PRESET_COLORS = [
+  '#1f8a4c',
+  '#ef4444',
+  '#f97316',
+  '#eab308',
+  '#22c55e',
+  '#14b8a6',
+  '#3b82f6',
+  '#6366f1',
+  '#8b5cf6',
+  '#a855f7',
+  '#ec4899',
+  '#f43f5e',
+  '#6b7280',
+  '#09090b',
+  '#ffffff',
+  '#000000',
+] as const;
+
 /** Default icon for newly created categories. */
 export const DEFAULT_ICON_NAME = 'Tag';
 

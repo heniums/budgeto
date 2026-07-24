@@ -315,7 +315,7 @@ describe('TransactionForm — edit mode', () => {
     cleanup();
   });
 
-  it('pre-fills fields from initialValues in edit mode', () => {
+  it('pre-fills fields from initialValues in edit mode', async () => {
     render(
       <MemoryRouter>
         <TransactionForm
@@ -335,15 +335,18 @@ describe('TransactionForm — edit mode', () => {
       </MemoryRouter>,
     );
 
+    const user = userEvent.setup();
+
     // Wallet chip should be selected
     const walletChip = screen
       .getByText('Cash')
       .closest('[data-testid="wallet-chip"]');
     expect(walletChip).toHaveAttribute('data-selected', 'true');
 
-    // Amount and description still use Input components
+    // Amount input shows formatted value on blur; focus to see raw
     const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
     const descInput = screen.getByLabelText('Description') as HTMLInputElement;
+    await user.click(amountInput);
     expect(amountInput.value).toBe('42.50');
     expect(descInput.value).toBe('Groceries');
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -30,6 +30,7 @@ import {
   LABEL,
   ERR,
 } from '../lib/constants';
+import { ColorInput } from './ColorInput';
 
 const categorySchema = z.object({
   name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
@@ -59,6 +60,7 @@ export function CategoryModal({
     register,
     handleSubmit,
     reset,
+    control,
     watch,
     setValue,
     formState: { errors, isSubmitting, isDirty },
@@ -196,7 +198,18 @@ export function CategoryModal({
 
             <div className="space-y-2">
               <Label htmlFor="cat-modal-color">{LABEL.COLOR}</Label>
-              <Input id="cat-modal-color" type="color" {...register('color')} />
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <ColorInput
+                    id="cat-modal-color"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
             </div>
 
             <div className="space-y-2">

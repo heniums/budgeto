@@ -1,6 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { MockInstance } from 'vitest';
-import { detectLocaleCurrency, formatMoney, isCurrencyCode } from './currencies';
+import {
+  detectLocaleCurrency,
+  filterCurrencies,
+  formatMoney,
+  isCurrencyCode,
+} from './currencies';
 
 describe('detectLocaleCurrency', () => {
   let languageSpy: ReturnType<typeof vi.spyOn>;
@@ -98,5 +103,50 @@ describe('formatMoney', () => {
 
   it('returns em dash for non-numeric amount', () => {
     expect(formatMoney('not-a-number', 'USD')).toBe('—');
+  });
+});
+
+describe('filterCurrencies', () => {
+  it('returns the first 50 currencies for an empty query', () => {
+    const result = filterCurrencies('');
+    expect(result).toHaveLength(50);
+  });
+
+  it('returns the first 50 currencies for a whitespace-only query', () => {
+    const result = filterCurrencies('   ');
+    expect(result).toHaveLength(50);
+  });
+
+  it('sorts by exact code match first', () => {
+    const result = filterCurrencies('usd');
+    expect(result[0].code).toBe('USD');
+  });
+
+  it('sorts by code prefix before name match', () => {
+    const result = filterCurrencies('eu');
+    // EUR starts with "eu" (code prefix) and should rank higher
+    expect(result[0].code).toBe('EUR');
+  });
+
+  it('matches by name (case-insensitive)', () => {
+    const result = filterCurrencies('euro');
+    expect(result[0].code).toBe('EUR');
+  });
+
+  it('matches by code prefix (case-insensitive)', () => {
+    const result = filterCurrencies('gb');
+    expect(result[0].code).toBe('GBP');
+  });
+
+  it('is case-insensitive for code matching', () => {
+    const result = filterCurrencies('UsD');
+    expect(result[0].code).toBe('USD');
+  });
+
+  it('limits results to 50', () => {
+    // Most queries should naturally return fewer, but we test with
+    // a very generic query that would match many currencies
+    const result = filterCurrencies('a');
+    expect(result.length).toBeLessThanOrEqual(50);
   });
 });

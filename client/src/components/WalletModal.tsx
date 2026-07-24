@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,9 @@ import {
   LABEL,
   ERR,
 } from '../lib/constants';
-import { CURRENCIES, detectLocaleCurrency } from '../lib/currencies';
+import { detectLocaleCurrency } from '../lib/currencies';
+import { ColorInput } from './ColorInput';
+import { CurrencyInput } from './CurrencyInput';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
@@ -59,6 +61,7 @@ export function WalletModal({
     register,
     handleSubmit,
     reset,
+    control,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<WalletFormValues>({
     resolver: zodResolver(walletSchema),
@@ -204,26 +207,34 @@ export function WalletModal({
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-color">{LABEL.COLOR}</Label>
-              <Input
-                id="wallet-modal-color"
-                type="color"
-                {...register('color')}
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <ColorInput
+                    id="wallet-modal-color"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-currency">Currency</Label>
-              <select
-                id="wallet-modal-currency"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                {...register('currency')}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.name}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <CurrencyInput
+                    id="wallet-modal-currency"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
             </div>
 
             <div

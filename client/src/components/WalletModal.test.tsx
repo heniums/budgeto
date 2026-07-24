@@ -45,7 +45,9 @@ describe('WalletModal — create mode (no walletId)', () => {
       <WalletModal open={true} onOpenChange={vi.fn()} onSuccess={vi.fn()} />,
     );
 
-    expect(screen.getByLabelText('Currency')).toHaveValue('USD');
+    expect(screen.getByLabelText('Currency')).toHaveTextContent(
+      'USD — US Dollar',
+    );
   });
 
   it('calls createWallet and onSuccess on submit', async () => {
@@ -165,7 +167,9 @@ describe('WalletModal — edit mode (walletId provided)', () => {
     );
 
     await screen.findByDisplayValue('Cash');
-    expect(screen.getByLabelText('Currency')).toHaveValue('EUR');
+    expect(screen.getByLabelText('Currency')).toHaveTextContent(
+      'EUR — Euro',
+    );
   });
 
   it('renders Save Changes button disabled when form is not dirty', async () => {

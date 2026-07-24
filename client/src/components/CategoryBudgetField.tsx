@@ -1,6 +1,6 @@
 import type { CategoryData } from '../api/categories';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { MoneyInput } from './MoneyInput';
 import { FormError } from './FormError';
 
 export interface CategoryBudgetFieldError {
@@ -54,13 +54,10 @@ export function CategoryBudgetField({
         <FormError message={error?.categoryId?.message} />
       </div>
       <div className="w-32 space-y-1">
-        <Input
+        <MoneyInput
           aria-label={`Limit ${index + 1}`}
-          type="text"
-          inputMode="decimal"
-          placeholder="Limit"
           value={limitAmount}
-          onChange={(e) => onLimitChange(e.target.value)}
+          onChange={onLimitChange}
         />
         <FormError message={error?.limitAmount?.message} />
       </div>

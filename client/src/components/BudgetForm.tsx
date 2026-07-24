@@ -1,5 +1,5 @@
 import { useEffect, useMemo } from 'react';
-import { useForm, useFieldArray } from 'react-hook-form';
+import { useForm, useFieldArray, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
@@ -15,6 +15,8 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { MoneyInput } from './MoneyInput';
+import { ColorInput } from './ColorInput';
 import {
   DialogContent,
   DialogHeader,
@@ -270,10 +272,17 @@ export function BudgetForm({
 
         <div className="space-y-2">
           <Label htmlFor="budget-color">Color</Label>
-          <Input
-            id="budget-color"
-            type="color"
-            {...register('color')}
+          <Controller
+            name="color"
+            control={control}
+            render={({ field }) => (
+              <ColorInput
+                id="budget-color"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
           <FormError message={errors.color?.message} />
         </div>
@@ -318,12 +327,18 @@ export function BudgetForm({
 
         <div className="space-y-2">
           <Label htmlFor="budget-total">Total amount</Label>
-          <Input
-            id="budget-total"
-            type="text"
-            inputMode="decimal"
-            placeholder="1000.00"
-            {...register('totalAmount')}
+          <Controller
+            name="totalAmount"
+            control={control}
+            render={({ field }) => (
+              <MoneyInput
+                id="budget-total"
+                placeholder="1000.00"
+                value={field.value}
+                onChange={field.onChange}
+                onBlur={field.onBlur}
+              />
+            )}
           />
           <FormError message={errors.totalAmount?.message} />
         </div>
