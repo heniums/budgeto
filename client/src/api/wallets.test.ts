@@ -34,6 +34,8 @@ import {
   updateWallet,
   deleteWallet,
   adjustBalance,
+  createTransaction,
+  transferFunds,
 } from './wallets';
 import { ApiError } from './client';
 
@@ -139,6 +141,99 @@ describe('wallets API client', () => {
     await expect(getWallet('bad-id')).rejects.toMatchObject({
       status: 404,
       code: 'NOT_FOUND',
+    });
+  });
+
+  it('createTransaction sends POST to /wallets/:id/transactions and returns transaction', async () => {
+    const transaction = {
+      id: 't1',
+      walletId: 'w1',
+      amount: '-50.00',
+      description: 'Groceries',
+      categoryId: 'c1',
+      date: '2024-01-15',
+      createdAt: '2024-01-15T10:00:00Z',
+    };
+    mockPost.mockResolvedValue({ data: transaction });
+    const result = await createTransaction('w1', {
+      amount: '-50.00',
+      description: 'Groceries',
+      categoryId: 'c1',
+      date: '2024-01-15',
+    });
+    expect(mockPost).toHaveBeenCalledWith('/wallets/w1/transactions', {
+      amount: '-50.00',
+      description: 'Groceries',
+      categoryId: 'c1',
+      date: '2024-01-15',
+    });
+    expect(result).toEqual(transaction);
+    expect(result.id).toBe('t1');
+    expect(result.walletId).toBe('w1');
+  });
+
+  it('transferFunds sends POST to /wallets/transfer and returns both transactions', async () => {
+    const sourceTransaction = {
+      id: 't1',
+      walletId: 'w1',
+      amount: '-100.00',
+      description: 'Transfer',
+      categoryId: null,
+      date: '2024-01-15',
+      createdAt: '2024-01-15T10:00:00Z',
+    };
+    const targetTransaction = {
+      id: 't2',
+      walletId: 'w2',
+      amount: '100.00',
+      description: 'Transfer',
+      categoryId: null,
+      date: '2024-01-15',
+      createdAt: '2024-01-15T10:00:00Z',
+    };
+    mockPost.mockResolvedValue({
+      data: { sourceTransaction, targetTransaction },
+    });
+    const result = await transferFunds({
+      sourceId: 'w1',
+      targetId: 'w2',
+      amount: '100.00',
+      description: 'Transfer',
+    });
+    expect(mockPost).toHaveBeenCalledWith('/wallets/transfer', {
+      sourceId: 'w1',
+      targetId: 'w2',
+      amount: '100.00',
+      description: 'Transfer',
+    });
+    expect(result).toEqual({ sourceTransaction, targetTransaction });
+    expect(result.sourceTransaction.walletId).toBe('w1');
+    expect(result.targetTransaction.walletId).toBe('w2');
+  });
+
+  it('throws ApiError on transferFunds errors', async () => {
+    const apiError = new ApiError(
+      'Insufficient funds',
+      400,
+      'INSUFFICIENT_FUNDS',
+    );
+    mockPost.mockRejectedValue(apiError);
+    await expect(
+      transferFunds({
+        sourceId: 'w1',
+        targetId: 'w2',
+        amount: '1000.00',
+      }),
+    ).rejects.toBeInstanceOf(ApiError);
+    await expect(
+      transferFunds({
+        sourceId: 'w1',
+        targetId: 'w2',
+        amount: '1000.00',
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      code: 'INSUFFICIENT_FUNDS',
     });
   });
 });

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup, waitFor } from '@testing-library/react';
+import { render, screen, cleanup, waitFor, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { Budgets } from './Budgets';
@@ -167,10 +167,16 @@ describe('Budgets page', () => {
     vi.mocked(getBudgets).mockResolvedValue({ budgets: mockBudgets });
 
     const nextButton = screen.getByTestId('period-nav-next');
-    nextButton.click();
+    await act(async () => {
+      nextButton.click();
+      // Wait for async state updates to settle
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
 
     await waitFor(() => {
       expect(getBudgets).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}$/));
     });
+    // Wait for the component to finish loading and show content again
+    await screen.findByText('Monthly Spending');
   });
 });

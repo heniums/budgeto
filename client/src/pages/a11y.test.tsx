@@ -45,8 +45,9 @@ describe('form accessibility', () => {
     cleanup();
   });
 
-  it('associates every input with a visible label', () => {
+  it('associates every input with a visible label', async () => {
     renderAt('/signup', <SignUp />);
+    await screen.findByLabelText(/full name/i);
     const all = Array.from(document.querySelectorAll('input'));
     expect(all.length).toBeGreaterThan(0);
     for (const input of all) {
@@ -79,10 +80,9 @@ describe('form accessibility', () => {
     expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
     expect(vi.mocked(login)).toHaveBeenCalled();
   });
-
-  it('has a first focusable field on the sign-in page', () => {
+  it('has a first focusable field on the sign-in page', async () => {
     renderAt('/login', <SignIn />);
-    const emailInput = screen.getByLabelText(/email address/i);
+    const emailInput = await screen.findByLabelText(/email address/i);
     expect(emailInput).toHaveFocus();
   });
 });
