@@ -4,22 +4,27 @@ import { formatMoney } from '@/lib/currencies';
 import { cn } from '@/lib/utils';
 
 export interface MoneyInputProps
-  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
+  extends Omit<
+    React.InputHTMLAttributes<HTMLInputElement>,
+    'onChange' | 'value'
+  > {
   onChange: (value: string) => void;
   value?: string;
-  currency?: string;
+  currency: string;
 }
 
 export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
-  ({ className, currency = 'USD', value, onChange, onBlur, placeholder, ...props }, ref) => {
+  ({ className, currency, value, onChange, onBlur, placeholder, ...props }, ref) => {
     const [isFocused, setIsFocused] = React.useState(false);
+
+    const isDisabled = !currency || props.disabled;
 
     const displayValue = React.useMemo(() => {
       if (isFocused) return value;
       const n = Number(value);
       if (!Number.isFinite(n) || value === '' || value === undefined)
         return value;
-      return formatMoney(value, currency ?? 'USD');
+      return formatMoney(value, currency);
     }, [value, isFocused, currency]);
 
     return (
@@ -36,6 +41,7 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
             onBlur?.(e);
           }}
           placeholder={placeholder ?? '0.00'}
+          disabled={isDisabled}
           {...props}
         />
       </div>

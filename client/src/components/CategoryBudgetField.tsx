@@ -14,18 +14,19 @@ interface CategoryBudgetFieldProps {
   limitAmount: string;
   categories: CategoryData[];
   usedCategoryIds: Set<string>;
+  currency: string;
   onCategoryChange: (value: string) => void;
   onLimitChange: (value: string) => void;
   onRemove: () => void;
   error?: CategoryBudgetFieldError;
 }
-
 export function CategoryBudgetField({
   index,
   categoryId,
   limitAmount,
   categories,
   usedCategoryIds,
+  currency,
   onCategoryChange,
   onLimitChange,
   onRemove,
@@ -58,6 +59,7 @@ export function CategoryBudgetField({
           aria-label={`Limit ${index + 1}`}
           value={limitAmount}
           onChange={onLimitChange}
+          currency={currency}
         />
         <FormError message={error?.limitAmount?.message} />
       </div>

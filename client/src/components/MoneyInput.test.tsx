@@ -5,19 +5,19 @@ import { MoneyInput } from './MoneyInput';
 
 describe('MoneyInput', () => {
   it('renders an input with type text and decimal inputMode', () => {
-    render(<MoneyInput value="" onChange={vi.fn()} />);
+    render(<MoneyInput value="" onChange={vi.fn()} currency="USD" />);
     const input = screen.getByRole('textbox');
     expect(input).toHaveAttribute('type', 'text');
     expect(input).toHaveAttribute('inputMode', 'decimal');
   });
 
   it('displays formatted value when not focused', () => {
-    render(<MoneyInput value="42.50" onChange={vi.fn()} />);
+    render(<MoneyInput value="42.50" onChange={vi.fn()} currency="USD" />);
     expect(screen.getByRole('textbox')).toHaveValue('$42.50');
   });
 
   it('displays raw value when focused', async () => {
-    render(<MoneyInput value="42.50" onChange={vi.fn()} />);
+    render(<MoneyInput value="42.50" onChange={vi.fn()} currency="USD" />);
     const input = screen.getByRole('textbox');
     const user = userEvent.setup();
     await user.click(input);
@@ -31,7 +31,7 @@ describe('MoneyInput', () => {
 
   it('calls onChange with the raw typed value', async () => {
     const onChange = vi.fn();
-    render(<MoneyInput value="" onChange={onChange} />);
+    render(<MoneyInput value="" onChange={onChange} currency="USD" />);
     const user = userEvent.setup();
     const input = screen.getByRole('textbox');
     await user.click(input);
@@ -40,7 +40,7 @@ describe('MoneyInput', () => {
   });
 
   it('uses the default placeholder when none is provided', () => {
-    render(<MoneyInput value="" onChange={vi.fn()} />);
+    render(<MoneyInput value="" onChange={vi.fn()} currency="USD" />);
     expect(screen.getByPlaceholderText('0.00')).toBeInTheDocument();
   });
 
@@ -50,6 +50,7 @@ describe('MoneyInput', () => {
         value=""
         onChange={vi.fn()}
         placeholder="Enter amount"
+        currency="USD"
       />,
     );
     expect(screen.getByPlaceholderText('Enter amount')).toBeInTheDocument();
@@ -63,6 +64,7 @@ describe('MoneyInput', () => {
         aria-label="Initial Balance"
         data-testid="money"
         autoComplete="off"
+        currency="USD"
       />,
     );
     const input = screen.getByRole('textbox', { name: 'Initial Balance' });

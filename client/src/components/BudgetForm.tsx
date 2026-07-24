@@ -337,6 +337,7 @@ export function BudgetForm({
                 value={field.value}
                 onChange={field.onChange}
                 onBlur={field.onBlur}
+                currency="USD"
               />
             )}
           />
@@ -363,6 +364,7 @@ export function BudgetForm({
               limitAmount={watch(`categories.${index}.limitAmount`) ?? ''}
               categories={categories}
               usedCategoryIds={usedCategoryIds}
+              currency="USD"
               onCategoryChange={(value) =>
                 setValue(`categories.${index}.categoryId`, value, {
                   shouldDirty: true,
