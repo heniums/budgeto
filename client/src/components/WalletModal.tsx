@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
@@ -28,13 +28,25 @@ import {
   LABEL,
   ERR,
 } from '../lib/constants';
-import { CURRENCIES, detectLocaleCurrency } from '../lib/currencies';
+import { detectLocaleCurrency } from '../lib/currencies';
+import { MoneyInput } from './MoneyInput';
+import { ColorInput } from './ColorInput';
+import { CurrencyInput } from './CurrencyInput';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(MAX_NAME_LENGTH),
   description: z.string().max(MAX_DESCRIPTION_LENGTH),
   color: z.string(),
   currency: z.string(),
+  balance: z
+    .string()
+    .refine(
+      (val) => {
+        const trimmed = val.trim();
+        return trimmed === '' || Number.isFinite(Number(trimmed));
+      },
+      'Balance must be a valid number.',
+    ),
 });
 
 type WalletFormValues = z.infer<typeof walletSchema>;
@@ -59,6 +71,8 @@ export function WalletModal({
     register,
     handleSubmit,
     reset,
+    control,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<WalletFormValues>({
     resolver: zodResolver(walletSchema),
@@ -67,6 +81,7 @@ export function WalletModal({
       description: '',
       color: DEFAULT_COLOR,
       currency: detectLocaleCurrency(),
+      balance: '0',
     },
   });
 
@@ -82,6 +97,7 @@ export function WalletModal({
         description: '',
         color: DEFAULT_COLOR,
         currency: detectLocaleCurrency(),
+        balance: '0',
       });
       setFormError(null);
       return;
@@ -99,6 +115,7 @@ export function WalletModal({
           description: w.description,
           color: w.color,
           currency: w.currency,
+          balance: w.balance,
         });
         setLoading(false);
       })
@@ -120,6 +137,7 @@ export function WalletModal({
         description: values.description.trim(),
         color: values.color,
         currency: values.currency,
+        balance: values.balance.trim(),
       });
       onSuccess?.(w);
     } catch (err) {
@@ -138,6 +156,7 @@ export function WalletModal({
         description: values.description.trim(),
         color: values.color,
         currency: values.currency,
+        balance: values.balance.trim(),
       });
       onSuccess?.();
     } catch (err) {
@@ -204,26 +223,54 @@ export function WalletModal({
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-color">{LABEL.COLOR}</Label>
-              <Input
-                id="wallet-modal-color"
-                type="color"
-                {...register('color')}
+              <Controller
+                name="color"
+                control={control}
+                render={({ field }) => (
+                  <ColorInput
+                    id="wallet-modal-color"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
               />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="wallet-modal-currency">Currency</Label>
-              <select
-                id="wallet-modal-currency"
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                {...register('currency')}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.name}
-                  </option>
-                ))}
-              </select>
+              <Controller
+                name="currency"
+                control={control}
+                render={({ field }) => (
+                  <CurrencyInput
+                    id="wallet-modal-currency"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                  />
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="wallet-modal-balance">
+                {isCreate ? 'Initial Balance' : 'Balance'}
+              </Label>
+              <Controller
+                name="balance"
+                control={control}
+                render={({ field }) => (
+                  <MoneyInput
+                    id="wallet-modal-balance"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    currency={watch('currency')}
+                  />
+                )}
+              />
+              <FormError message={errors.balance?.message} />
             </div>
 
             <div

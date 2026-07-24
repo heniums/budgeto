@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { transferFunds, type WalletData } from '../api/wallets';
@@ -9,6 +9,7 @@ import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
+import { MoneyInput } from './MoneyInput';
 
 const transferSchema = z
   .object({
@@ -43,12 +44,22 @@ export function TransferForm({
   const {
     register,
     handleSubmit,
+    watch,
+    control,
     formState: { errors, isSubmitting },
     reset,
   } = useForm<TransferValues>({
     resolver: zodResolver(transferSchema),
-    defaultValues: { sourceId: '', targetId: '', amount: '', description: '' },
+    defaultValues: {
+      sourceId: '',
+      targetId: '',
+      amount: '',
+      description: '',
+    },
   });
+
+  const sourceWalletId = watch('sourceId');
+
 
   const onSubmit = async (values: TransferValues): Promise<void> => {
     setFormError(null);
@@ -110,12 +121,22 @@ export function TransferForm({
 
       <div className="space-y-2">
         <Label htmlFor="transfer-amount">Amount</Label>
-        <Input
-          id="transfer-amount"
-          type="text"
-          inputMode="decimal"
-          placeholder="50.00"
-          {...register('amount')}
+        <Controller
+          name="amount"
+          control={control}
+          render={({ field }) => (
+            <MoneyInput
+              id="transfer-amount"
+              currency={
+                wallets.find((w) => w.id === sourceWalletId)?.currency ??
+                'USD'
+              }
+              placeholder="50.00"
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+            />
+          )}
         />
         <FormError message={errors.amount?.message} />
       </div>

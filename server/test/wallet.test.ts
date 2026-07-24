@@ -99,6 +99,51 @@ describe('POST /wallets', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
+  it('creates a wallet with initial balance (201)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Cash', balance: '250.00' });
+    expect(response.status).toBe(201);
+    expect(response.body.name).toBe('Cash');
+    expect(response.body.balance).toBe('250.00');
+  });
+
+  it('rejects invalid balance on create (400)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Bad', balance: 'abc' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('creates a wallet with negative initial balance (201)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Debt', balance: '-50.00' });
+    expect(response.status).toBe(201);
+    expect(response.body.balance).toBe('-50.00');
+
+    // Verify a negative adjustment transaction was created
+    const txRes = await request(app)
+      .get(`/wallets/${response.body.id}/transactions`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(txRes.status).toBe(200);
+    expect(txRes.body.transactions).toHaveLength(1);
+    expect(Number(txRes.body.transactions[0].amount)).toBeLessThan(0);
+  });
+
+  it('rejects whitespace-only balance on create (400)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Spaces', balance: '   ' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('rejects unauthenticated requests (401)', async () => {
     const response = await request(app)
       .post('/wallets')
@@ -271,6 +316,104 @@ describe('PUT /wallets/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ name: '' });
     expect(response.status).toBe(400);
+  });
+
+  it('updates wallet balance (200)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original' });
+    const walletId = created.body.id;
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ balance: '75.00' });
+    expect(response.status).toBe(200);
+    expect(response.body.balance).toBe('75.00');
+  });
+
+  it('rejects invalid balance on update (400)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original' });
+    const walletId = created.body.id;
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ balance: 'infinity' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns correct balance when editing metadata only (200)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original', balance: '100.00' });
+    const walletId = created.body.id;
+    expect(created.body.balance).toBe('100.00');
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Updated' });
+    expect(response.status).toBe(200);
+    expect(response.body.name).toBe('Updated');
+    expect(response.body.balance).toBe('100.00');
+  });
+
+  it('updates wallet balance to zero from non-zero (200)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Savings', balance: '100.00' });
+    const walletId = created.body.id;
+    expect(created.body.balance).toBe('100.00');
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ balance: '0' });
+    expect(response.status).toBe(200);
+    expect(response.body.balance).toBe('0.00');
+
+    // Verify an adjustment transaction was created (2 total: create + update)
+    const txRes = await request(app)
+      .get(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(txRes.status).toBe(200);
+    expect(txRes.body.transactions).toHaveLength(2);
+  });
+
+  it('does not create a new transaction when balance is unchanged (200)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Stable', balance: '200.00' });
+    const walletId = created.body.id;
+
+    // Count transactions before the update
+    const before = await request(app)
+      .get(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`);
+    const txCountBefore = before.body.transactions.length;
+
+    // Update with the same balance
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ balance: '200.00' });
+    expect(response.status).toBe(200);
+    expect(response.body.balance).toBe('200.00');
+
+    // Verify no new transaction was created
+    const after = await request(app)
+      .get(`/wallets/${walletId}/transactions`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(after.body.transactions).toHaveLength(txCountBefore);
   });
 
   it('returns 404 when updating a wallet owned by another user', async () => {

@@ -199,3 +199,52 @@ export function detectLocaleCurrency(): CurrencyCode {
   }
   return 'USD';
 }
+
+/** A single currency entry used by `filterCurrencies`. */
+export interface CurrencyEntry {
+  code: CurrencyCode;
+  name: string;
+}
+
+/** Normalize a string for comparison: strip diacritics, lower-case. */
+function normalize(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+/**
+ * Filter and rank currencies by a search query.
+ * Matches against both code and name, case-insensitively with diacritics stripped.
+ * Ranking priority: exact code match > code prefix > name prefix > name includes.
+ * Returns at most `limit` results (default 50); an empty query returns the first `limit`.
+ */
+export function filterCurrencies(query: string, limit = 50): CurrencyEntry[] {
+  const q = normalize(query.trim());
+  if (q.length === 0) return CURRENCIES.slice(0, limit);
+
+  const results: { entry: CurrencyEntry; priority: number }[] = [];
+  for (const c of CURRENCIES) {
+    const code = normalize(c.code);
+    const name = normalize(c.name);
+    let priority = 0;
+    if (code === q) {
+      priority = 4;
+    } else if (code.startsWith(q)) {
+      priority = 3;
+    } else if (name.startsWith(q)) {
+      priority = 2;
+    } else if (name.includes(q)) {
+      priority = 1;
+    }
+    if (priority > 0) {
+      results.push({ entry: c, priority });
+    }
+  }
+
+  results.sort((a, b) => {
+    const pd = b.priority - a.priority;
+    if (pd !== 0) return pd;
+    return a.entry.code.localeCompare(b.entry.code);
+  });
+
+  return results.slice(0, limit).map((r) => r.entry);
+}

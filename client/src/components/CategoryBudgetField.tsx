@@ -1,6 +1,6 @@
 import type { CategoryData } from '../api/categories';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { MoneyInput } from './MoneyInput';
 import { FormError } from './FormError';
 
 export interface CategoryBudgetFieldError {
@@ -14,18 +14,19 @@ interface CategoryBudgetFieldProps {
   limitAmount: string;
   categories: CategoryData[];
   usedCategoryIds: Set<string>;
+  currency: string;
   onCategoryChange: (value: string) => void;
   onLimitChange: (value: string) => void;
   onRemove: () => void;
   error?: CategoryBudgetFieldError;
 }
-
 export function CategoryBudgetField({
   index,
   categoryId,
   limitAmount,
   categories,
   usedCategoryIds,
+  currency,
   onCategoryChange,
   onLimitChange,
   onRemove,
@@ -54,13 +55,11 @@ export function CategoryBudgetField({
         <FormError message={error?.categoryId?.message} />
       </div>
       <div className="w-32 space-y-1">
-        <Input
+        <MoneyInput
           aria-label={`Limit ${index + 1}`}
-          type="text"
-          inputMode="decimal"
-          placeholder="Limit"
           value={limitAmount}
-          onChange={(e) => onLimitChange(e.target.value)}
+          onChange={onLimitChange}
+          currency={currency}
         />
         <FormError message={error?.limitAmount?.message} />
       </div>

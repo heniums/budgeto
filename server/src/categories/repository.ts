@@ -1,6 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { categories, type Category, type NewCategory } from '../db/schema';
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 export async function createCategory(
   input: NewCategory,
@@ -26,6 +28,17 @@ export async function findCategoryById(
     .select()
     .from(categories)
     .where(eq(categories.id, id));
+  return category;
+}
+
+export async function findCategoryByUserIdAndName(
+  userId: string,
+  name: string,
+): Promise<Category | undefined> {
+  const [category] = await db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.userId, userId), eq(categories.name, name)));
   return category;
 }
 
@@ -56,3 +69,23 @@ export async function deleteAllCategories(): Promise<void> {
 }
 
 export type { Category };
+
+export async function findCategoryByUserIdAndNameInTx(
+  tx: Tx,
+  userId: string,
+  name: string,
+): Promise<Category | undefined> {
+  const [category] = await tx
+    .select()
+    .from(categories)
+    .where(and(eq(categories.userId, userId), eq(categories.name, name)));
+  return category;
+}
+
+export async function createCategoryInTx(
+  tx: Tx,
+  input: NewCategory,
+): Promise<Category> {
+  const [category] = await tx.insert(categories).values(input).returning();
+  return category;
+}

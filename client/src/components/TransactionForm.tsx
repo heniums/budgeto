@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import dayjs from 'dayjs';
@@ -15,6 +15,7 @@ import { Money } from './Money';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
 
+import { MoneyInput } from './MoneyInput';
 const transactionSchema = z.object({
   walletId: z.string().min(1, 'Please select a wallet.'),
   amount: z
@@ -117,6 +118,7 @@ export function TransactionForm({
     register,
     handleSubmit,
     watch,
+    control,
     formState: { errors, isSubmitting, isDirty },
     reset,
     setValue,
@@ -381,12 +383,22 @@ export function TransactionForm({
 
       <div className="space-y-2">
         <Label htmlFor="tx-amount">Amount</Label>
-        <Input
-          id="tx-amount"
-          type="text"
-          inputMode="decimal"
-          placeholder="-50.00 or 100.00"
-          {...register('amount')}
+        <Controller
+          name="amount"
+          control={control}
+          render={({ field }) => (
+            <MoneyInput
+              id="tx-amount"
+              currency={
+                wallets.find((w) => w.id === selectedWalletId)?.currency ??
+                'USD'
+              }
+              placeholder="-50.00 or 100.00"
+              value={field.value}
+              onChange={field.onChange}
+              onBlur={field.onBlur}
+            />
+          )}
         />
         <FormError message={errors.amount?.message} />
       </div>
