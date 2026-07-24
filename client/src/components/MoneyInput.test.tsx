@@ -54,4 +54,20 @@ describe('MoneyInput', () => {
     );
     expect(screen.getByPlaceholderText('Enter amount')).toBeInTheDocument();
   });
+
+  it('forwards aria-label and other HTML input attributes to the inner input', () => {
+    render(
+      <MoneyInput
+        value=""
+        onChange={vi.fn()}
+        aria-label="Initial Balance"
+        data-testid="money"
+        autoComplete="off"
+      />,
+    );
+    const input = screen.getByRole('textbox', { name: 'Initial Balance' });
+    expect(input).toHaveAttribute('aria-label', 'Initial Balance');
+    expect(input).toHaveAttribute('data-testid', 'money');
+    expect(input).toHaveAttribute('autoComplete', 'off');
+  });
 });

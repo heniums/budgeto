@@ -41,7 +41,10 @@ const walletSchema = z.object({
   balance: z
     .string()
     .refine(
-      (val) => val === '' || Number.isFinite(Number(val)),
+      (val) => {
+        const trimmed = val.trim();
+        return trimmed === '' || Number.isFinite(Number(trimmed));
+      },
       'Balance must be a valid number.',
     ),
 });

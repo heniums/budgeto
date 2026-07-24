@@ -144,9 +144,29 @@ describe('filterCurrencies', () => {
   });
 
   it('limits results to 50', () => {
-    // Most queries should naturally return fewer, but we test with
-    // a very generic query that would match many currencies
+    // The query 'a' matches more than 50 currencies
     const result = filterCurrencies('a');
-    expect(result.length).toBeLessThanOrEqual(50);
+    expect(result.length).toBe(50);
+  });
+
+  it('returns empty array for no-match query', () => {
+    const result = filterCurrencies('zzzzz');
+    expect(result).toEqual([]);
+  });
+
+  it('matches substring in currency name', () => {
+    const result = filterCurrencies('dollar');
+    expect(result.length).toBeGreaterThan(0);
+    expect(result.some((c) => c.name.includes('Dollar'))).toBe(true);
+  });
+
+  it('matches diacritics: krona finds Icelandic Króna', () => {
+    const result = filterCurrencies('krona');
+    expect(result.some((c) => c.name === 'Icelandic Króna')).toBe(true);
+  });
+
+  it('respects custom limit parameter', () => {
+    const result = filterCurrencies('a', 5);
+    expect(result).toHaveLength(5);
   });
 });

@@ -1,18 +1,24 @@
 import { z } from 'zod';
 import {
-  createWallet,
   findWalletById,
   findWalletsByUserIdWithBalance,
-  updateWallet,
   deleteWallet,
   getWalletWithBalance,
   adjustBalanceAtomic,
+  createWalletInTx,
+  updateWalletInTx,
+  adjustBalanceAtomicInTx,
 } from './repository';
 import {
   createCategory,
   findCategoryByUserIdAndName,
+  findCategoryByUserIdAndNameInTx,
+  createCategoryInTx,
 } from '../categories/repository';
+import { db } from '../db/client';
 import { notFoundError } from '../errors';
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
 const SUPPORTED_CURRENCY_CODES = [
   'AED',
@@ -186,9 +192,14 @@ const currencyCodeSchema = z.preprocess(
 const balanceSchema = z
   .string()
   .optional()
-  .refine((val) => val === undefined || Number.isFinite(Number(val)), {
-    message: 'balance must be a valid finite number',
-  });
+  .refine(
+    (val) => {
+      if (val === undefined) return true;
+      const trimmed = val.trim();
+      return trimmed !== '' && Number.isFinite(Number(trimmed));
+    },
+    { message: 'balance must be a valid finite number' },
+  );
 
 export const createWalletSchema = z.object({
   name: z.string().min(1).max(128),
@@ -230,26 +241,32 @@ export interface WalletResponse {
 }
 
 /**
- * Creates a wallet for the given user.
+ * Creates a wallet for the given user. The wallet insert and any initial
+ * balance adjustment are wrapped in a single DB transaction so the database
+ * is never left with a zero-balance wallet when the adjustment fails.
  */
 export async function create(
   userId: string,
   input: CreateWalletInput,
 ): Promise<WalletResponse> {
-  const wallet = await createWallet({
-    userId,
-    name: input.name,
-    description: input.description,
-    color: input.color,
-    currency: input.currency,
-  });
+  const { balance: initialBalance, ...walletMeta } = input;
 
-  // If an initial balance was provided, create a balance adjustment transaction
-  const balance = input.balance ?? '0';
-  if (Number(balance) !== 0) {
-    const adjustmentCategory = await findOrCreateAdjustmentCategory(userId);
-    await adjustBalanceAtomic(wallet.id, balance, adjustmentCategory.id);
-  }
+  const wallet = await db.transaction(async (tx) => {
+    const w = await createWalletInTx(tx, {
+      userId,
+      name: walletMeta.name,
+      description: walletMeta.description,
+      color: walletMeta.color,
+      currency: walletMeta.currency,
+    });
+
+    const balance = initialBalance ?? '0';
+    if (Number(balance) !== 0) {
+      const cat = await findOrCreateAdjustmentCategoryInTx(userId, tx);
+      await adjustBalanceAtomicInTx(tx, w.id, balance, cat.id);
+    }
+    return w;
+  });
 
   const withBalance = await getWalletWithBalance(wallet.id);
   if (!withBalance) {
@@ -290,7 +307,8 @@ export async function get(id: string, userId: string): Promise<WalletResponse> {
 }
 
 /**
- * Updates a wallet after verifying ownership.
+ * Updates a wallet after verifying ownership. Metadata changes and balance
+ * adjustments are wrapped in a single DB transaction.
  */
 export async function update(
   id: string,
@@ -305,40 +323,30 @@ export async function update(
     throw notFoundError('Wallet not found');
   }
 
-  // Strip balance from the metadata update
   const { balance, ...metadata } = input;
 
-  // Update metadata fields if any are present
   const hasMetadata =
     metadata.name !== undefined ||
     metadata.description !== undefined ||
     metadata.color !== undefined ||
     metadata.currency !== undefined;
 
-  if (hasMetadata) {
-    const updated = await updateWallet(id, metadata);
-    if (!updated) {
-      throw notFoundError('Wallet not found');
-    }
-  }
-
-  // If a new balance target was provided and differs from current, adjust
-  if (balance !== undefined) {
-    const current = await getWalletWithBalance(id);
-    if (!current) {
-      throw notFoundError('Wallet not found');
-    }
-    if (Number(current.balance) !== Number(balance)) {
-      const adjustmentCategory = await findOrCreateAdjustmentCategory(userId);
-      try {
-        await adjustBalanceAtomic(id, balance, adjustmentCategory.id);
-      } catch (err: unknown) {
-        if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
-          throw notFoundError('Wallet not found');
+  try {
+    await db.transaction(async (tx) => {
+      if (hasMetadata) {
+        const updated = await updateWalletInTx(tx, id, metadata);
+        if (!updated) {
+          throw new Error('WALLET_NOT_FOUND');
         }
-        throw err;
       }
-    }
+
+      if (balance !== undefined) {
+        const cat = await findOrCreateAdjustmentCategoryInTx(userId, tx);
+        await adjustBalanceAtomicInTx(tx, id, balance, cat.id);
+      }
+    });
+  } catch (err: unknown) {
+    mapWalletNotFoundError(err);
   }
 
   const withBalance = await getWalletWithBalance(id);
@@ -385,6 +393,35 @@ async function findOrCreateAdjustmentCategory(userId: string): Promise<{
   return category;
 }
 
+async function findOrCreateAdjustmentCategoryInTx(
+  userId: string,
+  tx: Tx,
+): Promise<{ id: string }> {
+  let category = await findCategoryByUserIdAndNameInTx(
+    tx,
+    userId,
+    ADJUSTMENT_CATEGORY_NAME,
+  );
+
+  if (!category) {
+    category = await createCategoryInTx(tx, {
+      userId,
+      name: ADJUSTMENT_CATEGORY_NAME,
+      color: '#6b7280',
+      icon: 'scale',
+    });
+  }
+
+  return category;
+}
+
+function mapWalletNotFoundError(err: unknown): never {
+  if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
+    throw notFoundError('Wallet not found');
+  }
+  throw err;
+}
+
 /**
  * Adjusts a wallet balance to a target value by creating a balancing
  * transaction. Auto-creates a "Balance Adjustment" category for the
@@ -410,10 +447,7 @@ export async function adjustBalance(
   try {
     await adjustBalanceAtomic(id, target, adjustmentCategory.id);
   } catch (err: unknown) {
-    if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
-      throw notFoundError('Wallet not found');
-    }
-    throw err;
+    mapWalletNotFoundError(err);
   }
 
   // Return the updated wallet with new balance

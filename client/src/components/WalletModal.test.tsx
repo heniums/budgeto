@@ -247,6 +247,42 @@ describe('WalletModal — edit mode (walletId provided)', () => {
     });
   });
 
+  it('calls updateWallet with updated balance on save', async () => {
+    vi.mocked(updateWallet).mockResolvedValue(mockWallet);
+    const onSuccess = vi.fn();
+
+    render(
+      <WalletModal
+        open={true}
+        onOpenChange={vi.fn()}
+        walletId="w1"
+        onSuccess={onSuccess}
+      />,
+    );
+
+    await screen.findByDisplayValue('Cash');
+
+    const user = userEvent.setup();
+    const balanceInput = screen.getByLabelText('Balance');
+    await user.clear(balanceInput);
+    await user.type(balanceInput, '250.00');
+
+    await user.click(screen.getByRole('button', { name: 'Save Changes' }));
+
+    await waitFor(() => {
+      expect(updateWallet).toHaveBeenCalledWith('w1', {
+        name: 'Cash',
+        description: 'Daily expenses',
+        color: '#1f8a4c',
+        currency: 'USD',
+        balance: '250.00',
+      });
+    });
+    await waitFor(() => {
+      expect(onSuccess).toHaveBeenCalled();
+    });
+  });
+
   it('renders Delete button when walletId is provided', async () => {
     render(
       <WalletModal

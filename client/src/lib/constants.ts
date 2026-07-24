@@ -21,7 +21,6 @@ export const PRESET_COLORS = [
   '#6b7280',
   '#09090b',
   '#ffffff',
-  '#000000',
 ] as const;
 
 /** Default icon for newly created categories. */

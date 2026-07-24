@@ -3,39 +3,22 @@ import { Input } from '@/components/ui/input';
 import { formatMoney } from '@/lib/currencies';
 import { cn } from '@/lib/utils';
 
-export interface MoneyInputProps {
-  value: string;
+export interface MoneyInputProps
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'onChange' | 'value'> {
   onChange: (value: string) => void;
-  onBlur?: () => void;
+  value?: string;
   currency?: string;
-  placeholder?: string;
-  id?: string;
-  name?: string;
-  className?: string;
-  disabled?: boolean;
 }
 
 export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
-  (
-    {
-      value,
-      onChange,
-      onBlur,
-      currency,
-      placeholder,
-      id,
-      name,
-      className,
-      disabled,
-    },
-    ref,
-  ) => {
+  ({ className, currency = 'USD', value, onChange, onBlur, placeholder, ...props }, ref) => {
     const [isFocused, setIsFocused] = React.useState(false);
 
     const displayValue = React.useMemo(() => {
       if (isFocused) return value;
       const n = Number(value);
-      if (!Number.isFinite(n) || value === '') return value;
+      if (!Number.isFinite(n) || value === '' || value === undefined)
+        return value;
       return formatMoney(value, currency ?? 'USD');
     }, [value, isFocused, currency]);
 
@@ -43,19 +26,17 @@ export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
       <div className={cn('relative', className)}>
         <Input
           ref={ref}
-          id={id}
-          name={name}
           type="text"
           inputMode="decimal"
           value={displayValue}
           onChange={(e) => onChange(e.target.value)}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => {
+          onBlur={(e) => {
             setIsFocused(false);
-            onBlur?.();
+            onBlur?.(e);
           }}
           placeholder={placeholder ?? '0.00'}
-          disabled={disabled}
+          {...props}
         />
       </div>
     );

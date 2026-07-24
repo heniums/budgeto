@@ -206,20 +206,25 @@ export interface CurrencyEntry {
   name: string;
 }
 
+/** Normalize a string for comparison: strip diacritics, lower-case. */
+function normalize(s: string): string {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
 /**
  * Filter and rank currencies by a search query.
- * Matches against both code and name, case-insensitively.
+ * Matches against both code and name, case-insensitively with diacritics stripped.
  * Ranking priority: exact code match > code prefix > name prefix > name includes.
- * Returns at most 50 results; an empty query returns the first 50.
+ * Returns at most `limit` results (default 50); an empty query returns the first `limit`.
  */
-export function filterCurrencies(query: string): CurrencyEntry[] {
-  const q = query.trim().toLowerCase();
-  if (q.length === 0) return CURRENCIES.slice(0, 50);
+export function filterCurrencies(query: string, limit = 50): CurrencyEntry[] {
+  const q = normalize(query.trim());
+  if (q.length === 0) return CURRENCIES.slice(0, limit);
 
   const results: { entry: CurrencyEntry; priority: number }[] = [];
   for (const c of CURRENCIES) {
-    const code = c.code.toLowerCase();
-    const name = c.name.toLowerCase();
+    const code = normalize(c.code);
+    const name = normalize(c.name);
     let priority = 0;
     if (code === q) {
       priority = 4;
@@ -241,5 +246,5 @@ export function filterCurrencies(query: string): CurrencyEntry[] {
     return a.entry.code.localeCompare(b.entry.code);
   });
 
-  return results.slice(0, 50).map((r) => r.entry);
+  return results.slice(0, limit).map((r) => r.entry);
 }
