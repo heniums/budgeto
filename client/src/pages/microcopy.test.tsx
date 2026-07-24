@@ -35,27 +35,27 @@ describe('conversational microcopy', () => {
     cleanup();
   });
 
-  it('welcomes returning users on the sign-in page', () => {
+  it('welcomes returning users on the sign-in page', async () => {
     renderAt('/login', <SignIn />);
     expect(
-      screen.getByRole('heading', { name: /welcome back/i }),
+      await screen.findByRole('heading', { name: /welcome back/i }),
     ).toBeInTheDocument();
   });
 
-  it('uses a friendly invitation on the sign-up page', () => {
+  it('uses a friendly invitation on the sign-up page', async () => {
     renderAt('/signup', <SignUp />);
     expect(
-      screen.getByRole('heading', { name: /create your account/i }),
+      await screen.findByRole('heading', { name: /create your account/i }),
     ).toBeInTheDocument();
     expect(
-      screen.getByText(/ready to take control of your budget/i),
+      await screen.findByText(/ready to take control of your budget/i),
     ).toBeInTheDocument();
   });
 
-  it('frames the profile page around the person', () => {
+  it('frames the profile page around the person', async () => {
     renderAt('/settings/user', <Profile />);
     expect(
-      screen.getByRole('heading', { name: /your profile/i }),
+      await screen.findByRole('heading', { name: /your profile/i }),
     ).toBeInTheDocument();
   });
 });
