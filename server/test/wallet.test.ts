@@ -99,6 +99,25 @@ describe('POST /wallets', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
+  it('creates a wallet with initial balance (201)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Cash', balance: '250.00' });
+    expect(response.status).toBe(201);
+    expect(response.body.name).toBe('Cash');
+    expect(response.body.balance).toBe('250.00');
+  });
+
+  it('rejects invalid balance on create (400)', async () => {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Bad', balance: 'abc' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('rejects unauthenticated requests (401)', async () => {
     const response = await request(app)
       .post('/wallets')
@@ -271,6 +290,53 @@ describe('PUT /wallets/:id', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ name: '' });
     expect(response.status).toBe(400);
+  });
+
+  it('updates wallet balance (200)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original' });
+    const walletId = created.body.id;
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ balance: '75.00' });
+    expect(response.status).toBe(200);
+    expect(response.body.balance).toBe('75.00');
+  });
+
+  it('rejects invalid balance on update (400)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original' });
+    const walletId = created.body.id;
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ balance: 'infinity' });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('returns correct balance when editing metadata only (200)', async () => {
+    const created = await request(app)
+      .post('/wallets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Original', balance: '100.00' });
+    const walletId = created.body.id;
+    expect(created.body.balance).toBe('100.00');
+
+    const response = await request(app)
+      .put(`/wallets/${walletId}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Updated' });
+    expect(response.status).toBe(200);
+    expect(response.body.name).toBe('Updated');
+    expect(response.body.balance).toBe('100.00');
   });
 
   it('returns 404 when updating a wallet owned by another user', async () => {

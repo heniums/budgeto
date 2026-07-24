@@ -16,13 +16,14 @@ export interface CreateWalletInput {
   description?: string;
   color?: string;
   currency?: string;
+  balance?: string;
 }
-
 export interface UpdateWalletInput {
   name?: string;
   description?: string;
   color?: string;
   currency?: string;
+  balance?: string;
 }
 
 export interface CreateTransactionInput {

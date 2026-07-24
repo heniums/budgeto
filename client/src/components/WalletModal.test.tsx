@@ -33,6 +33,7 @@ describe('WalletModal — create mode (no walletId)', () => {
     expect(screen.getByLabelText('Description')).toBeInTheDocument();
     expect(screen.getByLabelText('Color')).toBeInTheDocument();
     expect(screen.getByLabelText('Currency')).toBeInTheDocument();
+    expect(screen.getByLabelText('Initial Balance')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Create' })).toBeInTheDocument();
     // No Delete button in create mode
     expect(
@@ -69,6 +70,8 @@ describe('WalletModal — create mode (no walletId)', () => {
 
     const user = userEvent.setup();
     await user.type(screen.getByLabelText('Name'), 'Savings');
+    await user.clear(screen.getByLabelText('Initial Balance'));
+    await user.type(screen.getByLabelText('Initial Balance'), '100.00');
     await user.click(screen.getByRole('button', { name: 'Create' }));
 
     await waitFor(() => {
@@ -77,6 +80,7 @@ describe('WalletModal — create mode (no walletId)', () => {
         description: '',
         color: '#1f8a4c',
         currency: 'USD',
+        balance: '100.00',
       });
     });
     await waitFor(() => {
@@ -149,6 +153,7 @@ describe('WalletModal — edit mode (walletId provided)', () => {
       expect(getWallet).toHaveBeenCalledWith('w1');
     });
     expect(await screen.findByDisplayValue('Cash')).toBeInTheDocument();
+    expect(screen.getByLabelText('Balance')).toHaveValue('$100.00');
   });
 
   it('prefills currency with the fetched wallet currency', async () => {
@@ -228,13 +233,13 @@ describe('WalletModal — edit mode (walletId provided)', () => {
     await user.clear(screen.getByLabelText('Name'));
     await user.type(screen.getByLabelText('Name'), 'Bank');
     await user.click(screen.getByRole('button', { name: 'Save Changes' }));
-
     await waitFor(() => {
       expect(updateWallet).toHaveBeenCalledWith('w1', {
         name: 'Bank',
         description: 'Daily expenses',
         color: '#1f8a4c',
         currency: 'USD',
+        balance: '100.00',
       });
     });
     await waitFor(() => {

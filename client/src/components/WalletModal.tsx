@@ -29,6 +29,7 @@ import {
   ERR,
 } from '../lib/constants';
 import { detectLocaleCurrency } from '../lib/currencies';
+import { MoneyInput } from './MoneyInput';
 import { ColorInput } from './ColorInput';
 import { CurrencyInput } from './CurrencyInput';
 
@@ -37,6 +38,12 @@ const walletSchema = z.object({
   description: z.string().max(MAX_DESCRIPTION_LENGTH),
   color: z.string(),
   currency: z.string(),
+  balance: z
+    .string()
+    .refine(
+      (val) => val === '' || Number.isFinite(Number(val)),
+      'Balance must be a valid number.',
+    ),
 });
 
 type WalletFormValues = z.infer<typeof walletSchema>;
@@ -62,6 +69,7 @@ export function WalletModal({
     handleSubmit,
     reset,
     control,
+    watch,
     formState: { errors, isSubmitting, isDirty },
   } = useForm<WalletFormValues>({
     resolver: zodResolver(walletSchema),
@@ -70,6 +78,7 @@ export function WalletModal({
       description: '',
       color: DEFAULT_COLOR,
       currency: detectLocaleCurrency(),
+      balance: '0',
     },
   });
 
@@ -85,6 +94,7 @@ export function WalletModal({
         description: '',
         color: DEFAULT_COLOR,
         currency: detectLocaleCurrency(),
+        balance: '0',
       });
       setFormError(null);
       return;
@@ -102,6 +112,7 @@ export function WalletModal({
           description: w.description,
           color: w.color,
           currency: w.currency,
+          balance: w.balance,
         });
         setLoading(false);
       })
@@ -123,6 +134,7 @@ export function WalletModal({
         description: values.description.trim(),
         color: values.color,
         currency: values.currency,
+        balance: values.balance.trim(),
       });
       onSuccess?.(w);
     } catch (err) {
@@ -141,6 +153,7 @@ export function WalletModal({
         description: values.description.trim(),
         color: values.color,
         currency: values.currency,
+        balance: values.balance.trim(),
       });
       onSuccess?.();
     } catch (err) {
@@ -235,6 +248,26 @@ export function WalletModal({
                   />
                 )}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="wallet-modal-balance">
+                {isCreate ? 'Initial Balance' : 'Balance'}
+              </Label>
+              <Controller
+                name="balance"
+                control={control}
+                render={({ field }) => (
+                  <MoneyInput
+                    id="wallet-modal-balance"
+                    value={field.value}
+                    onChange={field.onChange}
+                    onBlur={field.onBlur}
+                    currency={watch('currency')}
+                  />
+                )}
+              />
+              <FormError message={errors.balance?.message} />
             </div>
 
             <div

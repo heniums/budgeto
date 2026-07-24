@@ -183,18 +183,26 @@ const currencyCodeSchema = z.preprocess(
   z.enum(SUPPORTED_CURRENCY_CODES),
 );
 
+const balanceSchema = z
+  .string()
+  .optional()
+  .refine((val) => val === undefined || Number.isFinite(Number(val)), {
+    message: 'balance must be a valid finite number',
+  });
+
 export const createWalletSchema = z.object({
   name: z.string().min(1).max(128),
   description: z.string().max(512).optional().default(''),
   color: z.string().max(32).optional().default('#1f8a4c'),
   currency: currencyCodeSchema.optional().default('USD'),
+  balance: balanceSchema.default('0'),
 });
-
 export const updateWalletSchema = z.object({
   name: z.string().min(1).max(128).optional(),
   description: z.string().max(512).optional(),
   color: z.string().max(32).optional(),
   currency: currencyCodeSchema.optional(),
+  balance: balanceSchema,
 });
 
 export const adjustBalanceSchema = z.object({
@@ -235,7 +243,19 @@ export async function create(
     color: input.color,
     currency: input.currency,
   });
-  return formatWalletResponse(wallet);
+
+  // If an initial balance was provided, create a balance adjustment transaction
+  const balance = input.balance ?? '0';
+  if (Number(balance) !== 0) {
+    const adjustmentCategory = await findOrCreateAdjustmentCategory(userId);
+    await adjustBalanceAtomic(wallet.id, balance, adjustmentCategory.id);
+  }
+
+  const withBalance = await getWalletWithBalance(wallet.id);
+  if (!withBalance) {
+    throw notFoundError('Wallet not found');
+  }
+  return formatWalletWithBalanceRow(withBalance);
 }
 
 /**
@@ -284,11 +304,48 @@ export async function update(
   if (wallet.userId !== userId) {
     throw notFoundError('Wallet not found');
   }
-  const updated = await updateWallet(id, input);
-  if (!updated) {
+
+  // Strip balance from the metadata update
+  const { balance, ...metadata } = input;
+
+  // Update metadata fields if any are present
+  const hasMetadata =
+    metadata.name !== undefined ||
+    metadata.description !== undefined ||
+    metadata.color !== undefined ||
+    metadata.currency !== undefined;
+
+  if (hasMetadata) {
+    const updated = await updateWallet(id, metadata);
+    if (!updated) {
+      throw notFoundError('Wallet not found');
+    }
+  }
+
+  // If a new balance target was provided and differs from current, adjust
+  if (balance !== undefined) {
+    const current = await getWalletWithBalance(id);
+    if (!current) {
+      throw notFoundError('Wallet not found');
+    }
+    if (Number(current.balance) !== Number(balance)) {
+      const adjustmentCategory = await findOrCreateAdjustmentCategory(userId);
+      try {
+        await adjustBalanceAtomic(id, balance, adjustmentCategory.id);
+      } catch (err: unknown) {
+        if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
+          throw notFoundError('Wallet not found');
+        }
+        throw err;
+      }
+    }
+  }
+
+  const withBalance = await getWalletWithBalance(id);
+  if (!withBalance) {
     throw notFoundError('Wallet not found');
   }
-  return formatWalletResponse(updated);
+  return formatWalletWithBalanceRow(withBalance);
 }
 
 /**
@@ -307,6 +364,26 @@ export async function remove(id: string, userId: string): Promise<void> {
 }
 
 const ADJUSTMENT_CATEGORY_NAME = 'Balance Adjustment';
+
+async function findOrCreateAdjustmentCategory(userId: string): Promise<{
+  id: string;
+}> {
+  const userCategories = await findCategoriesByUserId(userId);
+  let category = userCategories.find(
+    (c) => c.name === ADJUSTMENT_CATEGORY_NAME,
+  );
+
+  if (!category) {
+    category = await createCategory({
+      userId,
+      name: ADJUSTMENT_CATEGORY_NAME,
+      color: '#6b7280',
+      icon: 'scale',
+    });
+  }
+
+  return category;
+}
 
 /**
  * Adjusts a wallet balance to a target value by creating a balancing
@@ -327,30 +404,11 @@ export async function adjustBalance(
   }
 
   const target = input.targetBalance;
-
-  // Find or create "Balance Adjustment" category
-  const userCategories = await findCategoriesByUserId(userId);
-  let adjustmentCategory = userCategories.find(
-    (c) => c.name === ADJUSTMENT_CATEGORY_NAME,
-  );
-
-  if (!adjustmentCategory) {
-    adjustmentCategory = await createCategory({
-      userId,
-      name: ADJUSTMENT_CATEGORY_NAME,
-      color: '#6b7280',
-      icon: 'scale',
-    });
-  }
-
+  const adjustmentCategory = await findOrCreateAdjustmentCategory(userId);
 
   // Atomically lock, compute delta, and insert transaction
   try {
-    await adjustBalanceAtomic(
-      id,
-      target,
-      adjustmentCategory.id,
-    );
+    await adjustBalanceAtomic(id, target, adjustmentCategory.id);
   } catch (err: unknown) {
     if (err instanceof Error && err.message === 'WALLET_NOT_FOUND') {
       throw notFoundError('Wallet not found');
@@ -364,27 +422,6 @@ export async function adjustBalance(
     throw notFoundError('Wallet not found');
   }
   return formatWalletWithBalanceRow(updated);
-}
-
-function formatWalletResponse(wallet: {
-  id: string;
-  name: string;
-  description: string | null;
-  color: string | null;
-  currency: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}): WalletResponse {
-  return {
-    id: wallet.id,
-    name: wallet.name,
-    description: wallet.description ?? '',
-    color: wallet.color ?? '#1f8a4c',
-    currency: wallet.currency ?? 'USD',
-    balance: '0',
-    createdAt: wallet.createdAt,
-    updatedAt: wallet.updatedAt,
-  };
 }
 
 function formatWalletWithBalanceRow(row: {
