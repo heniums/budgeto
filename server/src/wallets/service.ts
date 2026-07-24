@@ -10,7 +10,7 @@ import {
 } from './repository';
 import {
   createCategory,
-  findCategoriesByUserId,
+  findCategoryByUserIdAndName,
 } from '../categories/repository';
 import { notFoundError } from '../errors';
 
@@ -368,9 +368,9 @@ const ADJUSTMENT_CATEGORY_NAME = 'Balance Adjustment';
 async function findOrCreateAdjustmentCategory(userId: string): Promise<{
   id: string;
 }> {
-  const userCategories = await findCategoriesByUserId(userId);
-  let category = userCategories.find(
-    (c) => c.name === ADJUSTMENT_CATEGORY_NAME,
+  let category = await findCategoryByUserIdAndName(
+    userId,
+    ADJUSTMENT_CATEGORY_NAME,
   );
 
   if (!category) {

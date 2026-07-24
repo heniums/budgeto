@@ -1,4 +1,4 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { db } from '../db/client';
 import { categories, type Category, type NewCategory } from '../db/schema';
 
@@ -26,6 +26,17 @@ export async function findCategoryById(
     .select()
     .from(categories)
     .where(eq(categories.id, id));
+  return category;
+}
+
+export async function findCategoryByUserIdAndName(
+  userId: string,
+  name: string,
+): Promise<Category | undefined> {
+  const [category] = await db
+    .select()
+    .from(categories)
+    .where(and(eq(categories.userId, userId), eq(categories.name, name)));
   return category;
 }
 
