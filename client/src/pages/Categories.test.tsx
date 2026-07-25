@@ -51,7 +51,7 @@ const mockCategories = [
 function renderList(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/settings/categories']}>
+      <MemoryRouter initialEntries={['/categories']}>
         <Categories />
       </MemoryRouter>
     </AuthProvider>,

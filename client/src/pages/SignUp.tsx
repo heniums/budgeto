@@ -56,7 +56,7 @@ export function SignUp(): JSX.Element {
         password: data.password,
       });
       signIn(user, token);
-      navigate('/dashboard');
+      navigate('/home');
     } catch (err) {
       setError('root', {
         message: err instanceof Error ? err.message : 'Something went wrong.',

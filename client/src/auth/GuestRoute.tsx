@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 /**
  * Wraps a route element so it is only reachable by unauthenticated users. While
  * the session is loading it renders a placeholder; authenticated visitors are
- * redirected to `/dashboard`.
+ * redirected to `/home`.
  */
 export function GuestRoute({
   children,
@@ -42,7 +42,7 @@ export function GuestRoute({
     );
   }
   if (status === 'authenticated') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/home" replace />;
   }
   return children;
 }

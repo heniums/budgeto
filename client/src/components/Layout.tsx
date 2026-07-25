@@ -4,24 +4,31 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../auth/AuthContext';
 import {
-  Home as HomeIcon,
-  Settings as SettingsIcon,
+  Home,
+  List,
   PieChart,
+  Wallet,
+  Tag,
+  User,
   LogOut,
   Menu,
+  type LucideIcon,
 } from 'lucide-react';
 
 interface NavItem {
   to: string;
   label: string;
-  icon: typeof HomeIcon;
+  icon: LucideIcon;
   end?: boolean;
 }
 
 const navItems: NavItem[] = [
-  { to: '/dashboard', label: 'Home', icon: HomeIcon, end: true },
+  { to: '/home', label: 'Home', icon: Home, end: true },
+  { to: '/transactions', label: 'Transactions', icon: List },
   { to: '/budgets', label: 'Budgets', icon: PieChart },
-  { to: '/settings', label: 'Settings', icon: SettingsIcon },
+  { to: '/wallets', label: 'Wallets', icon: Wallet },
+  { to: '/categories', label: 'Categories', icon: Tag },
+  { to: '/profile', label: 'Profile', icon: User },
 ];
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }): JSX.Element {

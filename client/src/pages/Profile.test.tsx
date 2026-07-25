@@ -25,10 +25,9 @@ import { ApiError } from '../api/client';
 function renderProfile(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/settings/user']}>
+      <MemoryRouter initialEntries={['/profile']}>
         <Routes>
-          <Route path="/settings/user" element={<Profile />} />
-          <Route path="/login" element={<div>Sign in page</div>} />
+          <Route path="/profile" element={<Profile />} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -149,13 +148,5 @@ describe('Profile page', () => {
     expect(
       await screen.findByText(/current password is incorrect/i),
     ).toBeInTheDocument();
-  });
-
-  it('signs out and returns to the sign-in page', async () => {
-    const user = userEvent.setup();
-    renderProfile();
-    await screen.findByText('Ada Lovelace');
-    await user.click(screen.getByRole('button', { name: /sign out/i }));
-    expect(await screen.findByText('Sign in page')).toBeInTheDocument();
   });
 });

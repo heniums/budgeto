@@ -34,13 +34,25 @@ describe('Layout', () => {
     cleanup();
   });
 
-  it('renders only Home and Settings nav items', async () => {
+  it('renders all top-level nav items', async () => {
     renderLayout();
     expect(
-      await screen.findByRole('link', { name: /home/i }),
+      await screen.findByRole('link', { name: /^home$/i }),
     ).toBeInTheDocument();
     expect(
-      await screen.findByRole('link', { name: /settings/i }),
+      await screen.findByRole('link', { name: /transactions/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: /budgets/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: /wallets/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: /categories/i }),
+    ).toBeInTheDocument();
+    expect(
+      await screen.findByRole('link', { name: /profile/i }),
     ).toBeInTheDocument();
   });
 
