@@ -136,10 +136,7 @@ describe('Budgets page', () => {
   it('shows empty state when no budgets exist', async () => {
     vi.mocked(getBudgets).mockResolvedValue({ budgets: [] });
     renderPage();
-    await waitFor(() => {
-      expect(screen.queryByText('Loading budgets…')).not.toBeInTheDocument();
-    });
-    expect(screen.getByText('No budgets yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No budgets yet.')).toBeInTheDocument();
   });
 
   it('renders period navigation with current period label', async () => {

@@ -16,6 +16,7 @@ import {
 import { getIcon } from '../lib/icons';
 import { CategoryModal } from '../components/CategoryModal';
 import { FormAlert } from '../components/FormAlert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function Categories(): JSX.Element {
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -88,7 +89,38 @@ export function Categories(): JSX.Element {
       </div>
 
       {loading ? (
-        <p>Loading…</p>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Color</TableHead>
+                <TableHead className="text-right">Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-5 w-5 rounded-full" />
+                      <Skeleton className="h-4 w-32" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-4 w-16" />
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-4 w-20" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       ) : categories.length === 0 ? (
         <p>No categories yet.</p>
       ) : (

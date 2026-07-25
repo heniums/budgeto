@@ -15,6 +15,7 @@ import { BudgetCard } from '../components/BudgetCard';
 import { BudgetForm } from '../components/BudgetForm';
 import { BudgetPeriodNav } from '../components/BudgetPeriodNav';
 import { FormAlert } from '../components/FormAlert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function Budgets(): JSX.Element {
   const [budgets, setBudgets] = useState<BudgetData[]>([]);
@@ -75,14 +76,6 @@ export function Budgets(): JSX.Element {
     setDialogOpen(true);
   };
 
-  if (loading) {
-    return (
-      <div className="p-4">
-        <p className="text-muted-foreground">Loading budgets…</p>
-      </div>
-    );
-  }
-
   return (
     <div className="p-4 space-y-4">
       <div className="flex items-center justify-between">
@@ -111,7 +104,12 @@ export function Budgets(): JSX.Element {
 
       <BudgetPeriodNav period={period} onChange={setPeriod} />
 
-      {budgets.length === 0 ? (
+      {loading && budgets.length === 0 ? (
+        <div className="space-y-4">
+          <Skeleton className="h-48 w-full rounded-md" />
+          <Skeleton className="h-48 w-full rounded-md" />
+        </div>
+      ) : budgets.length === 0 ? (
         <div className="rounded-md border p-6 text-center">
           <p className="text-muted-foreground">No budgets yet.</p>
           <p className="text-sm text-muted-foreground">
