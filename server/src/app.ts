@@ -11,7 +11,7 @@ import { isAppError } from './errors';
 
 export function createApp(): Express {
   const app = express();
-  app.use(cors({ origin: 'http://localhost:5173' }));
+  app.use(cors({ origin: ['http://localhost:5173', 'https://budgeto.vercel.app'] }));
   app.use(express.json());
 
   app.get('/health', healthCheck);
