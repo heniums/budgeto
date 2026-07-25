@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
 import {
   getBudgets,
-  deleteBudget,
   type BudgetData,
 } from '../api/budgets';
 import { getCategories, type CategoryData } from '../api/categories';
@@ -53,20 +52,6 @@ export function Budgets(): JSX.Element {
     setEditingBudget(budget);
     setDialogOpen(true);
   };
-
-  const handleDelete = async (id: string): Promise<void> => {
-    try {
-      await deleteBudget(id);
-      await loadData();
-    } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        setError(err.message);
-      } else {
-        setError('Failed to delete budget.');
-      }
-    }
-  };
-
   const handleFormSuccess = (): void => {
     setEditingBudget(null);
     setDialogOpen(false);
@@ -139,8 +124,7 @@ export function Budgets(): JSX.Element {
             <BudgetCard
               key={budget.id}
               budget={budget}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
+              onClick={() => handleEdit(budget)}
             />
           ))}
         </div>

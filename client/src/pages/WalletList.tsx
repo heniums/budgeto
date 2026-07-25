@@ -1,7 +1,6 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   getWallets,
-  deleteWallet,
   type WalletData,
 } from '../api/wallets';
 import { Button } from '@/components/ui/button';
@@ -17,20 +16,14 @@ import {
 import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
 import { FormAlert } from '../components/FormAlert';
-import { WalletAdjust } from '../components/WalletAdjust';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(
-    null,
-  );
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
-  const [deleting, setDeleting] = useState<string | null>(null);
-  const [adjustingId, setAdjustingId] = useState<string | null>(null);
-
   const load = (): void => {
     setLoading(true);
     setError(null);
@@ -59,19 +52,6 @@ export function WalletList(): JSX.Element {
     );
   }, [wallets, search]);
 
-  const handleDelete = async (id: string, name: string): Promise<void> => {
-    if (!window.confirm(`Delete wallet "${name}"? This cannot be undone.`))
-      return;
-    setDeleting(id);
-    try {
-      await deleteWallet(id);
-      load();
-    } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : 'Failed to delete wallet');
-    } finally {
-      setDeleting(null);
-    }
-  };
 
 
   const formatDate = (iso: string): string => {
@@ -123,14 +103,13 @@ export function WalletList(): JSX.Element {
                 <TableHead className="text-right">Balance</TableHead>
                 <TableHead className="text-right">Currency</TableHead>
                 <TableHead className="text-right">Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={5}
                     className="text-center text-muted-foreground"
                   >
                     No wallets match your search.
@@ -138,13 +117,12 @@ export function WalletList(): JSX.Element {
                 </TableRow>
               ) : (
                 filtered.map((wallet) => (
-                  <Fragment key={wallet.id}>
-                    <TableRow
+                  <TableRow
                       key={wallet.id}
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => {
                         setSelectedWalletId(wallet.id);
-                        setModalMode('view');
+                        setModalMode('edit');
                       }}
                     >
                       <TableCell>
@@ -170,7 +148,7 @@ export function WalletList(): JSX.Element {
                             type="button"
                             onClick={() => {
                               setSelectedWalletId(wallet.id);
-                              setModalMode('view');
+                              setModalMode('edit');
                             }}
                             style={{
                               background: 'none',
@@ -201,59 +179,7 @@ export function WalletList(): JSX.Element {
                       <TableCell className="text-right text-muted-foreground text-sm">
                         {formatDate(wallet.createdAt)}
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '0.5rem',
-                            justifyContent: 'flex-end',
-                          }}
-                        >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedWalletId(wallet.id);
-                              setModalMode('edit');
-                            }}
-                            aria-label={`Edit ${wallet.name}`}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setAdjustingId(
-                                adjustingId === wallet.id ? null : wallet.id,
-                              );
-                            }}
-                            aria-label={`Adjust ${wallet.name}`}
-                          >
-                            Adjust
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(wallet.id, wallet.name)}
-                            disabled={deleting === wallet.id}
-                            aria-label={`Delete ${wallet.name}`}
-                          >
-                            {deleting === wallet.id ? 'Deleting…' : 'Delete'}
-                          </Button>
-                        </div>
-                      </TableCell>
                     </TableRow>
-                    {adjustingId === wallet.id && (
-                      <WalletAdjust
-                        key={`${wallet.id}-adjust`}
-                        walletId={wallet.id}
-                        onSuccess={() => { load(); setAdjustingId(null); }}
-                        onCancel={() => setAdjustingId(null)}
-                      />
-                    )}
-                  </Fragment>
                 ))
               )}
             </TableBody>

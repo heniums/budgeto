@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Money } from './Money';
 import type { BudgetData, BudgetCategoryData } from '../api/budgets';
@@ -18,59 +17,41 @@ function budgetPercentage(budget: BudgetData): number {
 
 interface BudgetCardProps {
   budget: BudgetData;
-  onEdit: (budget: BudgetData) => void;
-  onDelete: (id: string) => void;
+  onClick: () => void;
 }
 
 export function BudgetCard({
   budget,
-  onEdit,
-  onDelete,
+  onClick,
 }: BudgetCardProps): JSX.Element {
+
   return (
     <div
       key={budget.id}
-      className="rounded-md border p-4 space-y-3"
+      className="cursor-pointer rounded-md border p-4 space-y-3 hover:bg-muted/50"
       data-testid="budget-card"
+      onClick={onClick}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span
-            className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white"
-            style={{ backgroundColor: budget.color }}
-          >
-            {budget.icon}
-          </span>
-          <div>
-            <h2 className="font-semibold">
-              {budget.name}
-              <span className="ml-2 text-xs font-normal text-muted-foreground capitalize">
-                ({budget.type === 'spending' ? 'Spending' : 'Saving'} Budget)
-              </span>
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {budget.period.type} ·{' '}
-              {dayjs(budget.period.window.startDate).format('MMM D')}
-              {' – '}
-              {dayjs(budget.period.window.endDate).format('MMM D, YYYY')}
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => onEdit(budget)}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(budget.id)}
-          >
-            Delete
-          </Button>
+      <div className="flex items-center gap-2">
+        <span
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full text-white"
+          style={{ backgroundColor: budget.color }}
+        >
+          {budget.icon}
+        </span>
+        <div>
+          <h2 className="font-semibold">
+            {budget.name}
+            <span className="ml-2 text-xs font-normal text-muted-foreground capitalize">
+              ({budget.type === 'spending' ? 'Spending' : 'Saving'} Budget)
+            </span>
+          </h2>
+          <p className="text-xs text-muted-foreground">
+            {budget.period.type} ·{' '}
+            {dayjs(budget.period.window.startDate).format('MMM D')}
+            {' – '}
+            {dayjs(budget.period.window.endDate).format('MMM D, YYYY')}
+          </p>
         </div>
       </div>
 

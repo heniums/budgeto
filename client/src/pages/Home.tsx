@@ -27,7 +27,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { TransactionForm } from '../components/TransactionForm';
-import { TransactionDetailDialog } from '../components/TransactionDetailDialog';
 import { FormAlert } from '../components/FormAlert';
 import { TransferForm } from '../components/TransferForm';
 import { findTransferPair } from '../lib/transferPair';
@@ -104,7 +103,6 @@ export function Home(): JSX.Element {
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
   const [editTx, setEditTx] = useState<TransactionData | null>(null);
-  const [detailTx, setDetailTx] = useState<TransactionData | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
     null,
   );
@@ -518,7 +516,7 @@ export function Home(): JSX.Element {
                           <TableRow
                             key={tx.id}
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => setDetailTx(tx)}
+                            onClick={() => setEditTx(tx)}
                           >
                             <TableCell>{formatDate(tx.date)}</TableCell>
                             <TableCell>
@@ -756,36 +754,6 @@ export function Home(): JSX.Element {
         </DialogContent>
       </Dialog>
 
-      {detailTx && (
-        <TransactionDetailDialog
-          open={detailTx !== null}
-          onOpenChange={(open) => {
-            if (!open) setDetailTx(null);
-          }}
-          transaction={detailTx}
-          walletName={walletName(detailTx.walletId)}
-          walletCurrency={walletCurrency(detailTx.walletId)}
-          categoryColor={
-            detailTx.categoryId
-              ? categoryMap.get(detailTx.categoryId)?.color
-              : undefined
-          }
-          onEdit={() => {
-            setEditTx(detailTx);
-            setDetailTx(null);
-          }}
-          onDelete={() => {
-            const tx = detailTx;
-            setDetailTx(null);
-            const pair = findTransferPair(tx, transactions);
-            if (pair) {
-              setCascadeTx({ action: 'delete', tx, pair });
-            } else {
-              setDeleteConfirm(tx);
-            }
-          }}
-        />
-      )}
 
       <WalletModal
         walletId={detailWalletId ?? undefined}

@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   getCategories,
-  deleteCategory,
   type CategoryData,
 } from '../api/categories';
 import { Button } from '@/components/ui/button';
@@ -23,13 +22,10 @@ export function Categories(): JSX.Element {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | 'view' | null>(
-    null,
-  );
+  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
-  const [deleting, setDeleting] = useState<string | null>(null);
 
   const load = (): void => {
     setLoading(true);
@@ -55,21 +51,6 @@ export function Categories(): JSX.Element {
     return categories.filter((c) => c.name.toLowerCase().includes(q));
   }, [categories, search]);
 
-  const handleDelete = async (id: string, name: string): Promise<void> => {
-    if (!window.confirm(`Delete category "${name}"? This cannot be undone.`))
-      return;
-    setDeleting(id);
-    try {
-      await deleteCategory(id);
-      load();
-    } catch (err: unknown) {
-      setError(
-        err instanceof Error ? err.message : 'Failed to delete category',
-      );
-    } finally {
-      setDeleting(null);
-    }
-  };
 
   const formatDate = (iso: string): string => {
     if (!iso) return '—';
@@ -118,14 +99,13 @@ export function Categories(): JSX.Element {
                 <TableHead>Name</TableHead>
                 <TableHead>Color</TableHead>
                 <TableHead className="text-right">Created</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filtered.length === 0 ? (
                 <TableRow>
                   <TableCell
-                    colSpan={4}
+                    colSpan={3}
                     className="text-center text-muted-foreground"
                   >
                     No categories match your search.
@@ -140,7 +120,7 @@ export function Categories(): JSX.Element {
                       className="cursor-pointer hover:bg-muted/50"
                       onClick={() => {
                         setSelectedCategoryId(category.id);
-                        setModalMode('view');
+                        setModalMode('edit');
                       }}
                     >
                       <TableCell>
@@ -156,7 +136,7 @@ export function Categories(): JSX.Element {
                             type="button"
                             onClick={() => {
                               setSelectedCategoryId(category.id);
-                              setModalMode('view');
+                              setModalMode('edit');
                             }}
                             style={{
                               background: 'none',
@@ -198,38 +178,6 @@ export function Categories(): JSX.Element {
                       </TableCell>
                       <TableCell className="text-right text-muted-foreground text-sm">
                         {formatDate(category.createdAt)}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div
-                          style={{
-                            display: 'flex',
-                            gap: '0.5rem',
-                            justifyContent: 'flex-end',
-                          }}
-                        >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedCategoryId(category.id);
-                              setModalMode('edit');
-                            }}
-                            aria-label={`Edit ${category.name}`}
-                          >
-                            Edit
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() =>
-                              handleDelete(category.id, category.name)
-                            }
-                            disabled={deleting === category.id}
-                            aria-label={`Delete ${category.name}`}
-                          >
-                            {deleting === category.id ? 'Deleting…' : 'Delete'}
-                          </Button>
-                        </div>
                       </TableCell>
                     </TableRow>
                   );
