@@ -16,7 +16,7 @@ async function loginToken(): Promise<{ token: string; userId: string }> {
     email: 'nadia@example.com',
     password: 'password123',
   });
-  return { token: loggedIn.token, userId: result.id };
+  return { token: loggedIn.token, userId: result.user.id };
 }
 
 describe('GET /auth/me', () => {

@@ -45,7 +45,7 @@ export interface AuthResult {
  */
 export async function register(
   input: RegisterInput,
-): Promise<{ id: string; email: string; name: string }> {
+): Promise<AuthResult> {
   const existing = await findUserByEmail(input.email);
   if (existing) {
     throw conflictError('Email already registered');
@@ -56,7 +56,8 @@ export async function register(
     passwordHash,
     name: input.name,
   });
-  return { id: user.id, email: user.email, name: user.name };
+  const token = signToken({ sub: user.id, email: user.email, name: user.name });
+  return { token, user: { id: user.id, email: user.email, name: user.name } };
 }
 
 /**
@@ -71,7 +72,7 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   if (!valid) {
     throw unauthorizedError('Invalid credentials');
   }
-  const token = signToken({ sub: user.id, email: user.email });
+  const token = signToken({ sub: user.id, email: user.email, name: user.name });
   return { token, user: { id: user.id, email: user.email, name: user.name } };
 }
 

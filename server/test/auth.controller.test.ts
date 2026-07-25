@@ -20,9 +20,9 @@ describe('POST /auth/register', () => {
         password: 'password123',
       });
     expect(response.status).toBe(201);
-    expect(response.body.email).toBe('heidi@example.com');
-    expect(response.body.name).toBe('Heidi');
-    expect(response.body.id).toBeDefined();
+    expect(response.body.user.email).toBe('heidi@example.com');
+    expect(response.body.user.name).toBe('Heidi');
+    expect(response.body.user.id).toBeDefined();
   });
 
   it('rejects invalid input (400)', async () => {

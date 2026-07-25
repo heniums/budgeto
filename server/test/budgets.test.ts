@@ -16,12 +16,12 @@ async function createTestUser(
   name = 'Budget Tester',
   email = 'budget@example.com',
 ): Promise<string> {
-  const user = await register({
+  const { user } = await register({
     name,
     email,
     password: 'password123',
   });
-  return signToken({ sub: user.id, email: user.email });
+  return signToken({ sub: user.id, email: user.email, name: user.name });
 }
 
 async function createCategory(

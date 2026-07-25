@@ -13,3 +13,5 @@ coverage/
 .hypa/
 .specs/
 .mcp.json
+.vercel
+.env*

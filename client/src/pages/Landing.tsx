@@ -1,13 +1,15 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import {
   Wallet,
   PieChart,
   Receipt,
   TrendingUp,
-  Shield,
+  LogOut,
   ArrowRight,
+  Shield,
 } from 'lucide-react';
+import { useAuth } from '../auth/AuthContext';
 
 interface FeatureCardProps {
   icon: React.ElementType;
@@ -28,6 +30,13 @@ function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
 }
 
 export function Landing(): JSX.Element {
+  const { user, status, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = (): void => {
+    logout();
+    navigate('/', { replace: true });
+  };
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation */}
@@ -41,15 +50,32 @@ export function Landing(): JSX.Element {
               <span className="text-xl font-bold">Budgeto</span>
             </div>
             <nav className="flex items-center gap-4">
-              <Link
-                to="/login"
-                className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-              >
-                Sign in
-              </Link>
-              <Button asChild size="sm">
-                <Link to="/signup">Get started</Link>
-              </Button>
+              {status === 'authenticated' && user ? (
+                <>
+                  <div className="flex items-center gap-3 text-sm">
+                    <div className="text-right leading-tight hidden sm:block">
+                      <div className="font-medium text-foreground">{user.name}</div>
+                      <div className="text-muted-foreground text-xs">{user.email}</div>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleLogout}>
+                      <LogOut className="mr-2 h-4 w-4" aria-hidden />
+                      Log out
+                    </Button>
+                  </div>
+                </>
+              ) : status === 'loading' ? null : (
+                <>
+                  <Link
+                    to="/login"
+                    className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    Sign in
+                  </Link>
+                  <Button asChild size="sm">
+                    <Link to="/signup">Get started</Link>
+                  </Button>
+                </>
+              )}
             </nav>
           </div>
         </div>

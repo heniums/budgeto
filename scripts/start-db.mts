@@ -13,7 +13,7 @@ const pg = new EmbeddedPostgres({
   user: 'postgres',
   password: 'postgres',
   port: PORT,
-  persistent: false,
+  persistent: true,
 });
 
 async function main(): Promise<void> {

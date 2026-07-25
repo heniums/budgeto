@@ -55,7 +55,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         setStatus('authenticated');
       })
       .catch((error) => {
-        console.log('error:', error);
         if (!active) return;
         // Only clear session on 401 — transient errors (network, CORS, 500)
         // should not wipe a valid token
