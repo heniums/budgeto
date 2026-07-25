@@ -55,8 +55,6 @@ vi.mock('../api/transactions', async (importOriginal) => {
   return {
     ...actual,
     getTransactions: vi.fn(),
-    updateTransaction: vi.fn(),
-    deleteTransaction: vi.fn(),
   };
 });
 vi.mock('../api/wallets', async (importOriginal) => {
@@ -75,8 +73,6 @@ vi.mock('../api/categories', async (importOriginal) => {
 
 import {
   getTransactions,
-  updateTransaction,
-  deleteTransaction,
   type TransactionData,
 } from '../api/transactions';
 import { getWallets, getWallet, createWallet } from '../api/wallets';
