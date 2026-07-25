@@ -28,7 +28,7 @@ function renderAt(path: string, element: JSX.Element): void {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path={path} element={element} />
-          <Route path="/dashboard" element={<div>Dashboard home</div>} />
+          <Route path="/home" element={<div>Home</div>} />
         </Routes>
       </MemoryRouter>
     </AuthProvider>,
@@ -66,7 +66,7 @@ describe('form accessibility', () => {
     await user.type(screen.getByLabelText(/confirm password/i), 'supersecret');
     await user.click(screen.getByLabelText(/confirm password/i));
     await user.keyboard('{Enter}');
-    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
+    expect(await screen.findByText('Home')).toBeInTheDocument();
     expect(vi.mocked(register)).toHaveBeenCalled();
   });
 
@@ -77,7 +77,7 @@ describe('form accessibility', () => {
     await user.type(screen.getByLabelText(/password/i), 'supersecret');
     await user.click(screen.getByLabelText(/password/i));
     await user.keyboard('{Enter}');
-    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
+    expect(await screen.findByText('Home')).toBeInTheDocument();
     expect(vi.mocked(login)).toHaveBeenCalled();
   });
   it('has a first focusable field on the sign-in page', async () => {

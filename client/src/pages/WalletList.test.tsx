@@ -54,7 +54,7 @@ const mockWallets = [
 function renderList(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/settings']}>
+      <MemoryRouter initialEntries={['/wallets']}>
         <WalletList />
       </MemoryRouter>
     </AuthProvider>,

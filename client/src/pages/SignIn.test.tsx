@@ -33,7 +33,7 @@ function renderSignIn(initialEntry: unknown = '/login'): void {
         <Routes>
           <Route path="/login" element={<SignIn />} />
           <Route path="/signup" element={<div>Sign up page</div>} />
-          <Route path="/dashboard" element={<div>Dashboard home</div>} />
+          <Route path="/home" element={<div>Home</div>} />
           <Route path="/settings" element={<div>Settings</div>} />
           <Route path="*" element={<LocationSpy />} />
         </Routes>
@@ -89,13 +89,13 @@ describe('SignIn form', () => {
     });
   });
 
-  it('signs in and redirects to the dashboard on success', async () => {
+  it('signs in and redirects to the home page on success', async () => {
     const user = userEvent.setup();
     renderSignIn();
     await user.type(screen.getByLabelText(/email address/i), 'ada@example.com');
     await user.type(screen.getByLabelText(/password/i), 'supersecret');
     await user.click(screen.getByRole('button', { name: /sign in/i }));
-    expect(await screen.findByText('Dashboard home')).toBeInTheDocument();
+    expect(await screen.findByText('Home')).toBeInTheDocument();
     expect(vi.mocked(login)).toHaveBeenCalledWith({
       email: 'ada@example.com',
       password: 'supersecret',

@@ -25,7 +25,7 @@ export function SignIn(): JSX.Element {
   const { login: signIn } = useAuth();
   const from =
     (location.state as { from?: { pathname: string } })?.from?.pathname ??
-    '/dashboard';
+    '/home';
   const ids = {
     email: useId(),
     password: useId(),

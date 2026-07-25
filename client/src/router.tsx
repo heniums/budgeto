@@ -6,7 +6,7 @@ import { SignUp } from './pages/SignUp';
 import { SignIn } from './pages/SignIn';
 import { Landing } from './pages/Landing';
 import { Home } from './pages/Home';
-import { Settings } from './pages/Settings';
+import { Transactions } from './pages/Transactions';
 import { Profile } from './pages/Profile';
 import { WalletList } from './pages/WalletList';
 import { Categories } from './pages/Categories';
@@ -44,17 +44,19 @@ export const routes: RouteObject[] = [
       </ProtectedRoute>
     ),
     children: [
-      { path: '/dashboard', element: <Home /> },
+      { path: '/home', element: <Home /> },
+      { path: '/transactions', element: <Transactions /> },
       { path: '/budgets', element: <Budgets /> },
+      { path: '/wallets', element: <WalletList /> },
+      { path: '/categories', element: <Categories /> },
+      { path: '/profile', element: <Profile /> },
+      { path: '/dashboard', element: <Navigate to="/home" replace /> },
+      { path: '/settings', element: <Navigate to="/wallets" replace /> },
       {
-        path: '/settings',
-        element: <Settings />,
-        children: [
-          { index: true, element: <WalletList /> },
-          { path: 'categories', element: <Categories /> },
-          { path: 'user', element: <Profile /> },
-        ],
+        path: '/settings/categories',
+        element: <Navigate to="/categories" replace />,
       },
+      { path: '/settings/user', element: <Navigate to="/profile" replace /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

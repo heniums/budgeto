@@ -1,8 +1,8 @@
 import { useId, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '../auth/AuthContext';
 import { changePassword, updateName } from '../api/auth';
 import { ApiError } from '../api/client';
@@ -30,8 +30,7 @@ type NameValues = z.infer<typeof nameSchema>;
 type PasswordValues = z.infer<typeof passwordSchema>;
 
 export function Profile(): JSX.Element {
-  const navigate = useNavigate();
-  const { user, logout, refreshUser } = useAuth();
+  const { user, refreshUser } = useAuth();
   const [nameEditing, setNameEditing] = useState(false);
   const [pwFormError, setPwFormError] = useState<string | null>(null);
   const [pwSuccess, setPwSuccess] = useState<string | null>(null);
@@ -67,11 +66,6 @@ export function Profile(): JSX.Element {
       confirmPassword: '',
     },
   });
-
-  const handleSignOut = (): void => {
-    logout();
-    navigate('/login');
-  };
 
   const submitName = async (values: NameValues): Promise<void> => {
     try {
@@ -146,31 +140,27 @@ export function Profile(): JSX.Element {
                 message={nameErrors.name?.message}
               />
             </div>
-            <div className="field-actions">
-              <button type="submit" disabled={nameSaving}>
-                {nameSaving ? 'Saving…' : 'Save'}
-              </button>
-              <button
+            <div className="flex justify-end gap-2">
+              <Button
                 type="button"
-                className="secondary"
+                variant="outline"
                 onClick={cancelNameEdit}
                 disabled={nameSaving}
               >
                 Cancel
-              </button>
+              </Button>
+              <Button type="submit" disabled={nameSaving}>
+                {nameSaving ? 'Saving…' : 'Save'}
+              </Button>
             </div>
           </form>
         ) : (
           <div className="name-display">
             <p data-testid="profile-name">{user?.name ?? 'Unnamed'}</p>
             <p className="profile-email">{user?.email}</p>
-            <button
-              type="button"
-              onClick={startNameEdit}
-              className="edit-button"
-            >
+            <Button type="button" variant="outline" onClick={startNameEdit}>
               Edit name
-            </button>
+            </Button>
           </div>
         )}
       </section>
@@ -242,15 +232,11 @@ export function Profile(): JSX.Element {
               {pwSuccess}
             </div>
           )}
-          <button type="submit" disabled={pwSubmitting}>
+          <Button type="submit" disabled={pwSubmitting}>
             {pwSubmitting ? 'Updating…' : 'Update password'}
-          </button>
+          </Button>
         </form>
       </section>
-
-      <button type="button" className="sign-out" onClick={handleSignOut}>
-        Sign out
-      </button>
     </main>
   );
 }

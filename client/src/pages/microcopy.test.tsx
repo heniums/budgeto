@@ -53,7 +53,7 @@ describe('conversational microcopy', () => {
   });
 
   it('frames the profile page around the person', async () => {
-    renderAt('/settings/user', <Profile />);
+    renderAt('/profile', <Profile />);
     expect(
       await screen.findByRole('heading', { name: /your profile/i }),
     ).toBeInTheDocument();
