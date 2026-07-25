@@ -14,7 +14,6 @@ export function ProtectedRoute({
   children: JSX.Element;
 }): JSX.Element {
   const { status } = useAuth();
-  console.log('status:', status);
   const location = useLocation();
   if (status === 'loading') {
     return (
