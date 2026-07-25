@@ -79,6 +79,7 @@ describe('router guards', () => {
   });
 
   it('lets an authenticated user reach /settings/user', async () => {
+    window.localStorage.setItem('budgeto:token', 'test-token');
     vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
