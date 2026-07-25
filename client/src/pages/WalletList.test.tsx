@@ -101,10 +101,7 @@ describe('WalletList page', () => {
   it('shows empty state when no wallets exist', async () => {
     vi.mocked(getWallets).mockResolvedValue({ wallets: [] });
     renderList();
-    await waitFor(() => {
-      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
-    });
-    expect(screen.getByText('No wallets yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No wallets yet.')).toBeInTheDocument();
   });
 
   it('filters wallets by name via search input', async () => {

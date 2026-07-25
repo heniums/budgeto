@@ -95,10 +95,7 @@ describe('Categories page', () => {
   it('shows empty state when no categories exist', async () => {
     vi.mocked(getCategories).mockResolvedValue({ categories: [] });
     renderList();
-    await waitFor(() => {
-      expect(screen.queryByText('Loading…')).not.toBeInTheDocument();
-    });
-    expect(screen.getByText('No categories yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No categories yet.')).toBeInTheDocument();
   });
 
   it('filters categories by name via search input', async () => {

@@ -16,6 +16,7 @@ import {
 import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
 import { FormAlert } from '../components/FormAlert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
@@ -90,7 +91,43 @@ export function WalletList(): JSX.Element {
       </div>
 
       {loading ? (
-        <p>Loading…</p>
+        <div className="rounded-md border">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Description</TableHead>
+                <TableHead className="text-right">Balance</TableHead>
+                <TableHead className="text-right">Currency</TableHead>
+                <TableHead className="text-right">Created</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {Array.from({ length: 5 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Skeleton className="h-3 w-3 rounded-full" />
+                      <Skeleton className="h-4 w-28" />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Skeleton className="h-4 w-36" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-4 w-20" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-4 w-10" />
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Skeleton className="ml-auto h-4 w-20" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       ) : wallets.length === 0 ? (
         <p>No wallets yet.</p>
       ) : (
