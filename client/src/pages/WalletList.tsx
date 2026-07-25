@@ -65,33 +65,25 @@ export function WalletList(): JSX.Element {
   };
 
   return (
-    <main>
-      <h1>Wallets</h1>
+    <div className="space-y-6 min-w-0">
+      <h1 className="text-2xl font-semibold text-foreground">Wallets</h1>
 
       <FormAlert message={error} />
 
-      <div
-        style={{
-          display: 'flex',
-          gap: '0.75rem',
-          marginBottom: '1rem',
-          flexWrap: 'wrap',
-        }}
-      >
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button onClick={() => setModalMode('create')}>New Wallet</Button>
-        <div style={{ flex: 1, minWidth: '200px', maxWidth: '320px' }}>
-          <Input
-            type="search"
-            placeholder="Search wallets…"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label="Search wallets"
-          />
-        </div>
+        <Input
+          type="search"
+          placeholder="Search wallets…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="w-full sm:max-w-xs"
+          aria-label="Search wallets"
+        />
       </div>
 
       {loading ? (
-        <div className="rounded-md border">
+        <div className="overflow-hidden rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -131,7 +123,7 @@ export function WalletList(): JSX.Element {
       ) : wallets.length === 0 ? (
         <p>No wallets yet.</p>
       ) : (
-        <div className="rounded-md border">
+        <div className="overflow-hidden rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -241,6 +233,6 @@ export function WalletList(): JSX.Element {
           load();
         }}
       />
-    </main>
+    </div>
   );
 }

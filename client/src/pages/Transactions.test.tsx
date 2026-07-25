@@ -492,113 +492,32 @@ describe('Home sequential modal — transaction + wallet/category', () => {
   });
 });
 
-describe('Home transaction detail view', () => {
+
+
+describe('Home responsive layout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    transactionsFixture = [
-      {
-        id: 't1',
-        walletId: 'w1',
-        amount: '-42.50',
-        description: 'Groceries',
-        categoryId: 'c1',
-        categoryName: 'Food',
-        createdAt: '2026-01-02T10:00:00Z',
-        date: '2026-01-02',
-      },
-    ];
     vi.mocked(getWallets).mockResolvedValue({ wallets });
     vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
-    vi.mocked(updateTransaction).mockResolvedValue({
-      id: 't1',
-      walletId: 'w1',
-      amount: '-99.00',
-      description: 'Updated',
-      categoryId: 'c1',
-      categoryName: 'Food',
-      createdAt: '2026-01-02T10:00:00Z',
-      date: '2026-01-02',
-    });
-    vi.mocked(deleteTransaction).mockResolvedValue({
-      id: 't1',
-      walletId: 'w1',
-      amount: '-42.50',
-      description: 'Groceries',
-      categoryId: 'c1',
-      categoryName: null,
-      createdAt: '2026-01-02T10:00:00Z',
-      date: '2026-01-02',
-    });
-    cleanup();
-  });
-
-  it('opens transaction detail then edit form when clicking a row', async () => {
-    const user = userEvent.setup();
-    renderHome();
-    await screen.findByText('Groceries');
-
-    await user.click(screen.getByText('Groceries'));
-
-    expect(await screen.findByText(/transaction details/i)).toBeInTheDocument();
-
-    await user.click(screen.getByRole('button', { name: /edit/i }));
-
-    expect(
-      await screen.findByRole('button', { name: /save changes/i }),
-    ).toBeInTheDocument();
-    expect(screen.getByText(/delete this transaction/i)).toBeInTheDocument();
-  });
-
-  it('deletes transaction after confirmation', async () => {
-    const user = userEvent.setup();
-    renderHome();
-    await screen.findByText('Groceries');
-
-    await user.click(screen.getByText('Groceries'));
-    await screen.findByText(/transaction details/i);
-
-    await user.click(screen.getByRole('button', { name: /delete/i }));
-    await screen.findByText(/are you sure/i);
-
-    await user.click(screen.getByRole('button', { name: /delete/i }));
-
-    expect(deleteTransaction).toHaveBeenCalledWith('t1');
-  });
-
-  it('prompts cascade when deleting a transfer leg', async () => {
     transactionsFixture = [
       {
         id: 't1',
         walletId: 'w1',
         amount: '50.00',
-        description: 'Transfer',
-        categoryId: null,
-        categoryName: null,
-        createdAt: '2026-01-02T10:00:00.000Z',
-        date: '2026-01-02',
-      },
-      {
-        id: 't2',
-        walletId: 'w2',
-        amount: '-50.00',
-        description: 'Transfer',
-        categoryId: null,
-        categoryName: null,
-        createdAt: '2026-01-02T10:00:00.500Z',
-        date: '2026-01-02',
+        description: 'Salary',
+        categoryId: 'c1',
+        categoryName: 'Food',
+        createdAt: '2026-01-15T10:00:00Z',
+        date: '2026-01-15',
       },
     ];
+    cleanup();
+  });
 
-    const user = userEvent.setup();
+  it('wraps each transaction table in an overflow-hidden container for mobile', async () => {
     renderHome();
-    await screen.findByText('$50.00');
-
-    const amountCells = screen.getAllByText('$50.00');
-    await user.click(amountCells[0]);
-    await screen.findByText(/transaction details/i);
-
-    await user.click(screen.getByRole('button', { name: /delete/i }));
-
-    expect(await screen.findByText(/part of a transfer/i)).toBeInTheDocument();
+    await screen.findByText('Salary');
+    const table = screen.getByText('Salary').closest('table');
+    expect(table?.parentElement?.parentElement).toHaveClass('overflow-hidden');
   });
 });

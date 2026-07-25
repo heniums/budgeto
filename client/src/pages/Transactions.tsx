@@ -395,7 +395,7 @@ export function Transactions(): JSX.Element {
           placeholder="Search description…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          className="max-w-xs"
+          className="w-full sm:max-w-xs"
           aria-label="Search transactions"
         />
         <DateRangeButton value={datePreset} onChange={setDatePreset} />
@@ -444,14 +444,14 @@ export function Transactions(): JSX.Element {
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
               aria-label="From date"
-              className="max-w-[160px]"
+              className="w-full sm:max-w-[160px]"
             />
             <Input
               type="date"
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
               aria-label="To date"
-              className="max-w-[160px]"
+              className="w-full sm:max-w-[160px]"
             />
           </>
         )}
@@ -459,7 +459,7 @@ export function Transactions(): JSX.Element {
 
       {initialLoading ? (
         <div className="space-y-6">
-          <div className="rounded-md border">
+          <div className="overflow-hidden rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -532,7 +532,7 @@ export function Transactions(): JSX.Element {
                 >
                   {group.label}
                 </h2>
-                <div className="rounded-md border">
+                <div className="overflow-hidden rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>
