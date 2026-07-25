@@ -16,6 +16,7 @@ import {
   getWallet,
   updateWallet,
   deleteWallet,
+  adjustBalance,
   type WalletData,
 } from '../api/wallets';
 import { ApiError } from '../api/client';
@@ -66,6 +67,7 @@ export function WalletModal({
 }: WalletModalProps): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [originalBalance, setOriginalBalance] = useState<string | null>(null);
 
   const {
     register,
@@ -92,6 +94,7 @@ export function WalletModal({
 
     if (isCreate) {
       setLoading(false);
+      setOriginalBalance(null);
       reset({
         name: '',
         description: '',
@@ -117,6 +120,7 @@ export function WalletModal({
           currency: w.currency,
           balance: w.balance,
         });
+        setOriginalBalance(w.balance);
         setLoading(false);
       })
       .catch(() => {
@@ -151,13 +155,21 @@ export function WalletModal({
     if (!walletId) return;
     setFormError(null);
     try {
+      // Update metadata
       await updateWallet(walletId, {
         name: values.name.trim(),
         description: values.description.trim(),
         color: values.color,
         currency: values.currency,
-        balance: values.balance.trim(),
       });
+
+      // Adjust balance if changed
+      const newBalance = values.balance.trim();
+      if (originalBalance !== null && newBalance !== originalBalance) {
+        await adjustBalance(walletId, { targetBalance: newBalance });
+        setOriginalBalance(newBalance);
+      }
+
       onSuccess?.();
     } catch (err) {
       setFormError(

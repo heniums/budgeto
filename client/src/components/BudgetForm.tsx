@@ -5,6 +5,7 @@ import { z } from 'zod';
 import {
   createBudget,
   updateBudget,
+  deleteBudget,
   type BudgetData,
   type PeriodType,
 } from '../api/budgets';
@@ -207,6 +208,20 @@ export function BudgetForm({
     }
   };
 
+  const handleDelete = async (): Promise<void> => {
+    if (!editingBudget) return;
+    clearErrors('root');
+    try {
+      await deleteBudget(editingBudget.id);
+      onSuccess();
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setError('root', { message: err.message });
+      } else {
+        setError('root', { message: 'Failed to delete budget.' });
+      }
+    }
+  };
   return (
     <DialogContent className="max-h-[90vh] overflow-y-auto">
       <DialogHeader>
@@ -385,23 +400,37 @@ export function BudgetForm({
           <FormError message={errors.categories?.message as string | undefined} />
         </div>
 
-        <div className="flex gap-2">
-          <Button type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? editingBudget
-                ? 'Saving…'
-                : 'Adding…'
-              : editingBudget
-                ? 'Save changes'
-                : 'Add budget'}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onCancel}
-          >
-            Cancel
-          </Button>
+        <div
+          className={`flex ${editingBudget ? 'justify-between' : 'justify-end'} gap-2`}
+        >
+          {editingBudget && (
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              type="button"
+              disabled={isSubmitting}
+            >
+              Delete
+            </Button>
+          )}
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onCancel}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? editingBudget
+                  ? 'Saving…'
+                  : 'Adding…'
+                : editingBudget
+                  ? 'Save changes'
+                  : 'Add budget'}
+            </Button>
+          </div>
         </div>
       </form>
     </DialogContent>
