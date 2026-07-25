@@ -6,6 +6,7 @@ import {
   changePasswordSchema,
   register,
   login,
+  getProfile,
   updateProfile,
   changePassword,
 } from './service';
@@ -52,7 +53,9 @@ export async function meHandler(
     if (!req.user) {
       throw notFoundError('User not found');
     }
-    res.status(200).json({ user: req.user });
+    const profile = await getProfile(req.user.sub);
+    const user = profile ?? { id: req.user.sub, email: req.user.email, name: req.user.name };
+    res.status(200).json({ user });
   } catch (error) {
     next(error);
   }

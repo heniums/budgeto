@@ -102,6 +102,7 @@ describe('router guards', () => {
   });
 
   it('renders the landing page at the index route when unauthenticated', async () => {
+    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     render(
       <AuthProvider>
@@ -109,6 +110,6 @@ describe('router guards', () => {
       </AuthProvider>,
     );
     expect(await screen.findByText('Your Money,')).toBeInTheDocument();
-    expect(screen.getByText('Under Control')).toBeInTheDocument();
+    expect(await screen.findByText('Under Control')).toBeInTheDocument();
   });
 });

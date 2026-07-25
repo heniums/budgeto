@@ -1,4 +1,5 @@
 import { Navigate, type RouteObject } from 'react-router-dom';
+import { GuestRoute } from './auth/GuestRoute';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { Layout } from './components/Layout';
 import { SignUp } from './pages/SignUp';
@@ -12,9 +13,30 @@ import { Categories } from './pages/Categories';
 import { Budgets } from './pages/Budgets';
 
 export const routes: RouteObject[] = [
-  { path: '/', element: <Landing /> },
-  { path: '/signup', element: <SignUp /> },
-  { path: '/login', element: <SignIn /> },
+  {
+    path: '/',
+    element: (
+      <GuestRoute>
+        <Landing />
+      </GuestRoute>
+    ),
+  },
+  {
+    path: '/signup',
+    element: (
+      <GuestRoute>
+        <SignUp />
+      </GuestRoute>
+    ),
+  },
+  {
+    path: '/login',
+    element: (
+      <GuestRoute>
+        <SignIn />
+      </GuestRoute>
+    ),
+  },
   {
     element: (
       <ProtectedRoute>

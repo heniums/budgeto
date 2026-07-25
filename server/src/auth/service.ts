@@ -83,10 +83,10 @@ export type { TokenPayload };
  */
 export async function getProfile(
   id: string,
-): Promise<{ id: string; email: string; name: string }> {
+): Promise<{ id: string; email: string; name: string } | null> {
   const user = await findUserById(id);
   if (!user) {
-    throw unauthorizedError('User not found');
+    return null;
   }
   return { id: user.id, email: user.email, name: user.name };
 }

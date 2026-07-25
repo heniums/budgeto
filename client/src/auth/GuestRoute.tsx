@@ -1,21 +1,18 @@
-import { Navigate, useLocation } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAuth } from './AuthContext';
 
 /**
- * Wraps a route element so it is only reachable by authenticated users. While
- * the session is loading it renders a placeholder; unauthenticated visitors are
- * redirected to `/login`, remembering where they came from so login can return
- * them to the original destination.
+ * Wraps a route element so it is only reachable by unauthenticated users. While
+ * the session is loading it renders a placeholder; authenticated visitors are
+ * redirected to `/dashboard`.
  */
-export function ProtectedRoute({
+export function GuestRoute({
   children,
 }: {
   children: JSX.Element;
 }): JSX.Element {
   const { status } = useAuth();
-  console.log('status:', status);
-  const location = useLocation();
   if (status === 'loading') {
     return (
       <div className="flex min-h-screen bg-background">
@@ -44,8 +41,8 @@ export function ProtectedRoute({
       </div>
     );
   }
-  if (status === 'unauthenticated') {
-    return <Navigate to="/login" replace state={{ from: location }} />;
+  if (status === 'authenticated') {
+    return <Navigate to="/dashboard" replace />;
   }
   return children;
 }
