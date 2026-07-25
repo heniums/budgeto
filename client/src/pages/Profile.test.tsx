@@ -44,6 +44,7 @@ describe('Profile page', () => {
     );
     vi.mocked(changePassword).mockResolvedValue(undefined);
     window.localStorage.clear();
+    window.localStorage.setItem('budgeto:token', 'test-token');
     cleanup();
   });
 

@@ -11,6 +11,7 @@ import {
   getMe,
   type AuthUser,
 } from '../api/auth';
+import { UNAUTHORIZED_EVENT } from '../api/client';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -33,8 +34,19 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
 
+  const clearSession = useCallback(() => {
+    localStorage.removeItem(AUTH_TOKEN_KEY);
+    setUser(null);
+    setStatus('unauthenticated');
+  }, []);
+
   useEffect(() => {
     let active = true;
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) {
+      setStatus('unauthenticated');
+      return;
+    }
     setStatus('loading');
     getMe()
       .then((fetched) => {
@@ -42,15 +54,29 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
         setUser(fetched);
         setStatus('authenticated');
       })
-      .catch(() => {
+      .catch((error) => {
+        console.log('error:', error);
         if (!active) return;
-        setUser(null);
-        setStatus('unauthenticated');
+        // Only clear session on 401 — transient errors (network, CORS, 500)
+        // should not wipe a valid token
+        if (error?.status === 401) {
+          clearSession();
+        }
       });
     return () => {
       active = false;
     };
-  }, []);
+  }, [clearSession]);
+
+  useEffect(() => {
+    const handleUnauthorized = () => {
+      clearSession();
+    };
+    window.addEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    return () => {
+      window.removeEventListener(UNAUTHORIZED_EVENT, handleUnauthorized);
+    };
+  }, [clearSession]);
 
   const login = useCallback((nextUser: AuthUser, token: string) => {
     localStorage.setItem(AUTH_TOKEN_KEY, token);
@@ -59,20 +85,20 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   }, []);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
-    setUser(null);
-    setStatus('unauthenticated');
-  }, []);
+    clearSession();
+  }, [clearSession]);
 
   const refreshUser = useCallback(async () => {
     try {
       const user = await getMe();
       setUser(user);
-    } catch {
-      setUser(null);
-      setStatus('unauthenticated');
+    } catch (error) {
+      // Only clear session on 401 — transient errors should not wipe a valid token
+      if ((error as { status?: number })?.status === 401) {
+        clearSession();
+      }
     }
-  }, []);
+  }, [clearSession]);
 
   const value = useMemo<AuthContextValue>(
     () => ({ user, status, login, logout, refreshUser }),

@@ -9,6 +9,7 @@ vi.mock('../api/auth', () => ({
 }));
 
 import { getMe } from '../api/auth';
+import { UNAUTHORIZED_EVENT, ApiError } from '../api/client';
 
 function Probe(): JSX.Element {
   const { user, status, login, logout, refreshUser } = useAuth();
@@ -44,6 +45,7 @@ describe('AuthProvider', () => {
   });
 
   it('loads the current user via getMe on mount', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
     vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
@@ -56,9 +58,9 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('email')).toHaveTextContent('a@b.co');
     expect(vi.mocked(getMe)).toHaveBeenCalled();
   });
-
-  it('clears the session when initial getMe fails', async () => {
-    vi.mocked(getMe).mockRejectedValue(new Error('bad token'));
+  it('clears the session when initial getMe returns 401', async () => {
+    window.localStorage.setItem('budgeto:token', 'stale-token');
+    vi.mocked(getMe).mockRejectedValue(new ApiError('Unauthorized', 401));
     render(
       <AuthProvider>
         <Probe />
@@ -67,6 +69,20 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'unauthenticated',
     );
+    expect(window.localStorage.getItem('budgeto:token')).toBeNull();
+  });
+  it('preserves the session on transient getMe failure (non-401)', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
+    vi.mocked(getMe).mockRejectedValue(new Error('network error'));
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    // Wait for initial render
+    await screen.findByTestId('status');
+    // Token should still be in localStorage
+    expect(window.localStorage.getItem('budgeto:token')).toBe('stored-token');
   });
 
   it('login exposes the user', async () => {
@@ -84,8 +100,8 @@ describe('AuthProvider', () => {
       'authenticated',
     );
   });
-
   it('logout clears the session', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
     vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
@@ -100,8 +116,8 @@ describe('AuthProvider', () => {
       'unauthenticated',
     );
   });
-
-  it('refreshUser sets unauthenticated when getMe rejects', async () => {
+  it('refreshUser clears session when getMe returns 401', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
     vi.mocked(getMe).mockResolvedValueOnce(mockUser);
     render(
       <AuthProvider>
@@ -113,7 +129,7 @@ describe('AuthProvider', () => {
     );
     expect(screen.getByTestId('email')).toHaveTextContent('a@b.co');
 
-    vi.mocked(getMe).mockRejectedValueOnce(new Error('session expired'));
+    vi.mocked(getMe).mockRejectedValueOnce(new ApiError('Unauthorized', 401));
     await act(async () => {
       screen.getByText('refresh').click();
     });
@@ -123,14 +139,53 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('email')).toHaveTextContent('none');
   });
 
-  it('does not warn when unmounted while getMe is pending', async () => {
-    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    let resolveGetMe!: (u: typeof mockUser) => void;
-    vi.mocked(getMe).mockReturnValue(
-      new Promise((resolve) => {
-        resolveGetMe = resolve;
-      }),
+  it('refreshUser preserves session on transient getMe failure (non-401)', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
+    vi.mocked(getMe).mockResolvedValueOnce(mockUser);
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
     );
+    expect(await screen.findByTestId('status')).toHaveTextContent(
+      'authenticated',
+    );
+
+    vi.mocked(getMe).mockRejectedValueOnce(new Error('network error'));
+    await act(async () => {
+      screen.getByText('refresh').click();
+    });
+    // Token should still be in localStorage
+    expect(window.localStorage.getItem('budgeto:token')).toBe('stored-token');
+  });
+
+  it('clears the session when budgeto:unauthorized is dispatched', async () => {
+    window.localStorage.setItem('budgeto:token', 'stale-token');
+    vi.mocked(getMe).mockResolvedValue(mockUser);
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    expect(await screen.findByTestId('status')).toHaveTextContent(
+      'authenticated',
+    );
+    expect(window.localStorage.getItem('budgeto:token')).toBe('stale-token');
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+    });
+
+    expect(await screen.findByTestId('status')).toHaveTextContent(
+      'unauthenticated',
+    );
+    expect(window.localStorage.getItem('budgeto:token')).toBeNull();
+  });
+  it('does not warn when unmounted while getMe is pending', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
+    const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const { promise, resolve: resolveGetMe } = Promise.withResolvers<typeof mockUser>();
+    vi.mocked(getMe).mockReturnValue(promise);
 
     render(
       <AuthProvider>

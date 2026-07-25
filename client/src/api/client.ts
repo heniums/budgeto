@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const UNAUTHORIZED_EVENT = 'budgeto:unauthorized';
+export const UNAUTHORIZED_EVENT = 'budgeto:unauthorized';
 
 const AUTH_TOKEN_KEY = 'budgeto:token';
 
