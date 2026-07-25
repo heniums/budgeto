@@ -4,6 +4,7 @@ import { getConfig } from '../config';
 export interface TokenPayload {
   sub: string;
   email: string;
+  name: string;
 }
 
 /**
@@ -23,5 +24,6 @@ export function verifyToken(token: string): TokenPayload {
   return {
     sub: String(decoded.sub),
     email: String(decoded.email),
+    name: String(decoded.name),
   };
 }

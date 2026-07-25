@@ -13,9 +13,9 @@ describe('register', () => {
       email: 'dave@example.com',
       password: 'password123',
     });
-    expect(result.id).toBeDefined();
-    expect(result.email).toBe('dave@example.com');
-    expect(result.name).toBe('Dave');
+    expect(result.user.id).toBeDefined();
+    expect(result.user.email).toBe('dave@example.com');
+    expect(result.user.name).toBe('Dave');
   });
 
   it('rejects a duplicate email', async () => {

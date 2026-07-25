@@ -8,12 +8,12 @@ import { signToken } from '../src/auth/token';
 const app = createApp();
 
 async function createTestUser(): Promise<string> {
-  const user = await register({
+  const { user } = await register({
     name: 'Wallet Tester',
     email: 'wallet@example.com',
     password: 'password123',
   });
-  return signToken({ sub: user.id, email: user.email });
+  return signToken({ sub: user.id, email: user.email, name: user.name });
 }
 
 describe('POST /wallets', () => {
@@ -229,7 +229,7 @@ describe('GET /wallets/:id', () => {
       .send({ name: 'User A Wallet' });
     const walletId = wallet.body.id;
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other@example.com',
       password: 'password123',
@@ -237,6 +237,7 @@ describe('GET /wallets/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -423,7 +424,7 @@ describe('PUT /wallets/:id', () => {
       .send({ name: 'User A Wallet' });
     const walletId = wallet.body.id;
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other2@example.com',
       password: 'password123',
@@ -431,6 +432,7 @@ describe('PUT /wallets/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -476,7 +478,7 @@ describe('DELETE /wallets/:id', () => {
       .send({ name: 'User A Wallet' });
     const walletId = wallet.body.id;
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other3@example.com',
       password: 'password123',
@@ -484,6 +486,7 @@ describe('DELETE /wallets/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -634,7 +637,7 @@ describe('POST /wallets/:id/adjust', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({ name: 'My Wallet' });
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-adjust@example.com',
       password: 'password123',
@@ -642,6 +645,7 @@ describe('POST /wallets/:id/adjust', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)

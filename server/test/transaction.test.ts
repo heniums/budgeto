@@ -9,12 +9,12 @@ import { createTransaction } from '../src/transactions/repository';
 const app = createApp();
 
 async function createTestUser(): Promise<string> {
-  const user = await register({
+  const { user } = await register({
     name: 'Tx Tester',
     email: 'tx@example.com',
     password: 'password123',
   });
-  return signToken({ sub: user.id, email: user.email });
+  return signToken({ sub: user.id, email: user.email, name: user.name });
 }
 
 async function createWallet(
@@ -100,7 +100,7 @@ describe('POST /wallets/:id/transactions', () => {
   });
 
   it('rejects when wallet belongs to another user (404)', async () => {
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other Tx',
       email: 'other-tx@example.com',
       password: 'password123',
@@ -108,6 +108,7 @@ describe('POST /wallets/:id/transactions', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -161,7 +162,7 @@ describe('POST /wallets/:id/transactions — category', () => {
   });
 
   it('rejects a category owned by another user (404)', async () => {
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other User',
       email: 'other@example.com',
       password: 'password123',
@@ -169,6 +170,7 @@ describe('POST /wallets/:id/transactions — category', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
     const otherCategory = await createCategory(otherToken, 'Other');
     const response = await request(app)
@@ -235,7 +237,7 @@ describe('GET /wallets/:id/transactions', () => {
   });
 
   it('rejects when wallet belongs to another user (404)', async () => {
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other Tx List',
       email: 'other-txlist@example.com',
       password: 'password123',
@@ -243,6 +245,7 @@ describe('GET /wallets/:id/transactions', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -447,7 +450,7 @@ describe('GET /transactions/:id', () => {
       .send({ amount: '99', description: 'Mine' });
     const txId = createRes.body.id;
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-get@example.com',
       password: 'password123',
@@ -455,6 +458,7 @@ describe('GET /transactions/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -575,7 +579,7 @@ describe('PUT /transactions/:id', () => {
   it('returns 404 when transaction belongs to another user', async () => {
     const txId = await createTx();
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-put@example.com',
       password: 'password123',
@@ -583,6 +587,7 @@ describe('PUT /transactions/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -595,7 +600,7 @@ describe('PUT /transactions/:id', () => {
   it('returns 404 when new walletId belongs to another user', async () => {
     const txId = await createTx();
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-wallet@example.com',
       password: 'password123',
@@ -603,6 +608,7 @@ describe('PUT /transactions/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
     const otherWallet = await createWallet(otherToken, 'Their Wallet');
 
@@ -616,7 +622,7 @@ describe('PUT /transactions/:id', () => {
   it('returns 404 when new categoryId belongs to another user', async () => {
     const txId = await createTx();
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-cat@example.com',
       password: 'password123',
@@ -624,6 +630,7 @@ describe('PUT /transactions/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
     const otherCategory = await createCategory(otherToken, 'Other Cat');
 
@@ -687,7 +694,7 @@ describe('DELETE /transactions/:id', () => {
   it('returns 404 when transaction belongs to another user', async () => {
     const txId = await createTx();
 
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-del@example.com',
       password: 'password123',
@@ -695,6 +702,7 @@ describe('DELETE /transactions/:id', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
 
     const response = await request(app)
@@ -710,12 +718,12 @@ describe('GET /transactions (user-scoped)', () => {
     const tokenA = await createTestUser();
     const walletA = await createWallet(tokenA, 'A Wallet');
 
-    const userB = await register({
+    const { user: userB } = await register({
       name: 'User B',
       email: 'b@example.com',
       password: 'password123',
     });
-    const tokenB = signToken({ sub: userB.id, email: userB.email });
+    const tokenB = signToken({ sub: userB.id, email: userB.email, name: userB.name });
     const walletB = await createWallet(tokenB, 'B Wallet');
 
     await request(app)
@@ -939,7 +947,7 @@ describe('GET /transactions — filtering & pagination', () => {
   });
 
   it('rejects a walletId owned by another user (404)', async () => {
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other',
       email: 'other-filter@example.com',
       password: 'password123',
@@ -947,6 +955,7 @@ describe('GET /transactions — filtering & pagination', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
     const strangersWallet = await createWallet(otherToken, 'Stranger');
 
@@ -957,7 +966,7 @@ describe('GET /transactions — filtering & pagination', () => {
   });
 
   it('rejects a categoryId owned by another user (404)', async () => {
-    const otherUser = await register({
+    const { user: otherUser } = await register({
       name: 'Other Cat',
       email: 'other-cat-filter@example.com',
       password: 'password123',
@@ -965,6 +974,7 @@ describe('GET /transactions — filtering & pagination', () => {
     const otherToken = signToken({
       sub: otherUser.id,
       email: otherUser.email,
+      name: otherUser.name,
     });
     const strangersCategory = await createCategory(otherToken, 'Stranger');
 
