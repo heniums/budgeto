@@ -33,7 +33,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
-  console.log('user:', user);
 
   const clearSession = useCallback(() => {
     localStorage.removeItem(AUTH_TOKEN_KEY);
@@ -44,7 +43,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   useEffect(() => {
     let active = true;
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    console.log('token:', token);
     if (!token) {
       setStatus('unauthenticated');
       return;
@@ -52,14 +50,11 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     setStatus('loading');
     getMe()
       .then((fetched) => {
-        console.log('fetched:', fetched);
-        console.log('active:', active);
         if (!active) return;
         setUser(fetched);
         setStatus('authenticated');
       })
       .catch((error) => {
-        console.log('error:', error);
         if (!active) return;
         // Only clear session on 401 — transient errors (network, CORS, 500)
         // should not wipe a valid token
@@ -95,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
   const refreshUser = useCallback(async () => {
     try {
       const user = await getMe();
-      console.log('user:', user);
       setUser(user);
     } catch (error) {
       // Only clear session on 401 — transient errors should not wipe a valid token
@@ -109,7 +103,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     () => ({ user, status, login, logout, refreshUser }),
     [user, status, login, logout, refreshUser],
   );
-  console.log('value:', value);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

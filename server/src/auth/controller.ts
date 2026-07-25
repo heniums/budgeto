@@ -53,8 +53,7 @@ export async function meHandler(
     if (!req.user) {
       throw notFoundError('User not found');
     }
-    const profile = await getProfile(req.user.sub);
-    const user = profile ?? { id: req.user.sub, email: req.user.email, name: req.user.name };
+    const user = await getProfile(req.user.sub);
     res.status(200).json({ user });
   } catch (error) {
     next(error);
