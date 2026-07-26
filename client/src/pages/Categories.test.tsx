@@ -18,12 +18,11 @@ vi.mock('../api/categories', async (importOriginal) => {
   return {
     ...actual,
     getCategories: vi.fn(),
-    deleteCategory: vi.fn(),
   };
 });
 
 import { getMe } from '../api/auth';
-import { getCategories, deleteCategory } from '../api/categories';
+import { getCategories } from '../api/categories';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
@@ -65,7 +64,6 @@ describe('Categories page', () => {
     vi.mocked(getCategories).mockResolvedValue({
       categories: mockCategories,
     });
-    vi.mocked(deleteCategory).mockResolvedValue(undefined);
     window.localStorage.clear();
     cleanup();
   });
@@ -83,13 +81,6 @@ describe('Categories page', () => {
     expect(screen.getByText('#ff5733')).toBeInTheDocument();
     // Icons (2 categories, each has an SVG icon)
     expect(document.querySelectorAll('svg')).toHaveLength(2);
-    // Action buttons
-    expect(
-      screen.getByRole('button', { name: 'Edit Groceries' }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: 'Delete Groceries' }),
-    ).toBeInTheDocument();
   });
 
   it('shows empty state when no categories exist', async () => {
@@ -137,19 +128,7 @@ describe('Categories page', () => {
     });
   });
 
-  it('opens CategoryModal in edit mode when clicking Edit button', async () => {
-    const user = userEvent.setup();
-    renderList();
-    await screen.findByText('Groceries');
-    await user.click(screen.getByRole('button', { name: 'Edit Groceries' }));
-
-    await waitFor(() => {
-      const titles = screen.getAllByText('Edit Category');
-      expect(titles.length).toBeGreaterThanOrEqual(1);
-    });
-  });
-
-  it('opens CategoryModal in view mode when clicking a category name', async () => {
+  it('opens CategoryModal in edit mode when clicking a category name', async () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Groceries');
@@ -161,32 +140,10 @@ describe('Categories page', () => {
     });
   });
 
-  it('deletes a category after confirmation', async () => {
-    const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
+  it('wraps the table in an overflow-hidden container for mobile', async () => {
     renderList();
     await screen.findByText('Groceries');
-
-    await user.click(screen.getByRole('button', { name: 'Delete Groceries' }));
-
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(deleteCategory).toHaveBeenCalledWith('c1');
-    await waitFor(() => {
-      expect(getCategories).toHaveBeenCalledTimes(2); // initial + reload
-    });
-    confirmSpy.mockRestore();
-  });
-
-  it('does not delete when confirmation is cancelled', async () => {
-    const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
-    renderList();
-    await screen.findByText('Groceries');
-
-    await user.click(screen.getByRole('button', { name: 'Delete Groceries' }));
-
-    expect(confirmSpy).toHaveBeenCalled();
-    expect(deleteCategory).not.toHaveBeenCalled();
-    confirmSpy.mockRestore();
+    const table = screen.getByText('Groceries').closest('table');
+    expect(table?.parentElement?.parentElement).toHaveClass('overflow-hidden');
   });
 });
