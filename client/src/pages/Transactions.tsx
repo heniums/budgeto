@@ -459,14 +459,14 @@ export function Transactions(): JSX.Element {
 
       {initialLoading ? (
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-md border">
+          <div className="rounded-md border px-2 py-1">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead>Wallet</TableHead>
+                  <TableHead className="hidden md:table-cell">Wallet</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead>Description</TableHead>
+                  <TableHead className="hidden md:table-cell">Description</TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
@@ -476,13 +476,13 @@ export function Transactions(): JSX.Element {
                     <TableCell>
                       <Skeleton className="h-4 w-20" />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Skeleton className="h-4 w-24" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-5 w-20 rounded-full" />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Skeleton className="h-4 w-36" />
                     </TableCell>
                     <TableCell className="text-right">
@@ -532,14 +532,14 @@ export function Transactions(): JSX.Element {
                 >
                   {group.label}
                 </h2>
-                <div className="overflow-hidden rounded-md border">
+                <div className="rounded-md border px-2 py-1">
                   <Table>
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
-                        <TableHead>Wallet</TableHead>
+                        <TableHead className="hidden md:table-cell">Wallet</TableHead>
                         <TableHead>Category</TableHead>
-                        <TableHead>Description</TableHead>
+                        <TableHead className="hidden md:table-cell">Description</TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -555,7 +555,7 @@ export function Transactions(): JSX.Element {
                             onClick={() => setEditTx(tx)}
                           >
                             <TableCell>{formatDate(tx.date)}</TableCell>
-                            <TableCell>
+                            <TableCell className="hidden md:table-cell">
                               <ContextMenu>
                                 <ContextMenuTrigger
                                   className="cursor-context-menu"
@@ -605,7 +605,7 @@ export function Transactions(): JSX.Element {
                                 <span className="text-muted-foreground">—</span>
                               )}
                             </TableCell>
-                            <TableCell>{tx.description || '—'}</TableCell>
+                            <TableCell className="hidden md:table-cell">{tx.description || '—'}</TableCell>
                             <TableCell className="text-right">
                               <Money
                                 amount={tx.amount}
