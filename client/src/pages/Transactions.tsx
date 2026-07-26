@@ -459,7 +459,7 @@ export function Transactions(): JSX.Element {
 
       {initialLoading ? (
         <div className="space-y-6">
-          <div className="overflow-hidden rounded-md border">
+          <div className="rounded-md border">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -532,7 +532,7 @@ export function Transactions(): JSX.Element {
                 >
                   {group.label}
                 </h2>
-                <div className="overflow-hidden rounded-md border">
+                <div className="rounded-md border">
                   <Table>
                     <TableHeader>
                       <TableRow>

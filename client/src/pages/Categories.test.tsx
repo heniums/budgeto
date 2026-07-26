@@ -144,6 +144,6 @@ describe('Categories page', () => {
     renderList();
     await screen.findByText('Groceries');
     const table = screen.getByText('Groceries').closest('table');
-    expect(table?.parentElement?.parentElement).toHaveClass('overflow-hidden');
+    expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
   });
 });

@@ -83,7 +83,7 @@ export function WalletList(): JSX.Element {
       </div>
 
       {loading ? (
-        <div className="overflow-hidden rounded-md border">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -123,7 +123,7 @@ export function WalletList(): JSX.Element {
       ) : wallets.length === 0 ? (
         <p>No wallets yet.</p>
       ) : (
-        <div className="overflow-hidden rounded-md border">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>

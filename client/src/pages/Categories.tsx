@@ -81,7 +81,7 @@ export function Categories(): JSX.Element {
       </div>
 
       {loading ? (
-        <div className="overflow-hidden rounded-md border">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -116,7 +116,7 @@ export function Categories(): JSX.Element {
       ) : categories.length === 0 ? (
         <p>No categories yet.</p>
       ) : (
-        <div className="overflow-hidden rounded-md border">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>

@@ -164,6 +164,6 @@ describe('WalletList page', () => {
     renderList();
     await screen.findByText('Cash');
     const table = screen.getByText('Cash').closest('table');
-    expect(table?.parentElement?.parentElement).toHaveClass('overflow-hidden');
+    expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
   });
 });
