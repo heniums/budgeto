@@ -81,13 +81,13 @@ export function Categories(): JSX.Element {
       </div>
 
       {loading ? (
-        <div className="rounded-md border">
+        <div className="rounded-md border px-2 py-1">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Color</TableHead>
-                <TableHead className="text-right">Created</TableHead>
+                <TableHead className="hidden md:table-cell text-right">Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -105,7 +105,7 @@ export function Categories(): JSX.Element {
                       <Skeleton className="h-4 w-16" />
                     </div>
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="hidden md:table-cell text-right">
                     <Skeleton className="ml-auto h-4 w-20" />
                   </TableCell>
                 </TableRow>
@@ -116,13 +116,13 @@ export function Categories(): JSX.Element {
       ) : categories.length === 0 ? (
         <p>No categories yet.</p>
       ) : (
-        <div className="rounded-md border">
+        <div className="rounded-md border px-2 py-1">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Color</TableHead>
-                <TableHead className="text-right">Created</TableHead>
+                <TableHead className="hidden md:table-cell text-right">Created</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -200,7 +200,7 @@ export function Categories(): JSX.Element {
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="text-right text-muted-foreground text-sm">
+                      <TableCell className="hidden md:table-cell text-right text-muted-foreground text-sm">
                         {formatDate(category.createdAt)}
                       </TableCell>
                     </TableRow>
