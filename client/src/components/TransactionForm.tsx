@@ -129,7 +129,7 @@ export function TransactionForm({
       amount: '',
       description: '',
       categoryId: '',
-      date: dayjs().format('YYYY-MM-DD'),
+      date: dayjs().format('YYYY-MM-DDTHH:mm'),
     },
   });
 
@@ -153,12 +153,13 @@ export function TransactionForm({
       setValue('amount', initialValues.amount);
       setValue('description', initialValues.description);
       setValue('categoryId', initialValues.categoryId);
-      setValue('date', initialValues.date);
+      setValue('date', dayjs(initialValues.date).format('YYYY-MM-DDTHH:mm'));
     }
   }, [editMode, initialValues, setValue]);
 
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
+    const isoDate = dayjs(values.date).toISOString();
     try {
       if (editMode && editTxId) {
         const updated: TransactionData = await updateTransaction(editTxId, {
@@ -166,21 +167,29 @@ export function TransactionForm({
           description: values.description,
           categoryId: values.categoryId || undefined,
           walletId: values.walletId,
+          date: isoDate,
         });
         reset({
           walletId: updated.walletId,
           amount: updated.amount,
           description: updated.description,
           categoryId: updated.categoryId ?? '',
+          date: dayjs(updated.date ?? isoDate).format('YYYY-MM-DDTHH:mm'),
         });
       } else {
         await createTransaction(values.walletId, {
           amount: values.amount,
           description: values.description,
           categoryId: values.categoryId || undefined,
-          date: values.date,
+          date: isoDate,
         });
-        reset();
+        reset({
+          walletId: '',
+          amount: '',
+          description: '',
+          categoryId: '',
+          date: dayjs().format('YYYY-MM-DDTHH:mm'),
+        });
       }
       onSuccess();
     } catch (err) {
@@ -236,7 +245,7 @@ export function TransactionForm({
           <div>
             <span className="text-sm text-muted-foreground">Date</span>
             <p className="text-sm font-medium">
-              {dayjs(viewValues.date).format('M/D/YYYY')}
+              {dayjs(viewValues.date).format('M/D/YYYY h:mm A')}
             </p>
           </div>
         )}
@@ -452,7 +461,7 @@ export function TransactionForm({
 
       <div className="space-y-2">
         <Label htmlFor="tx-date">Date</Label>
-        <Input id="tx-date" type="date" {...register('date')} />
+        <Input id="tx-date" type="datetime-local" {...register('date')} />
         <FormError message={errors.date?.message} />
       </div>
 

@@ -300,8 +300,8 @@ describe('TransactionForm — edit mode', () => {
       description: 'Updated desc',
       categoryId: 'c1',
       categoryName: 'Food',
-      createdAt: '2024-01-01',
-      date: '2024-01-01',
+      createdAt: '2024-01-01T00:00:00.000Z',
+      date: '2024-01-01T00:00:00.000Z',
     });
     vi.mocked(createTransaction).mockResolvedValue({
       id: 't-new',
@@ -328,7 +328,7 @@ describe('TransactionForm — edit mode', () => {
             amount: '42.50',
             description: 'Groceries',
             categoryId: 'c1',
-            date: '2024-01-01',
+            date: '2024-01-01T12:00:00.000Z',
           }}
           editTxId="t-edit"
         />
@@ -368,7 +368,7 @@ describe('TransactionForm — edit mode', () => {
             amount: '10',
             description: '',
             categoryId: 'c1',
-            date: '2024-01-01',
+            date: '2024-01-01T12:00:00.000Z',
           }}
           editTxId="t-edit"
         />
@@ -399,7 +399,7 @@ describe('TransactionForm — edit mode', () => {
             amount: '100',
             description: 'Old',
             categoryId: 'c1',
-            date: '2024-01-01',
+            date: '2024-01-01T12:00:00.000Z',
           }}
           editTxId="t-edit"
         />
@@ -418,6 +418,7 @@ describe('TransactionForm — edit mode', () => {
       description: 'Old',
       categoryId: 'c1',
       walletId: 'w1',
+      date: '2024-01-01T12:00:00.000Z',
     });
     expect(createTransaction).not.toHaveBeenCalled();
   });

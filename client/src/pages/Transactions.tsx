@@ -71,7 +71,7 @@ function makeLongPressHandlers(onLongPress: () => void): LongPressHandlers {
 
 function formatDate(iso: string): string {
   if (!iso) return '';
-  return dayjs(iso).format('M/D/YYYY');
+  return dayjs(iso).format('M/D/YYYY h:mm A');
 }
 
 interface PeriodGroup {

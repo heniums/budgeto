@@ -151,21 +151,21 @@ describe('wallets API client', () => {
       amount: '-50.00',
       description: 'Groceries',
       categoryId: 'c1',
-      date: '2024-01-15',
-      createdAt: '2024-01-15T10:00:00Z',
+      date: '2024-01-15T12:00:00.000Z',
+      createdAt: '2024-01-15T12:00:00.000Z',
     };
     mockPost.mockResolvedValue({ data: transaction });
     const result = await createTransaction('w1', {
       amount: '-50.00',
       description: 'Groceries',
       categoryId: 'c1',
-      date: '2024-01-15',
+      date: '2024-01-15T12:00:00.000Z',
     });
     expect(mockPost).toHaveBeenCalledWith('/wallets/w1/transactions', {
       amount: '-50.00',
       description: 'Groceries',
       categoryId: 'c1',
-      date: '2024-01-15',
+      date: '2024-01-15T12:00:00.000Z',
     });
     expect(result).toEqual(transaction);
     expect(result.id).toBe('t1');
@@ -179,8 +179,8 @@ describe('wallets API client', () => {
       amount: '-100.00',
       description: 'Transfer',
       categoryId: null,
-      date: '2024-01-15',
-      createdAt: '2024-01-15T10:00:00Z',
+      date: '2024-01-15T12:00:00.000Z',
+      createdAt: '2024-01-15T12:00:00.000Z',
     };
     const targetTransaction = {
       id: 't2',
@@ -188,8 +188,8 @@ describe('wallets API client', () => {
       amount: '100.00',
       description: 'Transfer',
       categoryId: null,
-      date: '2024-01-15',
-      createdAt: '2024-01-15T10:00:00Z',
+      date: '2024-01-15T12:00:00.000Z',
+      createdAt: '2024-01-15T12:00:00.000Z',
     };
     mockPost.mockResolvedValue({
       data: { sourceTransaction, targetTransaction },

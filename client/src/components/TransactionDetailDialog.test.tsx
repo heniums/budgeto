@@ -33,7 +33,7 @@ describe('TransactionDetailDialog', () => {
     expect(screen.getByText('Groceries')).toBeInTheDocument();
     expect(screen.getByText('-$42.50')).toBeInTheDocument();
     expect(screen.getByText('Food')).toBeInTheDocument();
-    expect(screen.getByText('6/15/2024')).toBeInTheDocument();
+    expect(screen.getByText('6/15/2024 10:30 AM')).toBeInTheDocument();
   });
 
   it('renders Edit and Delete buttons', () => {
