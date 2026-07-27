@@ -2,7 +2,7 @@
 
 A personal finance & budgeting PWA. Track multiple wallets, categorize transactions, set per-category budget limits, and transfer between wallets — all in a clean, installable web app.
 
-**Live demo:** <https://budgeto.vercel.app>
+**Live demo:** <https://budgeto.heniums.vercel.app>
 
 ---
 
