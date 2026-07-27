@@ -6,6 +6,7 @@ import {
   numeric,
   date,
   unique,
+  index,
 } from 'drizzle-orm/pg-core';
 
 export const users = pgTable('user', {
@@ -21,75 +22,100 @@ export const users = pgTable('user', {
     .defaultNow(),
 });
 
-export const wallets = pgTable('wallet', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id),
-  name: text('name').notNull(),
-  description: text('description').default(''),
-  color: text('color').default('#1f8a4c'),
-  currency: text('currency').notNull().default('USD'),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
-
-export const transactions = pgTable('transaction', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  walletId: uuid('wallet_id')
-    .notNull()
-    .references(() => wallets.id, { onDelete: 'cascade' }),
-  categoryId: uuid('category_id').references(() => categories.id, {
-    onDelete: 'set null',
+export const wallets = pgTable(
+  'wallet',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    name: text('name').notNull(),
+    description: text('description').default(''),
+    color: text('color').default('#1f8a4c'),
+    currency: text('currency').notNull().default('USD'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('wallet_user_id_idx').on(table.userId),
   }),
-  amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
-  description: text('description').default(''),
-  date: date('date').notNull().defaultNow(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+);
 
-export const categories = pgTable('category', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id),
-  name: text('name').notNull(),
-  color: text('color').notNull(),
-  icon: text('icon').notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const transactions = pgTable(
+  'transaction',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    walletId: uuid('wallet_id')
+      .notNull()
+      .references(() => wallets.id, { onDelete: 'cascade' }),
+    categoryId: uuid('category_id').references(() => categories.id, {
+      onDelete: 'set null',
+    }),
+    amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
+    description: text('description').default(''),
+    date: date('date').notNull().defaultNow(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    walletIdIdx: index('transaction_wallet_id_idx').on(table.walletId),
+    categoryIdIdx: index('transaction_category_id_idx').on(table.categoryId),
+  }),
+);
 
-export const budgets = pgTable('budget', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  name: text('name').notNull(),
-  type: text('type').notNull().default('spending'),
-  icon: text('icon').notNull().default('wallet'),
-  color: text('color').notNull().default('#1f8a4c'),
-  period: text('period').notNull().default('monthly'),
-  startDate: date('start_date').notNull(),
-  endDate: date('end_date').notNull(),
-  totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
+export const categories = pgTable(
+  'category',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id),
+    name: text('name').notNull(),
+    color: text('color').notNull(),
+    icon: text('icon').notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('category_user_id_idx').on(table.userId),
+  }),
+);
+
+export const budgets = pgTable(
+  'budget',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    name: text('name').notNull(),
+    type: text('type').notNull().default('spending'),
+    icon: text('icon').notNull().default('wallet'),
+    color: text('color').notNull().default('#1f8a4c'),
+    period: text('period').notNull().default('monthly'),
+    startDate: date('start_date').notNull(),
+    endDate: date('end_date').notNull(),
+    totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('budget_user_id_idx').on(table.userId),
+  }),
+);
 
 export const budgetCategories = pgTable(
   'budget_category',
@@ -111,6 +137,7 @@ export const budgetCategories = pgTable(
       table.budgetId,
       table.categoryId,
     ),
+    categoryIdIdx: index('budget_category_category_id_idx').on(table.categoryId),
   }),
 );
 
