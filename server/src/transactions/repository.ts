@@ -1,5 +1,7 @@
 import { and, desc, eq, gte, gt, ilike, lt, lte, sql } from 'drizzle-orm';
 import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
 import { db } from '../db/client';
 import {
   transactions,
@@ -187,8 +189,8 @@ export async function sumTransactionsByUserAndCategoryAndMonth(
   const end = new Date(Date.UTC(year, monthIndex, 0))
     .toISOString()
     .slice(0, 10);
-  const startTs = dayjs(start).startOf('day').toISOString();
-  const endTs = dayjs(end).endOf('day').toISOString();
+  const startTs = dayjs.utc(start).startOf('day').toISOString();
+  const endTs = dayjs.utc(end).endOf('day').toISOString();
   const where = and(
     eq(wallets.userId, userId),
     eq(transactions.categoryId, categoryId),

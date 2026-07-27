@@ -184,6 +184,10 @@ export function TransactionForm({
           date: isoDate,
         });
         reset({
+          walletId: '',
+          amount: '',
+          description: '',
+          categoryId: '',
           date: dayjs().format('YYYY-MM-DDTHH:mm'),
         });
       }
