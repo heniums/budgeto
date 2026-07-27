@@ -11,7 +11,7 @@ function makeTx(overrides: Partial<TransactionData> = {}): TransactionData {
     categoryId: null,
     categoryName: null,
     createdAt: '2026-01-01T10:00:00.000Z',
-    date: '2026-01-01',
+    date: '2026-01-01T10:00:00.000Z',
     ...overrides,
   };
 }
@@ -51,7 +51,7 @@ describe('findTransferPair', () => {
       description: 'Transfer',
       amount: '50.00',
       createdAt: '2026-01-01T10:00:00.000Z',
-      date: '2026-01-01',
+      date: '2026-01-01T10:00:00.000Z',
     });
     const other = makeTx({
       id: 't2',
@@ -69,7 +69,7 @@ describe('findTransferPair', () => {
       description: 'Transfer',
       amount: '50.00',
       createdAt: '2026-01-01T10:00:00.000Z',
-      date: '2026-01-01',
+      date: '2026-01-01T10:00:00.000Z',
     });
     const other = makeTx({
       id: 't2',

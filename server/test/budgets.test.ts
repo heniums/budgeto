@@ -222,7 +222,7 @@ describe('GET /budgets', () => {
     const category = await createCategory(token, 'Groceries');
     const wallet = await createWallet(token, 'Cash');
 
-    const today = dayjs().format('YYYY-MM-DD');
+    const today = dayjs().toISOString();
     await request(app)
       .post(`/wallets/${wallet.id}/transactions`)
       .set('Authorization', `Bearer ${token}`)
@@ -265,7 +265,7 @@ describe('GET /budgets', () => {
     const wallet = await createWallet(token, 'Cash');
 
     // Transaction in previous month (outside current period window)
-    const lastMonth = today.subtract(1, 'month').format('YYYY-MM-DD');
+    const lastMonth = dayjs().subtract(1, 'month').toISOString();
     await request(app)
       .post(`/wallets/${wallet.id}/transactions`)
       .set('Authorization', `Bearer ${token}`)
@@ -364,7 +364,7 @@ describe('GET /budgets/:id', () => {
         amount: '-50.00',
         description: 'Jan groceries',
         categoryId: category.id,
-        date: '2024-01-15',
+        date: '2024-01-15T12:00:00.000Z',
       });
 
     // Transaction in March 2024
@@ -375,7 +375,7 @@ describe('GET /budgets/:id', () => {
         amount: '-75.00',
         description: 'Mar groceries',
         categoryId: category.id,
-        date: '2024-03-10',
+        date: '2024-03-10T12:00:00.000Z',
       });
 
     const created = await request(app)

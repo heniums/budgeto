@@ -168,7 +168,7 @@ describe('Home transactions list', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-15T10:00:00Z',
-        date: '2026-01-15',
+        date: '2026-01-15T10:00:00.000Z',
       },
       {
         id: 't2',
@@ -178,7 +178,7 @@ describe('Home transactions list', () => {
         categoryId: null,
         categoryName: null,
         createdAt: '2026-01-14T10:00:00Z',
-        date: '2026-01-14',
+        date: '2026-01-14T10:00:00.000Z',
       },
     ];
     vi.mocked(getWallets).mockResolvedValue({ wallets });
@@ -298,7 +298,7 @@ describe('Home period grouping', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-15T12:00:00Z',
-        date: '2026-01-15',
+        date: '2026-01-15T12:00:00.000Z',
       },
       {
         id: 't2',
@@ -308,7 +308,7 @@ describe('Home period grouping', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-15T13:00:00Z',
-        date: '2026-01-15',
+        date: '2026-01-15T13:00:00.000Z',
       },
     ];
     renderHome();
@@ -327,7 +327,7 @@ describe('Home period grouping', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-15T08:00:00Z',
-        date: '2026-01-15',
+        date: '2026-01-15T08:00:00.000Z',
       },
       {
         id: 't2',
@@ -337,7 +337,7 @@ describe('Home period grouping', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-10T08:00:00Z',
-        date: '2026-01-10',
+        date: '2026-01-10T08:00:00.000Z',
       },
     ];
     renderHome();
@@ -355,7 +355,7 @@ describe('Home period grouping', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-15T08:00:00Z',
-        date: '2026-01-15',
+        date: '2026-01-15T08:00:00.000Z',
       },
       {
         id: 't2',
@@ -365,7 +365,7 @@ describe('Home period grouping', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-04T08:00:00Z',
-        date: '2026-01-04',
+        date: '2026-01-04T08:00:00.000Z',
       },
     ];
     renderHome();
@@ -413,7 +413,7 @@ describe('Home infinite scroll', () => {
       categoryId: 'c1',
       categoryName: 'Food',
       createdAt: new Date(Date.now() - i * 1000).toISOString(),
-      date: new Date(Date.now() - i * 1000).toISOString().slice(0, 10),
+      date: new Date(Date.now() - i * 1000).toISOString(),
     }));
     cleanup();
   });
@@ -452,7 +452,7 @@ describe('Home sequential modal — transaction + wallet/category', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-02T10:00:00Z',
-        date: '2026-01-02',
+        date: '2026-01-02T10:00:00.000Z',
       },
     ];
     vi.mocked(getWallets).mockResolvedValue({ wallets });
@@ -504,7 +504,7 @@ describe('Home responsive layout', () => {
         categoryId: 'c1',
         categoryName: 'Food',
         createdAt: '2026-01-15T10:00:00Z',
-        date: '2026-01-15',
+        date: '2026-01-15T10:00:00.000Z',
       },
     ];
     cleanup();

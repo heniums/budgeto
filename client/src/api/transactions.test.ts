@@ -49,8 +49,8 @@ describe('transactions API client', () => {
             description: 'Groceries',
             categoryId: 'c1',
             categoryName: 'Food',
-            createdAt: '2024-01-01',
-            date: '2024-01-01',
+            createdAt: '2024-01-01T00:00:00.000Z',
+            date: '2024-01-01T00:00:00.000Z',
           },
         ],
         total: 1,
@@ -109,8 +109,8 @@ describe('transactions API client', () => {
         walletId: 'w1',
         amount: '50.00',
         description: 'Groceries',
-        createdAt: '2024-01-01',
-        date: '2024-01-01',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        date: '2024-01-01T00:00:00.000Z',
       },
     });
     const tx = await getTransaction('t1');
@@ -136,8 +136,8 @@ describe('transactions API client', () => {
         amount: '200.00',
         description: 'Updated',
         categoryId: null,
-        createdAt: '2024-01-01',
-        date: '2024-01-01',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        date: '2024-01-01T00:00:00.000Z',
       },
     });
     const result = await updateTransaction('t1', {
@@ -160,8 +160,8 @@ describe('transactions API client', () => {
         amount: '50.00',
         description: 'Deleted',
         categoryId: null,
-        createdAt: '2024-01-01',
-        date: '2024-01-01',
+        createdAt: '2024-01-01T00:00:00.000Z',
+        date: '2024-01-01T00:00:00.000Z',
       },
     });
     const result = await deleteTransaction('t1');

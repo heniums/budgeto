@@ -1,3 +1,5 @@
+process.env.TZ = 'UTC';
+
 import '@testing-library/jest-dom/vitest';
 
 // Suppress React Router v6→v7 future-flag warnings in test output.

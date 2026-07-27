@@ -22,7 +22,7 @@ interface TransactionDetailDialogProps {
 
 function formatDate(iso: string): string {
   if (!iso) return '';
-  return dayjs(iso).format('M/D/YYYY');
+  return dayjs(iso).format('M/D/YYYY h:mm A');
 }
 
 export function TransactionDetailDialog({

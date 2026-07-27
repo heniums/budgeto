@@ -1,4 +1,5 @@
 import { and, desc, eq, gte, gt, ilike, lt, lte, sql } from 'drizzle-orm';
+import dayjs from 'dayjs';
 import { db } from '../db/client';
 import {
   transactions,
@@ -66,6 +67,7 @@ export interface TransactionWithCategory {
   description: string | null;
   categoryId: string | null;
   categoryName: string | null;
+  date: string;
   createdAt: Date;
   userId: string;
 }
@@ -96,6 +98,7 @@ export async function findTransactionById(
       walletId: transactions.walletId,
       amount: transactions.amount,
       description: transactions.description,
+      date: transactions.date,
       createdAt: transactions.createdAt,
       categoryId: transactions.categoryId,
       categoryName: categories.name,
@@ -184,11 +187,13 @@ export async function sumTransactionsByUserAndCategoryAndMonth(
   const end = new Date(Date.UTC(year, monthIndex, 0))
     .toISOString()
     .slice(0, 10);
+  const startTs = dayjs(start).startOf('day').toISOString();
+  const endTs = dayjs(end).endOf('day').toISOString();
   const where = and(
     eq(wallets.userId, userId),
     eq(transactions.categoryId, categoryId),
-    gte(transactions.date, start),
-    lte(transactions.date, end),
+    gte(transactions.date, startTs),
+    lte(transactions.date, endTs),
     lt(transactions.amount, '0'),
   );
   const [row] = await db

@@ -20,7 +20,7 @@ export const createTransactionSchema = z.object({
   }),
   description: z.string().max(512).optional().default(''),
   categoryId: z.string().uuid().optional(),
-  date: z.string().date().optional(),
+  date: z.string().datetime({ offset: true }).optional(),
 });
 
 export const transferSchema = z.object({
@@ -46,7 +46,7 @@ export const updateTransactionSchema = z.object({
   description: z.string().max(512).optional(),
   categoryId: z.string().uuid().optional().nullable(),
   walletId: z.string().uuid().optional(),
-  date: z.string().date().optional(),
+  date: z.string().datetime({ offset: true }).optional(),
 });
 
 export const listQuerySchema = z.object({
@@ -117,6 +117,7 @@ export async function getById(userId: string, txId: string) {
     description: tx.description ?? '',
     categoryId: tx.categoryId ?? null,
     categoryName: tx.categoryName ?? null,
+    date: tx.date,
     createdAt: tx.createdAt,
   };
 }
