@@ -65,14 +65,15 @@ function LongPressCategoryChip({
       tabIndex={0}
       style={{ color: category.color }}
       className={cn(
-        'flex items-center justify-center w-9 h-9 rounded-full border-2 border-transparent cursor-pointer shrink-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
+        'flex items-center gap-1.5 h-9 px-3 rounded-full border-2 border-transparent cursor-pointer shrink-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
         isSelected ? 'border-current bg-current/15' : 'hover:bg-muted',
       )}
       onClick={() => onSelect(category.id)}
       onKeyDown={(e) => onKeyDown(e, index, category)}
       {...longPress}
     >
-      {Icon && <Icon size={18} />}
+      {Icon && <Icon size={18} className="shrink-0" />}
+      <span className="text-sm font-medium leading-none whitespace-nowrap">{category.name}</span>
     </button>
   );
 
