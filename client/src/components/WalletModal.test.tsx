@@ -13,10 +13,11 @@ vi.mock('../api/wallets', async (importOriginal) => {
     createWallet: vi.fn(),
     updateWallet: vi.fn(),
     deleteWallet: vi.fn(),
+    adjustBalance: vi.fn(),
   };
 });
 
-import { createWallet, getWallet, updateWallet } from '../api/wallets';
+import { createWallet, getWallet, updateWallet, adjustBalance } from '../api/wallets';
 
 describe('WalletModal — create mode (no walletId)', () => {
   beforeEach(() => {
@@ -216,6 +217,7 @@ describe('WalletModal — edit mode (walletId provided)', () => {
 
   it('calls updateWallet and onSuccess on save', async () => {
     vi.mocked(updateWallet).mockResolvedValue(mockWallet);
+    vi.mocked(adjustBalance).mockResolvedValue(mockWallet);
     const onSuccess = vi.fn();
 
     render(
@@ -239,16 +241,17 @@ describe('WalletModal — edit mode (walletId provided)', () => {
         description: 'Daily expenses',
         color: '#1f8a4c',
         currency: 'USD',
-        balance: '100.00',
       });
     });
+    expect(adjustBalance).not.toHaveBeenCalled();
     await waitFor(() => {
       expect(onSuccess).toHaveBeenCalled();
     });
   });
 
-  it('calls updateWallet with updated balance on save', async () => {
+  it('calls adjustBalance when balance is changed on save', async () => {
     vi.mocked(updateWallet).mockResolvedValue(mockWallet);
+    vi.mocked(adjustBalance).mockResolvedValue(mockWallet);
     const onSuccess = vi.fn();
 
     render(
@@ -275,7 +278,11 @@ describe('WalletModal — edit mode (walletId provided)', () => {
         description: 'Daily expenses',
         color: '#1f8a4c',
         currency: 'USD',
-        balance: '250.00',
+      });
+    });
+    await waitFor(() => {
+      expect(adjustBalance).toHaveBeenCalledWith('w1', {
+        targetBalance: '250.00',
       });
     });
     await waitFor(() => {

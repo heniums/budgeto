@@ -321,7 +321,7 @@ export function Transactions(): JSX.Element {
           items: [],
         });
       }
-      groupMap.get(key)!.items.push(tx);
+      groupMap.get(key)?.items.push(tx);
     }
     return Array.from(groupMap.values()).sort((a, b) => b.key.localeCompare(a.key));
   }, [transactions, datePreset]);
