@@ -7,6 +7,7 @@ import walletsRouter from './wallets/router';
 import categoriesRouter from './categories/router';
 import budgetsRouter from './budgets/router';
 import { listRouter as transactionsListRouter } from './transactions/router';
+import dashboardRouter from './dashboard/router';
 import { isAppError } from './errors';
 
 export function createApp(): Express {
@@ -20,6 +21,7 @@ export function createApp(): Express {
   app.use('/categories', categoriesRouter);
   app.use('/budgets', budgetsRouter);
   app.use('/transactions', transactionsListRouter);
+  app.use('/dashboard', dashboardRouter);
 
   app.use(
     (
