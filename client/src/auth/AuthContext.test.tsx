@@ -6,20 +6,23 @@ const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 vi.mock('../api/auth', () => ({
   getMe: vi.fn(),
+  updateSettings: vi.fn(),
 }));
 
-import { getMe } from '../api/auth';
+import { getMe, updateSettings as updateSettingsApi } from '../api/auth';
 import { UNAUTHORIZED_EVENT, ApiError } from '../api/client';
 
 function Probe(): JSX.Element {
-  const { user, status, login, logout, refreshUser } = useAuth();
+  const { user, status, login, logout, refreshUser, updateSettings } = useAuth();
   return (
     <div>
       <span data-testid="status">{status}</span>
       <span data-testid="email">{user?.email ?? 'none'}</span>
+      <span data-testid="name">{user?.name ?? 'noname'}</span>
       <button onClick={() => login(mockUser, 'token-1')}>login</button>
       <button onClick={() => logout()}>logout</button>
       <button onClick={() => { void refreshUser(); }}>refresh</button>
+      <button onClick={() => { void updateSettings({ theme: 'dark' }); }}>updateSettings</button>
     </div>
   );
 }
@@ -205,5 +208,26 @@ describe('AuthProvider', () => {
     );
     expect(stateUpdateWarnings).toHaveLength(0);
     warnSpy.mockRestore();
+  });
+
+  it('updateSettings calls the API and updates the user', async () => {
+    window.localStorage.setItem('budgeto:token', 'stored-token');
+    vi.mocked(getMe).mockResolvedValue(mockUser);
+    const updatedUser = { ...mockUser, name: 'Updated', settings: { theme: 'dark' } };
+    vi.mocked(updateSettingsApi).mockResolvedValue(updatedUser);
+
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    expect(await screen.findByTestId('status')).toHaveTextContent('authenticated');
+
+    await act(async () => {
+      screen.getByText('updateSettings').click();
+    });
+
+    expect(updateSettingsApi).toHaveBeenCalledWith({ theme: 'dark' });
+    expect(await screen.findByTestId('name')).toHaveTextContent('Updated');
   });
 });
