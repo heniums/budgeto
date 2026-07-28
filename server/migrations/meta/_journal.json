@@ -92,6 +92,13 @@
       "when": 1785146471212,
       "tag": "0012_optimal_pestilence",
       "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1785230481825,
+      "tag": "0013_wild_talkback",
+      "breakpoints": true
     }
   ]
 }
