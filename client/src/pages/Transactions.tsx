@@ -311,21 +311,19 @@ export function Transactions(): JSX.Element {
   }, [categories]);
 
   const groups = useMemo<PeriodGroup[]>(() => {
-    const result: PeriodGroup[] = [];
+    const groupMap = new Map<string, PeriodGroup>();
     for (const tx of transactions) {
       const key = periodKey(tx.date, datePreset);
-      const last = result[result.length - 1];
-      if (last && last.key === key) {
-        last.items.push(tx);
-      } else {
-        result.push({
+      if (!groupMap.has(key)) {
+        groupMap.set(key, {
           key,
           label: formatPeriodLabel(tx.date, datePreset),
-          items: [tx],
+          items: [],
         });
       }
+      groupMap.get(key)!.items.push(tx);
     }
-    return result;
+    return Array.from(groupMap.values()).sort((a, b) => b.key.localeCompare(a.key));
   }, [transactions, datePreset]);
 
   const hasMore = transactions.length < total;
@@ -771,10 +769,14 @@ export function Transactions(): JSX.Element {
               variant="destructive"
               onClick={async () => {
                 if (deleteConfirm) {
-                  await deleteTransaction(deleteConfirm.id);
-                  setTransactions((prev) => prev.filter((t) => t.id !== deleteConfirm.id));
-                  setTotal((t) => t - 1);
-                  setDeleteConfirm(null);
+                  try {
+                    await deleteTransaction(deleteConfirm.id);
+                    setTransactions((prev) => prev.filter((t) => t.id !== deleteConfirm.id));
+                    setTotal((t) => t - 1);
+                    setDeleteConfirm(null);
+                  } catch (err) {
+                    console.error('Failed to delete transaction:', err);
+                  }
                 }
               }}
             >
@@ -811,9 +813,14 @@ export function Transactions(): JSX.Element {
               onClick={async () => {
                 if (!cascadeTx) return;
                 if (cascadeTx.action === 'delete') {
-                  await deleteTransaction(cascadeTx.tx.id);
-                  setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id));
-                  setTotal((t) => t - 1);
+                  try {
+                    await deleteTransaction(cascadeTx.tx.id);
+                    setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id));
+                    setTotal((t) => t - 1);
+                  } catch (err) {
+                    console.error('Failed to delete transaction:', err);
+                    return;
+                  }
                 }
                 setCascadeTx(null);
               }}
@@ -824,10 +831,15 @@ export function Transactions(): JSX.Element {
               onClick={async () => {
                 if (!cascadeTx) return;
                 if (cascadeTx.action === 'delete') {
-                  await deleteTransaction(cascadeTx.tx.id);
-                  await deleteTransaction(cascadeTx.pair.id);
-                  setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id && t.id !== cascadeTx.pair.id));
-                  setTotal((t) => Math.max(0, t - 2));
+                  try {
+                    await deleteTransaction(cascadeTx.tx.id);
+                    await deleteTransaction(cascadeTx.pair.id);
+                    setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id && t.id !== cascadeTx.pair.id));
+                    setTotal((t) => Math.max(0, t - 2));
+                  } catch (err) {
+                    console.error('Failed to delete transaction:', err);
+                    return;
+                  }
                 }
                 setCascadeTx(null);
               }}

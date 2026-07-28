@@ -198,7 +198,11 @@ export function TransactionForm({
           categoryId: '',
           date: dayjs().format('YYYY-MM-DDTHH:mm'),
         });
-        onSuccess(created as unknown as TransactionData);
+        const txWithData: TransactionData = {
+          ...created,
+          categoryName: null,
+        };
+        onSuccess(txWithData);
       }
     } catch (err) {
       if (err instanceof ApiError) {
