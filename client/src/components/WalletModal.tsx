@@ -57,6 +57,7 @@ export interface WalletModalProps {
   onOpenChange: (open: boolean) => void;
   walletId?: string;
   onSuccess?: (wallet?: WalletData) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function WalletModal({
@@ -64,6 +65,7 @@ export function WalletModal({
   onOpenChange,
   walletId,
   onSuccess,
+  onDelete,
 }: WalletModalProps): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -170,7 +172,8 @@ export function WalletModal({
         setOriginalBalance(newBalance);
       }
 
-      onSuccess?.();
+      const updated = await getWallet(walletId);
+      onSuccess?.(updated);
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('wallet'),
@@ -185,7 +188,7 @@ export function WalletModal({
     setFormError(null);
     try {
       await deleteWallet(walletId);
-      onSuccess?.();
+      onDelete?.(walletId);
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : ERR.FAILED_TO_DELETE('wallet'),

@@ -21,9 +21,10 @@ const transactionSchema = z.object({
   amount: z
     .string()
     .min(1, 'Amount is required.')
-    .refine((v) => v !== '0' && !isNaN(Number(v)), {
-      message: 'Amount must be a non-zero number.',
+    .refine((v) => v !== '0' && !isNaN(Number(v)) && Number(v) > 0, {
+      message: 'Amount must be a positive number.',
     }),
+  type: z.enum(['income', 'expense']),
   description: z.string().max(512),
   categoryId: z.string().min(1, 'Please select a category.'),
   date: z.string().min(1, 'Date is required.'),
@@ -40,7 +41,7 @@ interface TransactionFormProps {
     icon: string;
   }[];
   categoriesCount?: number;
-  onSuccess: () => void;
+  onSuccess: (tx?: import('../api/transactions').TransactionData) => void;
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
   onViewWallet?: (walletId: string) => void;
@@ -127,6 +128,7 @@ export function TransactionForm({
     defaultValues: {
       walletId: '',
       amount: '',
+      type: 'expense',
       description: '',
       categoryId: '',
       date: dayjs().format('YYYY-MM-DDTHH:mm'),
@@ -150,7 +152,9 @@ export function TransactionForm({
   useEffect(() => {
     if (editMode && initialValues) {
       setValue('walletId', initialValues.walletId);
-      setValue('amount', initialValues.amount);
+      const absAmount = initialValues.amount.startsWith('-') ? initialValues.amount.slice(1) : initialValues.amount;
+      setValue('amount', absAmount);
+      setValue('type', Number(initialValues.amount) < 0 ? 'expense' : 'income');
       setValue('description', initialValues.description);
       setValue('categoryId', initialValues.categoryId);
       setValue('date', dayjs(initialValues.date).format('YYYY-MM-DDTHH:mm'));
@@ -160,10 +164,11 @@ export function TransactionForm({
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
     const isoDate = dayjs(values.date).toISOString();
+    const signedAmount = values.type === 'expense' ? '-' + values.amount : values.amount;
     try {
       if (editMode && editTxId) {
         const updated: TransactionData = await updateTransaction(editTxId, {
-          amount: values.amount,
+          amount: signedAmount,
           description: values.description,
           categoryId: values.categoryId || undefined,
           walletId: values.walletId,
@@ -171,14 +176,16 @@ export function TransactionForm({
         });
         reset({
           walletId: updated.walletId,
-          amount: updated.amount,
+          amount: String(updated.amount).startsWith('-') ? String(updated.amount).slice(1) : String(updated.amount),
+          type: Number(updated.amount) < 0 ? 'expense' : 'income',
           description: updated.description,
           categoryId: updated.categoryId ?? '',
           date: dayjs(updated.date ?? isoDate).format('YYYY-MM-DDTHH:mm'),
         });
+        onSuccess(updated);
       } else {
-        await createTransaction(values.walletId, {
-          amount: values.amount,
+        const created = await createTransaction(values.walletId, {
+          amount: signedAmount,
           description: values.description,
           categoryId: values.categoryId || undefined,
           date: isoDate,
@@ -186,12 +193,13 @@ export function TransactionForm({
         reset({
           walletId: '',
           amount: '',
+          type: 'expense',
           description: '',
           categoryId: '',
           date: dayjs().format('YYYY-MM-DDTHH:mm'),
         });
+        onSuccess(created as unknown as TransactionData);
       }
-      onSuccess();
     } catch (err) {
       if (err instanceof ApiError) {
         setFormError(err.message);
@@ -391,6 +399,28 @@ export function TransactionForm({
       </div>
 
       <div className="space-y-2">
+        <Label>Type</Label>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant={watch('type') === 'income' ? 'default' : 'outline'}
+            className={watch('type') === 'income' ? 'bg-green-600 hover:bg-green-700' : ''}
+            onClick={() => setValue('type', 'income', { shouldDirty: true })}
+          >
+            Income
+          </Button>
+          <Button
+            type="button"
+            variant={watch('type') === 'expense' ? 'default' : 'outline'}
+            className={watch('type') === 'expense' ? 'bg-red-600 hover:bg-red-700' : ''}
+            onClick={() => setValue('type', 'expense', { shouldDirty: true })}
+          >
+            Expense
+          </Button>
+        </div>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="tx-amount">Amount</Label>
         <Controller
           name="amount"
@@ -402,7 +432,7 @@ export function TransactionForm({
                 wallets.find((w) => w.id === selectedWalletId)?.currency ??
                 'USD'
               }
-              placeholder="-50.00 or 100.00"
+              placeholder="0.00"
               value={field.value}
               onChange={field.onChange}
               onBlur={field.onBlur}

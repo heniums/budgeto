@@ -45,6 +45,7 @@ export interface CategoryModalProps {
   onOpenChange: (open: boolean) => void;
   categoryId?: string;
   onSuccess?: (category?: CategoryData) => void;
+  onDelete?: (id: string) => void;
 }
 
 export function CategoryModal({
@@ -52,6 +53,7 @@ export function CategoryModal({
   onOpenChange,
   categoryId,
   onSuccess,
+  onDelete,
 }: CategoryModalProps): JSX.Element {
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
@@ -136,12 +138,12 @@ export function CategoryModal({
     if (!categoryId) return;
     setFormError(null);
     try {
-      await updateCategory(categoryId, {
+      const updated = await updateCategory(categoryId, {
         name: values.name.trim(),
         color: values.color,
         icon: values.icon,
       });
-      onSuccess?.();
+      onSuccess?.(updated);
     } catch (err) {
       setFormError(
         err instanceof ApiError ? err.message : ERR.FAILED_TO_SAVE('category'),
@@ -156,7 +158,7 @@ export function CategoryModal({
     setFormError(null);
     try {
       await deleteCategory(categoryId);
-      onSuccess?.();
+      onDelete?.(categoryId);
     } catch (err) {
       setFormError(
         err instanceof ApiError

@@ -53,10 +53,20 @@ export function Budgets(): JSX.Element {
     setEditingBudget(budget);
     setDialogOpen(true);
   };
-  const handleFormSuccess = (): void => {
+  const handleFormSuccess = (budget?: BudgetData): void => {
     setEditingBudget(null);
     setDialogOpen(false);
-    loadData();
+    if (budget) {
+      setBudgets((prev) => {
+        const exists = prev.some((b) => b.id === budget.id);
+        if (exists) {
+          return prev.map((b) => (b.id === budget.id ? budget : b));
+        }
+        return [...prev, budget];
+      });
+    } else {
+      loadData();
+    }
   };
 
   const handleFormCancel = (): void => {
@@ -95,6 +105,11 @@ export function Budgets(): JSX.Element {
               categories={categories}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
+              onDelete={(id) => {
+                setBudgets((prev) => prev.filter((b) => b.id !== id));
+                setEditingBudget(null);
+                setDialogOpen(false);
+              }}
             />
           )}
         </Dialog>

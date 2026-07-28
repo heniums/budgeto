@@ -80,6 +80,30 @@ interface PeriodGroup {
   items: TransactionData[];
 }
 
+function matchesFilters(
+  tx: TransactionData,
+  filters: {
+    walletFilter: string;
+    categoryFilter: string;
+    typeFilter: 'all' | 'income' | 'expense';
+    datePreset: DatePreset;
+    fromDate: string;
+    toDate: string;
+    debouncedSearch: string;
+  },
+): boolean {
+  if (filters.walletFilter && tx.walletId !== filters.walletFilter) return false;
+  if (filters.categoryFilter && tx.categoryId !== filters.categoryFilter) return false;
+  if (filters.typeFilter === 'income' && Number(tx.amount) <= 0) return false;
+  if (filters.typeFilter === 'expense' && Number(tx.amount) >= 0) return false;
+  if (filters.datePreset === 'custom') {
+    if (filters.fromDate && dayjs(tx.date).isBefore(dayjs(filters.fromDate), 'day')) return false;
+    if (filters.toDate && dayjs(tx.date).isAfter(dayjs(filters.toDate), 'day')) return false;
+  }
+  if (filters.debouncedSearch && !tx.description?.toLowerCase().includes(filters.debouncedSearch.toLowerCase())) return false;
+  return true;
+}
+
 export function Transactions(): JSX.Element {
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [total, setTotal] = useState(0);
@@ -211,6 +235,18 @@ export function Transactions(): JSX.Element {
       .finally(() => loadInitial());
   }, [loadInitial]);
 
+  // Refresh reference data (wallets/categories) without reloading the transaction list.
+  const refreshReferenceData = useCallback(() => {
+    Promise.all([getWallets(), getCategories()])
+      .then(([walletResult, catResult]) => {
+        setWallets(walletResult.wallets);
+        setCategories(catResult.categories);
+      })
+      .catch(() => {
+        // Reference-data failures are non-fatal.
+      });
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
     Promise.all([getWallets(), getCategories()])
@@ -332,14 +368,17 @@ export function Transactions(): JSX.Element {
                   autoSelectCategoryId={
                     pendingCategoryId ?? categories[0]?.id ?? undefined
                   }
-                  onSuccess={() => {
+                  onSuccess={(newTx) => {
                     setTxOpen(false);
                     setPendingWalletId(null);
                     setPendingCategoryId(null);
-                    reload();
+                    if (newTx && matchesFilters(newTx, { walletFilter, categoryFilter, typeFilter, datePreset, fromDate, toDate, debouncedSearch })) {
+                      setTransactions((prev) => [newTx, ...prev]);
+                      setTotal((t) => t + 1);
+                    }
                   }}
-                  onRefreshWallets={reload}
-                  onRefreshCategories={reload}
+                  onRefreshWallets={refreshReferenceData}
+                  onRefreshCategories={refreshReferenceData}
                   onClose={() => setTxOpen(false)}
                   onCreateWallet={() => {
                     setCreateWalletOpen(true);
@@ -658,12 +697,19 @@ export function Transactions(): JSX.Element {
                 color: c.color,
                 icon: c.icon,
               }))}
-              onSuccess={() => {
+              onSuccess={(updatedTx) => {
                 setEditTx(null);
-                reload();
+                if (updatedTx) {
+                  if (matchesFilters(updatedTx, { walletFilter, categoryFilter, typeFilter, datePreset, fromDate, toDate, debouncedSearch })) {
+                    setTransactions((prev) => prev.map((t) => t.id === updatedTx.id ? updatedTx : t));
+                  } else {
+                    setTransactions((prev) => prev.filter((t) => t.id !== updatedTx.id));
+                    setTotal((t) => t - 1);
+                  }
+                }
               }}
-              onRefreshWallets={reload}
-              onRefreshCategories={reload}
+              onRefreshWallets={refreshReferenceData}
+              onRefreshCategories={refreshReferenceData}
               onViewWallet={(id) => {
                 setDetailWalletId(id);
               }}
@@ -726,8 +772,9 @@ export function Transactions(): JSX.Element {
               onClick={async () => {
                 if (deleteConfirm) {
                   await deleteTransaction(deleteConfirm.id);
+                  setTransactions((prev) => prev.filter((t) => t.id !== deleteConfirm.id));
+                  setTotal((t) => t - 1);
                   setDeleteConfirm(null);
-                  reload();
                 }
               }}
             >
@@ -765,23 +812,24 @@ export function Transactions(): JSX.Element {
                 if (!cascadeTx) return;
                 if (cascadeTx.action === 'delete') {
                   await deleteTransaction(cascadeTx.tx.id);
+                  setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id));
+                  setTotal((t) => t - 1);
                 }
                 setCascadeTx(null);
-                reload();
               }}
             >
               No, just this one
             </Button>
             <Button
-              variant="destructive"
               onClick={async () => {
                 if (!cascadeTx) return;
                 if (cascadeTx.action === 'delete') {
                   await deleteTransaction(cascadeTx.tx.id);
                   await deleteTransaction(cascadeTx.pair.id);
+                  setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id && t.id !== cascadeTx.pair.id));
+                  setTotal((t) => Math.max(0, t - 2));
                 }
                 setCascadeTx(null);
-                reload();
               }}
             >
               Yes, {cascadeTx?.action === 'delete' ? 'delete' : 'update'} both
@@ -799,7 +847,11 @@ export function Transactions(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailWalletId(null);
-          reload();
+          refreshReferenceData();
+        }}
+        onDelete={() => {
+          setDetailWalletId(null);
+          refreshReferenceData();
         }}
       />
 
@@ -808,8 +860,10 @@ export function Transactions(): JSX.Element {
         onOpenChange={setCreateWalletOpen}
         onSuccess={(newWallet) => {
           setCreateWalletOpen(false);
-          if (newWallet) setPendingWalletId(newWallet.id);
-          reload();
+          if (newWallet) {
+            setPendingWalletId(newWallet.id);
+            setWallets((prev) => [...prev, newWallet]);
+          }
         }}
       />
 
@@ -821,7 +875,11 @@ export function Transactions(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailCategoryId(null);
-          reload();
+          refreshReferenceData();
+        }}
+        onDelete={() => {
+          setDetailCategoryId(null);
+          refreshReferenceData();
         }}
       />
 
@@ -830,8 +888,10 @@ export function Transactions(): JSX.Element {
         onOpenChange={setCreateCategoryOpen}
         onSuccess={(newCategory) => {
           setCreateCategoryOpen(false);
-          if (newCategory) setPendingCategoryId(newCategory.id);
-          reload();
+          if (newCategory) {
+            setPendingCategoryId(newCategory.id);
+            setCategories((prev) => [...prev, newCategory]);
+          }
         }}
       />
     </div>

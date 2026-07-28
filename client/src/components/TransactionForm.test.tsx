@@ -423,3 +423,192 @@ describe('TransactionForm — edit mode', () => {
     expect(createTransaction).not.toHaveBeenCalled();
   });
 });
+describe('TransactionForm — income/expense toggle', () => {
+  const categories = [
+    {
+      id: 'c1',
+      name: 'Food',
+      color: '#ff6b6b',
+      icon: 'UtensilsCrossed',
+    },
+  ];
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(createTransaction).mockResolvedValue({
+      id: 't-new',
+      walletId: 'w1',
+      amount: '50.00',
+      description: 'Test',
+      categoryId: null,
+      createdAt: '',
+      date: '',
+    });
+    vi.mocked(updateTransaction).mockResolvedValue({
+      id: 't-edit',
+      walletId: 'w1',
+      amount: '50.00',
+      description: 'Test',
+      categoryId: 'c1',
+      categoryName: 'Food',
+      createdAt: '',
+      date: '',
+    });
+    cleanup();
+  });
+
+  it('defaults to expense type with Expense button selected', () => {
+    renderForm();
+    const expenseBtn = screen.getByRole('button', { name: /^expense$/i });
+    const incomeBtn = screen.getByRole('button', { name: /^income$/i });
+    // Expense should be the "default" variant (filled red), income should NOT have green
+    expect(expenseBtn).toHaveClass('bg-red-600');
+    expect(incomeBtn).not.toHaveClass('bg-green-600');
+  });
+
+  it('clicking Income button selects it and deselects Expense', async () => {
+    renderForm();
+    const user = userEvent.setup();
+    const incomeBtn = screen.getByRole('button', { name: /^income$/i });
+    await user.click(incomeBtn);
+    expect(incomeBtn).toHaveClass('bg-green-600');
+  });
+
+  it('edit mode with negative amount pre-selects Expense and shows absolute value', async () => {
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+          editMode
+          initialValues={{
+            walletId: 'w1',
+            amount: '-30.00',
+            description: 'Lunch',
+            categoryId: 'c1',
+            date: '2024-01-01T12:00:00.000Z',
+          }}
+          editTxId="t-edit"
+        />
+      </MemoryRouter>,
+    );
+
+    const expenseBtn = screen.getByRole('button', { name: /^expense$/i });
+    expect(expenseBtn).toHaveClass('bg-red-600');
+
+    const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
+    await userEvent.setup().click(amountInput);
+    expect(amountInput.value).toBe('30.00');
+  });
+
+  it('edit mode with positive amount pre-selects Income and shows absolute value', async () => {
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={vi.fn()}
+          editMode
+          initialValues={{
+            walletId: 'w1',
+            amount: '75.50',
+            description: 'Refund',
+            categoryId: 'c1',
+            date: '2024-01-01T12:00:00.000Z',
+          }}
+          editTxId="t-edit"
+        />
+      </MemoryRouter>,
+    );
+
+    const incomeBtn = screen.getByRole('button', { name: /^income$/i });
+    expect(incomeBtn).toHaveClass('bg-green-600');
+
+    const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
+    await userEvent.setup().click(amountInput);
+    expect(amountInput.value).toBe('75.50');
+  });
+
+  it('rejects amount of 0 with validation error', async () => {
+    const onSuccess = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={onSuccess}
+        />
+      </MemoryRouter>,
+    );
+
+    await user.type(screen.getByLabelText('Amount'), '0');
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+
+    expect(createTransaction).not.toHaveBeenCalled();
+    expect(onSuccess).not.toHaveBeenCalled();
+  });
+
+  it('submits positive amount when Income is selected', async () => {
+    const onSuccess = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={onSuccess}
+          autoSelectWalletId="w1"
+        />
+      </MemoryRouter>,
+    );
+
+    // Select category
+    await user.click(screen.getByLabelText('Food'));
+
+    // Enter amount
+    await user.type(screen.getByLabelText('Amount'), '50');
+
+    // Income is not default — click it
+    await user.click(screen.getByRole('button', { name: /^income$/i }));
+
+    // Submit
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+
+    expect(createTransaction).toHaveBeenCalledWith('w1', expect.objectContaining({
+      amount: '50',
+    }));
+  });
+
+  it('submits negative amount when Expense is selected (default)', async () => {
+    const onSuccess = vi.fn();
+    const user = userEvent.setup();
+
+    render(
+      <MemoryRouter>
+        <TransactionForm
+          wallets={wallets}
+          categories={categories}
+          onSuccess={onSuccess}
+          autoSelectWalletId="w1"
+        />
+      </MemoryRouter>,
+    );
+
+    // Select category
+    await user.click(screen.getByLabelText('Food'));
+
+    // Enter amount
+    await user.type(screen.getByLabelText('Amount'), '30');
+
+    // Expense is default — just submit
+    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+
+    expect(createTransaction).toHaveBeenCalledWith('w1', expect.objectContaining({
+      amount: '-30',
+    }));
+  });
+});

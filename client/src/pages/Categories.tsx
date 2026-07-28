@@ -223,10 +223,25 @@ export function Categories(): JSX.Element {
         categoryId={
           modalMode === 'create' ? undefined : (selectedCategoryId ?? undefined)
         }
-        onSuccess={() => {
+        onSuccess={(cat) => {
           setModalMode(null);
           setSelectedCategoryId(null);
-          load();
+          if (cat) {
+            setCategories((prev) => {
+              const exists = prev.some((c) => c.id === cat.id);
+              if (exists) {
+                return prev.map((c) => (c.id === cat.id ? cat : c));
+              }
+              return [...prev, cat];
+            });
+          } else {
+            load();
+          }
+        }}
+        onDelete={(id) => {
+          setCategories((prev) => prev.filter((c) => c.id !== id));
+          setModalMode(null);
+          setSelectedCategoryId(null);
         }}
       />
     </div>
