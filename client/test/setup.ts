@@ -18,6 +18,21 @@ global.ResizeObserver = class ResizeObserver {
   disconnect(): void {}
 };
 
+// jsdom does not implement matchMedia (used by useGridColumns)
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: (query: string) => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: () => {},
+    removeListener: () => {},
+    addEventListener: () => {},
+    removeEventListener: () => {},
+    dispatchEvent: () => false,
+  }),
+});
+
 // Mock react-chartjs-2 so jsdom doesn't need a real canvas implementation.
 vi.mock('react-chartjs-2', () => ({
   Line: () => null,

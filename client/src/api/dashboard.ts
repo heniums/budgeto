@@ -5,6 +5,8 @@ export interface WidgetConfigInput {
   widgetId: string;
   visible: boolean;
   order: number;
+  colSpan: number;
+  rowSpan: number;
 }
 
 export interface DashboardSummary {

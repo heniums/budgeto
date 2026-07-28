@@ -33,20 +33,27 @@ function mergeWithDefaults(
   serverWidgets: WidgetConfigInput[],
 ): WidgetConfig[] {
   const byId = new Map(
-    serverWidgets.map((w) => [
-      w.widgetId,
-      {
-        id: w.widgetId as WidgetConfig['id'],
-        visible: w.visible,
-        order: w.order,
-      },
-    ]),
+    serverWidgets.map((w) => {
+      const defaultW = DEFAULT_WIDGETS.find((d) => d.id === w.widgetId);
+      return [
+        w.widgetId,
+        {
+          id: w.widgetId as WidgetConfig['id'],
+          visible: w.visible,
+          order: w.order,
+          colSpan: w.colSpan ?? defaultW?.colSpan ?? 1,
+          rowSpan: w.rowSpan ?? defaultW?.rowSpan ?? 1,
+        },
+      ];
+    }),
   );
   const merged = DEFAULT_WIDGETS.map((defaultW) =>
     byId.get(defaultW.id) ?? {
       id: defaultW.id,
       visible: defaultW.visible,
       order: defaultW.order,
+      colSpan: defaultW.colSpan,
+      rowSpan: defaultW.rowSpan,
     },
   );
   const extra = serverWidgets
@@ -55,6 +62,8 @@ function mergeWithDefaults(
       id: w.widgetId as WidgetConfig['id'],
       visible: w.visible,
       order: w.order,
+      colSpan: w.colSpan ?? 1,
+      rowSpan: w.rowSpan ?? 1,
     }));
   return [...merged, ...extra].sort((a, b) => a.order - b.order);
 }
@@ -97,6 +106,8 @@ export function DashboardDataProvider({
       widgetId: w.id,
       visible: w.visible,
       order: w.order,
+      colSpan: w.colSpan,
+      rowSpan: w.rowSpan,
     }));
     const saved = await saveWidgetsApi(input);
     setWidgets(mergeWithDefaults(saved));

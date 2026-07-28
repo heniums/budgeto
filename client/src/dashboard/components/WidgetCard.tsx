@@ -12,6 +12,7 @@ interface WidgetCardProps {
   children: ReactNode;
   loading?: boolean;
   error?: Error | null;
+  className?: string;
 }
 
 export function WidgetCard({
@@ -19,13 +20,14 @@ export function WidgetCard({
   children,
   loading,
   error,
+  className,
 }: WidgetCardProps): JSX.Element {
   return (
-    <Card>
+    <Card className={`h-full flex flex-col ${className ?? ''}`}>
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 min-h-0">
         {loading ? (
           <div className="space-y-3">
             <Skeleton className="h-4 w-3/4" />

@@ -44,7 +44,7 @@ export function MonthlyCashFlowWidget(): JSX.Element {
   return (
     <WidgetCard loading={loading} error={error} title="Cash Flow">
       {chartData ? (
-        <div className="h-60">
+        <div className="h-full">
           <Line
             data={chartData}
             options={{

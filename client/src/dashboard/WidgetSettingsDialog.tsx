@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ChevronUp, ChevronDown, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { useDashboardData } from './DashboardDataProvider';
 import { WIDGET_REGISTRY } from './registry';
 import { DEFAULT_WIDGETS } from './defaults';
@@ -36,30 +36,6 @@ export function WidgetSettingsDialog({
     setInitialized(false);
   }
 
-  const moveUp = useCallback(
-    (index: number) => {
-      if (index <= 0) return;
-      setLocal((prev) => {
-        const next = [...prev];
-        [next[index - 1], next[index]] = [next[index], next[index - 1]];
-        return next.map((w, i) => ({ ...w, order: i }));
-      });
-    },
-    [],
-  );
-
-  const moveDown = useCallback(
-    (index: number) => {
-      setLocal((prev) => {
-        if (index >= prev.length - 1) return prev;
-        const next = [...prev];
-        [next[index], next[index + 1]] = [next[index + 1], next[index]];
-        return next.map((w, i) => ({ ...w, order: i }));
-      });
-    },
-    [],
-  );
-
   const toggleVisibility = useCallback((id: string) => {
     setLocal((prev) =>
       prev.map((w) =>
@@ -86,7 +62,7 @@ export function WidgetSettingsDialog({
           <DialogTitle>Customize Dashboard</DialogTitle>
         </DialogHeader>
         <div className="space-y-2 py-2">
-          {local.map((widget, index) => {
+          {local.map((widget) => {
             const meta = WIDGET_REGISTRY[widget.id];
             if (!meta) return null;
             const Icon = meta.icon;
@@ -101,24 +77,6 @@ export function WidgetSettingsDialog({
                 />
                 <Icon className="h-4 w-4 text-muted-foreground" />
                 <span className="text-sm flex-1">{meta.title}</span>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  disabled={index === 0}
-                  onClick={() => moveUp(index)}
-                >
-                  <ChevronUp className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="h-7 w-7"
-                  disabled={index === local.length - 1}
-                  onClick={() => moveDown(index)}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
               </div>
             );
           })}

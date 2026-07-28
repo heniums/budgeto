@@ -224,6 +224,8 @@ export interface UserWidgetRow {
   widgetId: string;
   visible: boolean;
   order: number;
+  colSpan: number;
+  rowSpan: number;
 }
 
 export async function findWidgetsByUserId(
@@ -238,7 +240,7 @@ export async function findWidgetsByUserId(
 
 export async function upsertUserWidgets(
   userId: string,
-  widgets: { widgetId: string; visible: boolean; order: number }[],
+  widgets: { widgetId: string; visible: boolean; order: number; colSpan: number; rowSpan: number }[],
 ): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.delete(userWidgets).where(eq(userWidgets.userId, userId));
@@ -249,6 +251,8 @@ export async function upsertUserWidgets(
           widgetId: w.widgetId,
           visible: w.visible,
           order: w.order,
+          colSpan: w.colSpan,
+          rowSpan: w.rowSpan,
         })),
       );
     }
