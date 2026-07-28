@@ -1,9 +1,12 @@
 import { apiClient } from './client';
 
+export type UserSettings = Record<string, unknown>;
+
 export interface AuthUser {
   id: string;
   email: string;
   name: string;
+  settings?: UserSettings;
 }
 
 export interface RegisterInput {
@@ -49,4 +52,13 @@ export async function updateName(name: string): Promise<AuthUser> {
 
 export async function changePassword(input: ChangePasswordInput): Promise<void> {
   await apiClient.post('/auth/change-password', input);
+}
+
+export async function updateSettings(
+  settings: UserSettings,
+): Promise<AuthUser> {
+  const response = await apiClient.patch<{ user: AuthUser }>('/auth/me', {
+    settings,
+  });
+  return response.data.user;
 }

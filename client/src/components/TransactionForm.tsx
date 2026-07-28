@@ -41,7 +41,7 @@ interface TransactionFormProps {
     icon: string;
   }[];
   categoriesCount?: number;
-  onSuccess: (tx?: import('../api/transactions').TransactionData) => void;
+  onSuccess: (tx?: TransactionData) => void;
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
   onViewWallet?: (walletId: string) => void;

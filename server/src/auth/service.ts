@@ -3,7 +3,7 @@ import {
   findUserByEmail,
   findUserById,
   createUser,
-  updateUserName,
+  updateUserProfile,
   updateUserPasswordHash,
 } from './repository';
 import { hashPassword, verifyPassword } from './password';
@@ -21,8 +21,12 @@ export const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+export const userSettingsSchema = z.record(z.unknown());
+export type UserSettings = z.infer<typeof userSettingsSchema>;
+
 export const profileUpdateSchema = z.object({
-  name: z.string().min(1).max(128),
+  name: z.string().min(1).max(128).optional(),
+  settings: userSettingsSchema.optional(),
 });
 
 export const changePasswordSchema = z.object({
@@ -55,6 +59,7 @@ export async function register(
     email: input.email,
     passwordHash,
     name: input.name,
+    settings: {},
   });
   const token = signToken({ sub: user.id, email: user.email, name: user.name });
   return { token, user: { id: user.id, email: user.email, name: user.name } };
@@ -79,30 +84,30 @@ export async function login(input: LoginInput): Promise<AuthResult> {
 export type { TokenPayload };
 
 /**
- * Returns the full profile (id, email, name) for the given user id.
+ * Returns the full profile (id, email, name, settings) for the given user id.
  */
 export async function getProfile(
   id: string,
-): Promise<{ id: string; email: string; name: string }> {
+): Promise<{ id: string; email: string; name: string; settings: Record<string, unknown> }> {
   const user = await findUserById(id);
   if (!user) {
     throw unauthorizedError('User not found');
   }
-  return { id: user.id, email: user.email, name: user.name };
+  return { id: user.id, email: user.email, name: user.name, settings: user.settings as Record<string, unknown> };
 }
 
 /**
- * Updates the display name for the given user.
+ * Updates the display name and/or settings for the given user.
  */
 export async function updateProfile(
   id: string,
   input: ProfileUpdateInput,
-): Promise<{ id: string; email: string; name: string }> {
-  const updated = await updateUserName(id, input.name);
+): Promise<{ id: string; email: string; name: string; settings: Record<string, unknown> }> {
+  const updated = await updateUserProfile(id, input);
   if (!updated) {
     throw unauthorizedError('User not found');
   }
-  return { id: updated.id, email: updated.email, name: updated.name };
+  return { id: updated.id, email: updated.email, name: updated.name, settings: updated.settings as Record<string, unknown> };
 }
 
 /**

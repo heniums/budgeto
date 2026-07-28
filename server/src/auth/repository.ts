@@ -10,6 +10,7 @@ export async function createUser(input: {
   email: string;
   passwordHash: string;
   name?: string;
+  settings?: Record<string, unknown>;
 }): Promise<User> {
   const [user] = await db
     .insert(users)
@@ -17,18 +18,28 @@ export async function createUser(input: {
       email: input.email,
       passwordHash: input.passwordHash,
       name: input.name ?? '',
+      ...(input.settings !== undefined && { settings: input.settings }),
     })
     .returning();
   return user;
 }
 
-export async function updateUserName(
+export interface UserProfileUpdate {
+  name?: string;
+  settings?: Record<string, unknown>;
+}
+
+export async function updateUserProfile(
   id: string,
-  name: string,
+  input: UserProfileUpdate,
 ): Promise<User | undefined> {
   const [user] = await db
     .update(users)
-    .set({ name, updatedAt: new Date() })
+    .set({
+      ...(input.name !== undefined && { name: input.name }),
+      ...(input.settings !== undefined && { settings: input.settings }),
+      updatedAt: new Date(),
+    })
     .where(eq(users.id, id))
     .returning();
   return user;

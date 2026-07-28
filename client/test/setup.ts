@@ -17,3 +17,10 @@ global.ResizeObserver = class ResizeObserver {
   unobserve(): void {}
   disconnect(): void {}
 };
+
+// Mock react-chartjs-2 so jsdom doesn't need a real canvas implementation.
+vi.mock('react-chartjs-2', () => ({
+  Line: () => null,
+  Bar: () => null,
+  Doughnut: () => null,
+}));

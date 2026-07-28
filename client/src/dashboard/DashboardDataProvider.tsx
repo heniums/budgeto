@@ -1,0 +1,125 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from 'react';
+import {
+  getDashboardSummary,
+  getWidgets,
+  saveWidgets as saveWidgetsApi,
+  type DashboardSummary,
+  type WidgetConfigInput,
+} from '@/api/dashboard';
+import type { ApiError } from '@/api/client';
+import type { WidgetConfig } from './types';
+import { DEFAULT_WIDGETS } from './defaults';
+
+interface DashboardData {
+  summary: DashboardSummary | null;
+  widgets: WidgetConfig[];
+  loading: boolean;
+  error: ApiError | null;
+  refresh: () => void;
+  saveWidgets: (widgets: WidgetConfig[]) => Promise<void>;
+}
+
+const DashboardContext = createContext<DashboardData | null>(null);
+
+function mergeWithDefaults(
+  serverWidgets: WidgetConfigInput[],
+): WidgetConfig[] {
+  const byId = new Map(
+    serverWidgets.map((w) => [
+      w.widgetId,
+      {
+        id: w.widgetId as WidgetConfig['id'],
+        visible: w.visible,
+        order: w.order,
+      },
+    ]),
+  );
+  const merged = DEFAULT_WIDGETS.map((defaultW) =>
+    byId.get(defaultW.id) ?? {
+      id: defaultW.id,
+      visible: defaultW.visible,
+      order: defaultW.order,
+    },
+  );
+  const extra = serverWidgets
+    .filter((w) => !DEFAULT_WIDGETS.some((d) => d.id === w.widgetId))
+    .map((w) => ({
+      id: w.widgetId as WidgetConfig['id'],
+      visible: w.visible,
+      order: w.order,
+    }));
+  return [...merged, ...extra].sort((a, b) => a.order - b.order);
+}
+
+export function DashboardDataProvider({
+  children,
+}: {
+  children: ReactNode;
+}): JSX.Element {
+  const [summary, setSummary] = useState<DashboardSummary | null>(null);
+  const [widgets, setWidgets] = useState<WidgetConfig[]>(
+    DEFAULT_WIDGETS.map((w, i) => ({ ...w, order: i })),
+  );
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<ApiError | null>(null);
+
+  const fetch = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [summaryData, serverWidgets] = await Promise.all([
+        getDashboardSummary(),
+        getWidgets(),
+      ]);
+      setSummary(summaryData);
+      setWidgets(mergeWithDefaults(serverWidgets));
+    } catch (err) {
+      setError(err as ApiError);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetch();
+  }, [fetch]);
+
+  const saveWidgets = useCallback(async (newWidgets: WidgetConfig[]) => {
+    const input: WidgetConfigInput[] = newWidgets.map((w) => ({
+      widgetId: w.id,
+      visible: w.visible,
+      order: w.order,
+    }));
+    const saved = await saveWidgetsApi(input);
+    setWidgets(mergeWithDefaults(saved));
+  }, []);
+
+  const value = useMemo<DashboardData>(
+    () => ({ summary, widgets, loading, error, refresh: fetch, saveWidgets }),
+    [summary, widgets, loading, error, fetch, saveWidgets],
+  );
+
+  return (
+    <DashboardContext.Provider value={value}>
+      {children}
+    </DashboardContext.Provider>
+  );
+}
+
+export function useDashboardData(): DashboardData {
+  const ctx = useContext(DashboardContext);
+  if (!ctx) {
+    throw new Error(
+      'useDashboardData must be used within DashboardDataProvider',
+    );
+  }
+  return ctx;
+}

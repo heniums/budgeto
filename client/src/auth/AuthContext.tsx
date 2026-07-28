@@ -9,7 +9,9 @@ import {
 } from 'react';
 import {
   getMe,
+  updateSettings as updateSettingsApi,
   type AuthUser,
+  type UserSettings,
 } from '../api/auth';
 import { UNAUTHORIZED_EVENT } from '../api/client';
 
@@ -26,6 +28,8 @@ export interface AuthContextValue {
   logout: () => void;
   /** Refreshes the current user from the server. */
   refreshUser: () => Promise<void>;
+  /** Updates user settings on the server and locally. */
+  updateSettings: (settings: UserSettings) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -99,10 +103,16 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     }
   }, [clearSession]);
 
+  const updateSettings = useCallback(async (settings: UserSettings) => {
+    const updated = await updateSettingsApi(settings);
+    setUser(updated);
+  }, []);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, login, logout, refreshUser }),
-    [user, status, login, logout, refreshUser],
+    () => ({ user, status, login, logout, refreshUser, updateSettings }),
+    [user, status, login, logout, refreshUser, updateSettings],
   );
+
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

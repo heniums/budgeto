@@ -7,13 +7,18 @@ import {
   date,
   unique,
   index,
+  jsonb,
+  boolean,
+  integer,
 } from 'drizzle-orm/pg-core';
+import { sql } from 'drizzle-orm';
 
 export const users = pgTable('user', {
   id: uuid('id').primaryKey().defaultRandom(),
   email: text('email').notNull().unique(),
   name: text('name').notNull().default(''),
   passwordHash: text('password_hash').notNull(),
+  settings: jsonb('settings').notNull().default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -141,6 +146,27 @@ export const budgetCategories = pgTable(
   }),
 );
 
+export const userWidgets = pgTable('user_widget', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  userId: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  widgetId: text('widget_id').notNull(),
+  visible: boolean('visible').notNull().default(true),
+  order: integer('order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (table) => ({
+  userWidgetUnique: unique('user_widget_user_id_widget_id_idx').on(
+    table.userId,
+    table.widgetId,
+  ),
+}));
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Wallet = typeof wallets.$inferSelect;
@@ -153,3 +179,5 @@ export type Budget = typeof budgets.$inferSelect;
 export type NewBudget = typeof budgets.$inferInsert;
 export type BudgetCategory = typeof budgetCategories.$inferSelect;
 export type NewBudgetCategory = typeof budgetCategories.$inferInsert;
+export type UserWidget = typeof userWidgets.$inferSelect;
+export type NewUserWidget = typeof userWidgets.$inferInsert;

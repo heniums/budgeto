@@ -55,12 +55,12 @@ describe('PATCH /auth/me', () => {
     expect(me.body.user.name).toBe('Nadia R.');
   });
 
-  it('rejects an update without a name (400)', async () => {
+  it('rejects an update with an empty name string (400)', async () => {
     const { token } = await loginToken();
     const response = await request(app)
       .patch('/auth/me')
       .set('Authorization', `Bearer ${token}`)
-      .send({});
+      .send({ name: '' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
