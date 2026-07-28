@@ -89,15 +89,16 @@ type BudgetValues = z.infer<typeof budgetSchema>;
 interface BudgetFormProps {
   editingBudget: BudgetData | null;
   categories: CategoryData[];
-  onSuccess: () => void;
+  onSuccess: (budget?: BudgetData) => void;
   onCancel: () => void;
+  onDelete?: (id: string) => void;
 }
-
 export function BudgetForm({
   editingBudget,
   categories,
   onSuccess,
   onCancel,
+  onDelete,
 }: BudgetFormProps): JSX.Element {
   const {
     register,
@@ -174,7 +175,7 @@ export function BudgetForm({
     clearErrors('root');
     try {
       if (editingBudget) {
-        await updateBudget(editingBudget.id, {
+        const updated = await updateBudget(editingBudget.id, {
           name: values.name,
           icon: values.icon,
           color: values.color,
@@ -185,8 +186,9 @@ export function BudgetForm({
           totalAmount: values.totalAmount,
           categories: values.categories,
         });
+        onSuccess(updated);
       } else {
-        await createBudget({
+        const created = await createBudget({
           name: values.name,
           icon: values.icon,
           color: values.color,
@@ -197,8 +199,8 @@ export function BudgetForm({
           totalAmount: values.totalAmount,
           categories: values.categories,
         });
+        onSuccess(created);
       }
-      onSuccess();
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError('root', { message: err.message });
@@ -213,7 +215,7 @@ export function BudgetForm({
     clearErrors('root');
     try {
       await deleteBudget(editingBudget.id);
-      onSuccess();
+      onDelete?.(editingBudget.id);
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setError('root', { message: err.message });

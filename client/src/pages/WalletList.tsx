@@ -227,10 +227,25 @@ export function WalletList(): JSX.Element {
         walletId={
           modalMode === 'create' ? undefined : (selectedWalletId ?? undefined)
         }
-        onSuccess={() => {
+        onSuccess={(w) => {
           setModalMode(null);
           setSelectedWalletId(null);
-          load();
+          if (w) {
+            setWallets((prev) => {
+              const exists = prev.some((wallet) => wallet.id === w.id);
+              if (exists) {
+                return prev.map((wallet) => (wallet.id === w.id ? w : wallet));
+              }
+              return [...prev, w];
+            });
+          } else {
+            load();
+          }
+        }}
+        onDelete={(id) => {
+          setWallets((prev) => prev.filter((w) => w.id !== id));
+          setModalMode(null);
+          setSelectedWalletId(null);
         }}
       />
     </div>
