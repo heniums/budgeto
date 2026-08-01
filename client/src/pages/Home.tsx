@@ -8,6 +8,7 @@ import {
   useSensors,
   closestCenter,
   type DragEndEvent,
+  type DragStartEvent,
 } from '@dnd-kit/core';
 import {
   arrayMove,
@@ -19,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Settings } from 'lucide-react';
+import { Settings, GripVertical } from 'lucide-react';
 import { DashboardDataProvider, useDashboardData } from '@/dashboard/DashboardDataProvider';
 import { WIDGET_REGISTRY } from '@/dashboard/registry';
 import { WidgetSettingsDialog } from '@/dashboard/WidgetSettingsDialog';
@@ -40,7 +41,13 @@ export function Home(): JSX.Element {
 function HomeContent(): JSX.Element {
   const { widgets, loading, saveWidgets } = useDashboardData();
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeWidget, setActiveWidget] = useState<{
+    id: string;
+    type: WidgetType;
+    title: string;
+    width: number;
+    height: number;
+  } | null>(null);
   const cols = useGridColumns();
 
   const visible = useMemo(
@@ -53,13 +60,26 @@ function HomeContent(): JSX.Element {
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
   );
 
-  function handleDragStart(event: { active: { id: string | number } }) {
-    setActiveId(String(event.active.id));
+  function handleDragStart(event: DragStartEvent) {
+    const id = String(event.active.id);
+    const w = widgets.find((x) => x.id === id);
+    const rect = event.active.rect?.current?.initial;
+    if (w && rect) {
+      setActiveWidget({
+        id,
+        type: w.id,
+        title: WIDGET_REGISTRY[w.id]?.title ?? w.id,
+        width: rect.width,
+        height: rect.height,
+      });
+    } else {
+      setActiveWidget(id && w ? { id, type: w.id, title: WIDGET_REGISTRY[w.id]?.title ?? w.id, width: 0, height: 0 } : null);
+    }
   }
 
   function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
-    setActiveId(null);
+    setActiveWidget(null);
     if (!over || active.id === over.id) return;
     const oldIndex = visible.findIndex((w) => w.id === active.id);
     const newIndex = visible.findIndex((w) => w.id === over.id);
@@ -74,7 +94,7 @@ function HomeContent(): JSX.Element {
   }
 
   function handleDragCancel() {
-    setActiveId(null);
+    setActiveWidget(null);
   }
 
   return (
@@ -132,18 +152,17 @@ function HomeContent(): JSX.Element {
             </div>
           </SortableContext>
           <DragOverlay>
-            {activeId ? (
+            {activeWidget ? (
               <div
                 className="opacity-80 cursor-grabbing"
                 style={{
-                  gridColumn: `span ${Math.min(
-                    (widgets.find((w) => w.id === activeId)?.colSpan ?? 1),
-                    cols,
-                  )}`,
-                  gridRow: `span ${widgets.find((w) => w.id === activeId)?.rowSpan ?? 1}`,
+                  width: activeWidget.width || undefined,
+                  height: activeWidget.height || undefined,
                 }}
               >
-                <WidgetRenderer type={activeId as WidgetType} />
+                <WidgetCard title={activeWidget.title}>
+                  <div className="flex items-center justify-center h-full text-muted-foreground text-sm" />
+                </WidgetCard>
               </div>
             ) : null}
           </DragOverlay>
@@ -181,9 +200,14 @@ function SortableWidgetItem({
       ref={setNodeRef}
       style={style}
       className="group"
-      {...attributes}
-      {...listeners}
     >
+      <div
+        className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
+        {...attributes}
+        {...listeners}
+      >
+        <GripVertical className="h-4 w-4 text-muted-foreground" />
+      </div>
       <WidgetRenderer type={widget.id} />
       <WidgetMenu widget={widget} widgets={widgets} saveWidgets={saveWidgets} />
     </div>

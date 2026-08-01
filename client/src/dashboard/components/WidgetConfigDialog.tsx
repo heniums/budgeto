@@ -38,7 +38,8 @@ export function WidgetConfigDialog({
 
   const meta = WIDGET_REGISTRY[widget.id];
 
-  async function handleSave() {
+  async function handleSave(e: React.FormEvent) {
+    e.preventDefault();
     const updated = widgets.map((w) =>
       w.id === widget.id
         ? {
@@ -58,6 +59,7 @@ export function WidgetConfigDialog({
         <DialogHeader>
           <DialogTitle>Configure Widget</DialogTitle>
         </DialogHeader>
+        <form onSubmit={handleSave}>
         <div className="space-y-4 py-2">
           <div>
             <label className="text-sm font-medium">Widget</label>
@@ -93,8 +95,9 @@ export function WidgetConfigDialog({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={handleSave}>Save</Button>
+          <Button type="submit">Save</Button>
         </DialogFooter>
+        </form>
       </DialogContent>
     </Dialog>
   );

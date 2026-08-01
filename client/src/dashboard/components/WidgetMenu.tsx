@@ -13,8 +13,10 @@ interface WidgetMenuProps {
 
 export function WidgetMenu({ widget, widgets, saveWidgets }: WidgetMenuProps): JSX.Element {
   const [configOpen, setConfigOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   async function handleHide() {
+    setMenuOpen(false);
     const updated = widgets.map((w) =>
       w.id === widget.id ? { ...w, visible: false } : w,
     );
@@ -26,12 +28,13 @@ export function WidgetMenu({ widget, widgets, saveWidgets }: WidgetMenuProps): J
       <div
         className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
       >
-        <Popover>
+        <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
             <Button
               variant="ghost"
               size="icon"
               className="h-7 w-7 bg-background/80 backdrop-blur-sm"
+              aria-label="Widget options"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
@@ -42,7 +45,7 @@ export function WidgetMenu({ widget, widgets, saveWidgets }: WidgetMenuProps): J
             <button
               type="button"
               className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-              onClick={() => setConfigOpen(true)}
+              onClick={() => { setMenuOpen(false); setConfigOpen(true); }}
             >
               Configure
             </button>
