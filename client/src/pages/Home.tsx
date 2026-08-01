@@ -18,6 +18,7 @@ import {
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { Settings } from 'lucide-react';
 import { DashboardDataProvider, useDashboardData } from '@/dashboard/DashboardDataProvider';
 import { WIDGET_REGISTRY } from '@/dashboard/registry';
@@ -79,7 +80,10 @@ function HomeContent(): JSX.Element {
   return (
     <main className="home-page">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <h1 className="text-2xl font-semibold text-foreground">Home</h1>
+        <div className="flex items-baseline gap-2">
+          <h1 className="text-2xl font-semibold text-foreground">Home</h1>
+          <Badge variant="secondary">Work in Progress</Badge>
+        </div>
         <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
           <Settings className="h-4 w-4 mr-2" /> Customize
         </Button>
