@@ -10,6 +10,7 @@ import { BudgetForm } from '../components/BudgetForm';
 import { BudgetPeriodNav } from '../components/BudgetPeriodNav';
 import { FormAlert } from '../components/FormAlert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function Budgets(): JSX.Element {
   const [budgets, setBudgets] = useState<BudgetData[]>([]);
@@ -81,7 +82,7 @@ export function Budgets(): JSX.Element {
   };
 
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 space-y-4 pb-20">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Budgets</h1>
@@ -136,6 +137,8 @@ export function Budgets(): JSX.Element {
           ))}
         </div>
       )}
+
+      <FloatingActionButton onClick={handleAddClick} label="Add budget" />
     </div>
   );
 }
