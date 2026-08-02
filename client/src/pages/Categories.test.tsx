@@ -79,8 +79,8 @@ describe('Categories page', () => {
     expect(screen.getByText('Salary')).toBeInTheDocument();
     // Color hex values
     expect(screen.getByText('#ff5733')).toBeInTheDocument();
-    // Icons (2 categories, each has an SVG icon)
-    expect(document.querySelectorAll('svg')).toHaveLength(2);
+    // Icons (2 categories, each has an SVG icon + 1 from the floating action button)
+    expect(document.querySelectorAll('svg')).toHaveLength(3);
   });
 
   it('shows empty state when no categories exist', async () => {
@@ -120,7 +120,7 @@ describe('Categories page', () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Categories');
-    await user.click(screen.getByRole('button', { name: /new category/i }));
+    await user.click(screen.getAllByRole('button', { name: /new category/i })[0]);
 
     await waitFor(() => {
       const titles = screen.getAllByText('New Category');
