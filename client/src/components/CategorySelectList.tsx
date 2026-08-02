@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { useState, useRef } from 'react';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import { Popover, PopoverTrigger } from '@/components/ui/popover';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -169,7 +170,7 @@ export function CategorySelectList({
               <MoreHorizontal size={16} />
             </Button>
           </PopoverTrigger>
-          <PopoverContent align="start" className="w-80 p-3">
+          <PopoverPrimitive.Content align="start" className="z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none" sideOffset={4}>
             <FuzzyItemPicker
               key={open ? 'open' : 'closed'}
               items={categories}
@@ -196,7 +197,7 @@ export function CategorySelectList({
               searchPlaceholder="Search categories..."
               emptyMessage="No categories match your search"
             />
-          </PopoverContent>
+          </PopoverPrimitive.Content>
         </Popover>
         {categories.map((category, index) => {
           const isSelected = category.id === selectedId;

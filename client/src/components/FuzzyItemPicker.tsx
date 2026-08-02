@@ -57,7 +57,7 @@ export function FuzzyItemPicker<T>(props: FuzzyItemPickerProps<T>): JSX.Element 
                     'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-muted',
                   )}
-                  onMouseDown={(e) => { e.preventDefault(); onSelect(id); }}
+                  onClick={() => onSelect(id)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
