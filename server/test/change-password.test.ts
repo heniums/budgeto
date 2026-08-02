@@ -5,6 +5,8 @@ import { register, login } from '../src/auth/service';
 import { deleteAllUsers, findUserById } from '../src/auth/repository';
 import { verifyPassword } from '../src/auth/password';
 
+import { ACCESS_COOKIE_NAME } from '../src/auth/cookies';
+
 const app = createApp();
 
 async function loginToken(): Promise<string> {
@@ -29,7 +31,7 @@ describe('POST /auth/change-password', () => {
     const token = await loginToken();
     const response = await request(app)
       .post('/auth/change-password')
-      .set('Cookie', [`budgeto_access_token=${token}`])
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ currentPassword: 'password123', newPassword: 'newpassword123' });
     expect(response.status).toBe(204);
 
@@ -55,7 +57,7 @@ describe('POST /auth/change-password', () => {
     const token = await loginToken();
     const response = await request(app)
       .post('/auth/change-password')
-      .set('Cookie', [`budgeto_access_token=${token}`])
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ currentPassword: 'wrong', newPassword: 'newpassword123' });
     expect(response.status).toBe(401);
     expect(response.body.code).toBe('UNAUTHORIZED');
@@ -65,7 +67,7 @@ describe('POST /auth/change-password', () => {
     const token = await loginToken();
     const response = await request(app)
       .post('/auth/change-password')
-      .set('Cookie', [`budgeto_access_token=${token}`])
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ currentPassword: 'password123', newPassword: 'short' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
