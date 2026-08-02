@@ -25,7 +25,7 @@ export function WalletBalanceBreakdownWidget(): JSX.Element {
   return (
     <WidgetCard loading={loading} error={error} title="Balance Breakdown">
       {chartData ? (
-        <div className="h-60">
+        <div className="h-full">
           <Doughnut
             data={chartData}
             options={{

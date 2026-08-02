@@ -109,6 +109,8 @@ export interface WidgetConfigInput {
   widgetId: string;
   visible: boolean;
   order: number;
+  colSpan: number;
+  rowSpan: number;
 }
 
 export async function getWidgetsByUser(
@@ -119,6 +121,8 @@ export async function getWidgetsByUser(
     widgetId: r.widgetId,
     visible: r.visible,
     order: r.order,
+    colSpan: r.colSpan,
+    rowSpan: r.rowSpan,
   }));
 }
 

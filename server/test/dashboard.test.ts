@@ -97,9 +97,9 @@ describe('GET /dashboard/widgets', () => {
 
   it('returns saved widgets after POST', async () => {
     const widgets = [
-      { widgetId: 'net-worth', visible: true, order: 0 },
-      { widgetId: 'monthly-cash-flow', visible: false, order: 1 },
-      { widgetId: 'budget-progress', visible: true, order: 2 },
+      { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 2 },
+      { widgetId: 'monthly-cash-flow', visible: false, order: 1, colSpan: 1, rowSpan: 2 },
+      { widgetId: 'budget-progress', visible: true, order: 2, colSpan: 1, rowSpan: 2 },
     ];
     const saveResponse = await request(app)
       .post('/dashboard/widgets')
@@ -136,8 +136,8 @@ describe('POST /dashboard/widgets', () => {
 
   it('persists widget config and returns it (200)', async () => {
     const widgets = [
-      { widgetId: 'net-worth', visible: true, order: 0 },
-      { widgetId: 'recent-transactions', visible: false, order: 1 },
+      { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 2 },
+      { widgetId: 'recent-transactions', visible: false, order: 1, colSpan: 1, rowSpan: 2 },
     ];
     const response = await request(app)
       .post('/dashboard/widgets')
@@ -177,6 +177,45 @@ describe('POST /dashboard/widgets', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         widgets: [{ widgetId: '', visible: true, order: 0 }],
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects colSpan > 2 (400)', async () => {
+    const response = await request(app)
+      .post('/dashboard/widgets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        widgets: [
+          { widgetId: 'net-worth', visible: true, order: 0, colSpan: 3, rowSpan: 1 },
+        ],
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects rowSpan < 1 (400)', async () => {
+    const response = await request(app)
+      .post('/dashboard/widgets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        widgets: [
+          { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 0 },
+        ],
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects colSpan as float (400)', async () => {
+    const response = await request(app)
+      .post('/dashboard/widgets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        widgets: [
+          { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1.5, rowSpan: 1 },
+        ],
       });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');

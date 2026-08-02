@@ -16,4 +16,6 @@ export interface WidgetConfig {
   id: WidgetType;
   visible: boolean;
   order: number;
+  colSpan: number;
+  rowSpan: number;
 }

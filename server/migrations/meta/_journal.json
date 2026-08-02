@@ -99,6 +99,13 @@
       "when": 1785230481825,
       "tag": "0013_wild_talkback",
       "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1785253754262,
+      "tag": "0014_known_champions",
+      "breakpoints": true
     }
   ]
 }

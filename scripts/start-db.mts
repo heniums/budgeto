@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
@@ -17,11 +19,17 @@ const pg = new EmbeddedPostgres({
 });
 
 async function main(): Promise<void> {
-  try {
-    await pg.initialise();
-  } catch (error) {
-    console.error('embedded-postgres initialise failed:', error);
-    process.exit(1);
+  // Only initialise the cluster if PG_VERSION is missing (first run).
+  const pgVersionFile = path.join(DATA_DIR, 'PG_VERSION');
+  if (!fs.existsSync(pgVersionFile)) {
+    try {
+      await pg.initialise();
+    } catch (error) {
+      console.error('embedded-postgres initialise failed:', error);
+      process.exit(1);
+    }
+  } else {
+    console.log('Existing PostgreSQL cluster detected, skipping initialise.');
   }
   await pg.start();
   try {

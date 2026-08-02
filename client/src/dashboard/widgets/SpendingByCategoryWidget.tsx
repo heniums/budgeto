@@ -60,7 +60,7 @@ export function SpendingByCategoryWidget(): JSX.Element {
   return (
     <WidgetCard loading={loading} error={error} title="Spending by Category">
       {chartData ? (
-        <div className="h-60">
+        <div className="h-full">
           <Doughnut
             data={chartData}
             options={{

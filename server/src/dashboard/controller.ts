@@ -21,6 +21,8 @@ const widgetConfigSchema = z.object({
   widgetId: z.string().min(1).max(64),
   visible: z.boolean(),
   order: z.number().int().min(0),
+  colSpan: z.number().int().min(1).max(2).default(1),
+  rowSpan: z.number().int().min(1).max(4).default(1),
 });
 
 const saveWidgetsBodySchema = z.object({

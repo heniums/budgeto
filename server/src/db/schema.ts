@@ -154,6 +154,8 @@ export const userWidgets = pgTable('user_widget', {
   widgetId: text('widget_id').notNull(),
   visible: boolean('visible').notNull().default(true),
   order: integer('order').notNull().default(0),
+  colSpan: integer('col_span').notNull().default(1),
+  rowSpan: integer('row_span').notNull().default(1),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
