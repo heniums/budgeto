@@ -79,8 +79,12 @@ describe('Categories page', () => {
     expect(screen.getByText('Salary')).toBeInTheDocument();
     // Color hex values
     expect(screen.getByText('#ff5733')).toBeInTheDocument();
-    // Icons (2 categories, each has an SVG icon)
-    expect(document.querySelectorAll('svg')).toHaveLength(2);
+    // Icons (2 categories, each has an SVG icon in the table)
+    const table = screen.getByRole('table');
+    const tableIcons = table.querySelectorAll('svg');
+    expect(tableIcons).toHaveLength(2);
+    // FAB is present (alongside the header button)
+    expect(screen.getAllByRole('button', { name: /new category/i })).toHaveLength(2);
   });
 
   it('shows empty state when no categories exist', async () => {
@@ -120,7 +124,8 @@ describe('Categories page', () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Categories');
-    await user.click(screen.getByRole('button', { name: /new category/i }));
+    // data-testid is more stable than getAllByRole(...)[0] which depends on DOM order
+    await user.click(screen.getByTestId('header-add-button'));
 
     await waitFor(() => {
       const titles = screen.getAllByText('New Category');
@@ -145,5 +150,20 @@ describe('Categories page', () => {
     await screen.findByText('Groceries');
     const table = screen.getByText('Groceries').closest('table');
     expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
+  });
+
+  it('opens CategoryModal in create mode when clicking the FAB', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Categories');
+
+    // Click the FAB (second button with "New Category" name)
+    const buttons = screen.getAllByRole('button', { name: /new category/i });
+    await user.click(buttons[1]); // [1] is the FAB
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('New Category');
+      expect(titles.length).toBeGreaterThanOrEqual(2);
+    });
   });
 });

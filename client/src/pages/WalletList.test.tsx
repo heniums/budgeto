@@ -140,7 +140,8 @@ describe('WalletList page', () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Wallets');
-    await user.click(screen.getByRole('button', { name: /new wallet/i }));
+    // data-testid is more stable than getAllByRole(...)[0] which depends on DOM order
+    await user.click(screen.getByTestId('header-add-button'));
 
     await waitFor(() => {
       const titles = screen.getAllByText('New Wallet');
@@ -165,5 +166,20 @@ describe('WalletList page', () => {
     await screen.findByText('Cash');
     const table = screen.getByText('Cash').closest('table');
     expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
+  });
+
+  it('opens WalletModal in create mode when clicking the FAB', async () => {
+    const user = userEvent.setup();
+    renderList();
+    await screen.findByText('Wallets');
+
+    // Click the FAB (second button with "New Wallet" name)
+    const buttons = screen.getAllByRole('button', { name: /new wallet/i });
+    await user.click(buttons[1]); // [1] is the FAB
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('New Wallet');
+      expect(titles.length).toBeGreaterThanOrEqual(2);
+    });
   });
 });

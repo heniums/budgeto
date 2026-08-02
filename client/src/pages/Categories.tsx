@@ -14,6 +14,7 @@ import { getIcon } from '../lib/icons';
 import { CategoryModal } from '../components/CategoryModal';
 import { FormAlert } from '../components/FormAlert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function Categories(): JSX.Element {
   const [categories, setCategories] = useState<CategoryData[]>([]);
@@ -59,13 +60,13 @@ export function Categories(): JSX.Element {
   };
 
   return (
-    <div className="space-y-6 min-w-0">
+    <div className="space-y-6 min-w-0 pb-24">
       <h1 className="text-2xl font-semibold text-foreground">Categories</h1>
 
       <FormAlert message={error} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button onClick={() => setModalMode('create')}>New Category</Button>
+        <Button data-testid="header-add-button" onClick={() => setModalMode('create')}>New Category</Button>
         <Input
           type="search"
           placeholder="Search categories…"
@@ -243,6 +244,11 @@ export function Categories(): JSX.Element {
           setModalMode(null);
           setSelectedCategoryId(null);
         }}
+      />
+
+      <FloatingActionButton
+        onClick={() => setModalMode('create')}
+        label="New Category"
       />
     </div>
   );

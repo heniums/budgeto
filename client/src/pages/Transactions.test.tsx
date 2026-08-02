@@ -238,6 +238,48 @@ describe('Home transactions list', () => {
     ).toBeInTheDocument();
     expect(within(coffeeRow as HTMLElement).getByText('—')).toBeInTheDocument();
   });
+
+  it('opens transaction dialog when clicking the FAB', async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findByText('Transactions');
+
+    // Two "Add transaction" buttons exist (header + FAB); [1] is the FAB.
+    const buttons = screen.getAllByRole('button', { name: /add transaction/i });
+    expect(buttons).toHaveLength(2);
+    await user.click(buttons[1]); // [1] is the FAB
+
+    // The transaction dialog should open
+    await waitFor(() => {
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+  });
+
+  it('hides the FAB when wallets or categories is empty', async () => {
+    // Empty wallets: dismiss the wizard so the page renders its empty state
+    localStorage.setItem('budgeto:wizardDismissed', 'true');
+    vi.mocked(getWallets).mockResolvedValue({ wallets: [] });
+    renderHome();
+    await screen.findByText('Transactions');
+
+    // Only the disabled header button remains — the FAB should not be present
+    const addButtons = screen.queryAllByRole('button', {
+      name: /add transaction/i,
+    });
+    expect(addButtons).toHaveLength(1);
+    cleanup();
+
+    // Empty categories with wallets present
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: [] });
+    renderHome();
+    await screen.findByText('Transactions');
+
+    // Only the disabled header button remains — the FAB should not be present
+    expect(
+      screen.queryAllByRole('button', { name: /add transaction/i }),
+    ).toHaveLength(1);
+  });
 });
 
 describe('Home onboarding wizard', () => {
@@ -473,7 +515,8 @@ describe('Home sequential modal — transaction + wallet/category', () => {
     renderHome();
     await screen.findByText('Salary');
 
-    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+    // data-testid is more stable than getAllByRole(...)[0] which depends on DOM order
+    await user.click(screen.getByTestId('header-add-button'));
 
     // Click the wallet creation link text
     await user.click(screen.getByText(/don't see your wallet\?/i));

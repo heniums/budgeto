@@ -14,6 +14,7 @@ import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
 import { FormAlert } from '../components/FormAlert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
@@ -60,13 +61,13 @@ export function WalletList(): JSX.Element {
   };
 
   return (
-    <div className="space-y-6 min-w-0">
+    <div className="space-y-6 min-w-0 pb-24">
       <h1 className="text-2xl font-semibold text-foreground">Wallets</h1>
 
       <FormAlert message={error} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button onClick={() => setModalMode('create')}>New Wallet</Button>
+        <Button data-testid="header-add-button" onClick={() => setModalMode('create')}>New Wallet</Button>
         <Input
           type="search"
           placeholder="Search wallets…"
@@ -250,6 +251,11 @@ export function WalletList(): JSX.Element {
           setModalMode(null);
           setSelectedWalletId(null);
         }}
+      />
+
+      <FloatingActionButton
+        onClick={() => setModalMode('create')}
+        label="New Wallet"
       />
     </div>
   );
