@@ -43,6 +43,7 @@ import {
   ContextMenuItem,
 } from '@/components/ui/context-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 const PAGE_SIZE = 20;
 
@@ -344,7 +345,7 @@ export function Transactions(): JSX.Element {
   const hasMore = transactions.length < total;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 pb-20">
       <OnboardingWizard
         open={wizardOpen}
         onOpenChange={setWizardOpen}
@@ -963,6 +964,13 @@ export function Transactions(): JSX.Element {
           }
         }}
       />
+
+      {wallets.length > 0 && categories.length > 0 && (
+        <FloatingActionButton
+          onClick={() => setTxOpen(true)}
+          label="Add transaction"
+        />
+      )}
     </div>
   );
 }

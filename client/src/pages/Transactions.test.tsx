@@ -473,7 +473,7 @@ describe('Home sequential modal — transaction + wallet/category', () => {
     renderHome();
     await screen.findByText('Salary');
 
-    await user.click(screen.getByRole('button', { name: /add transaction/i }));
+    await user.click(screen.getAllByRole('button', { name: /add transaction/i })[0]);
 
     // Click the wallet creation link text
     await user.click(screen.getByText(/don't see your wallet\?/i));
