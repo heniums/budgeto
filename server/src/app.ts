@@ -1,3 +1,4 @@
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
 import { z } from 'zod';
@@ -12,7 +13,17 @@ import { isAppError } from './errors';
 
 export function createApp(): Express {
   const app = express();
-  app.use(cors({ origin: ['http://localhost:5173', 'https://budgeto.vercel.app', 'https://budgeto.heniums.vercel.app'] }));
+  app.use(
+    cors({
+      origin: [
+        'http://localhost:5173',
+        'https://budgeto.vercel.app',
+        'https://budgeto.heniums.vercel.app',
+      ],
+      credentials: true,
+    }),
+  );
+  app.use(cookieParser());
   app.use(express.json());
 
   app.get('/health', healthCheck);

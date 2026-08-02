@@ -9,8 +9,15 @@ import {
   getProfile,
   updateProfile,
   changePassword,
+  refreshSession,
+  logout,
 } from './service';
-import { notFoundError } from '../errors';
+import {
+  setAuthCookies,
+  clearAuthCookies,
+  REFRESH_COOKIE_NAME,
+} from './cookies';
+import { notFoundError, unauthorizedError } from '../errors';
 
 /**
  * HTTP handlers for the auth endpoints. Validation is delegated to zod schemas;
@@ -24,7 +31,13 @@ export async function registerHandler(
   try {
     const input = registerSchema.parse(req.body);
     const result = await register(input);
-    res.status(201).json(result);
+    setAuthCookies(
+      res,
+      result.accessToken,
+      result.refreshToken,
+      result.refreshExpiresAt,
+    );
+    res.status(201).json({ user: result.user });
   } catch (error) {
     next(error);
   }
@@ -38,7 +51,13 @@ export async function loginHandler(
   try {
     const input = loginSchema.parse(req.body);
     const result = await login(input);
-    res.status(200).json(result);
+    setAuthCookies(
+      res,
+      result.accessToken,
+      result.refreshToken,
+      result.refreshExpiresAt,
+    );
+    res.status(200).json({ user: result.user });
   } catch (error) {
     next(error);
   }
@@ -88,6 +107,44 @@ export async function changePasswordHandler(
     }
     const input = changePasswordSchema.parse(req.body);
     await changePassword(req.user.sub, input);
+    res.status(204).send();
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function refreshHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+    if (!refreshToken) {
+      throw unauthorizedError('Missing refresh token');
+    }
+    const result = await refreshSession(refreshToken);
+    setAuthCookies(
+      res,
+      result.accessToken,
+      result.refreshToken,
+      result.refreshExpiresAt,
+    );
+    res.status(200).json({ user: result.user });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function logoutHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+    await logout(refreshToken);
+    clearAuthCookies(res);
     res.status(204).send();
   } catch (error) {
     next(error);
