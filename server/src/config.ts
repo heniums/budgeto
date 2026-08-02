@@ -6,6 +6,7 @@ export interface Config {
   jwtExpiresIn: number;
   refreshTokenExpiresIn: number;
   cookieSecure: boolean;
+  corsOrigins: string[];
   port: number;
   nodeEnv: string;
 }
@@ -34,14 +35,27 @@ export function getConfig(): Config {
   const nodeEnv = process.env.NODE_ENV ?? 'development';
   const cookieSecure =
     process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
+  const corsOrigins = (process.env.CORS_ORIGINS ?? '')
+    .split(',')
+    .map((s) => s.trim())
+    .filter(Boolean);
   cached = {
     databaseUrl,
     jwtSecret,
     jwtExpiresIn,
     refreshTokenExpiresIn,
     cookieSecure,
+    corsOrigins,
     port,
     nodeEnv,
   };
   return cached;
+}
+
+/**
+ * Resets the cached configuration. Used in tests to reload config after
+ * environment variables change.
+ */
+export function resetConfig(): void {
+  cached = null;
 }
