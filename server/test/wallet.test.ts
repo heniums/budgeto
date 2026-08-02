@@ -5,6 +5,8 @@ import { register } from '../src/auth/service';
 import { deleteAllUsers } from '../src/auth/repository';
 import { signToken } from '../src/auth/token';
 
+import { ACCESS_COOKIE_NAME } from '../src/auth/cookies';
+
 const app = createApp();
 
 async function createTestUser(): Promise<string> {
@@ -27,7 +29,7 @@ describe('POST /wallets', () => {
   it('creates a wallet with valid input (201)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'My Wallet' });
     expect(response.status).toBe(201);
     expect(response.body.name).toBe('My Wallet');
@@ -38,7 +40,7 @@ describe('POST /wallets', () => {
   it('creates a wallet with an explicit currency (201)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Euro Wallet', currency: 'EUR' });
     expect(response.status).toBe(201);
     expect(response.body.name).toBe('Euro Wallet');
@@ -48,7 +50,7 @@ describe('POST /wallets', () => {
   it('normalizes lowercase currency codes (201)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Lowercase Wallet', currency: 'eur' });
     expect(response.status).toBe(201);
     expect(response.body.currency).toBe('EUR');
@@ -57,7 +59,7 @@ describe('POST /wallets', () => {
   it('rejects empty currency (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Empty Currency', currency: '' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -66,7 +68,7 @@ describe('POST /wallets', () => {
   it('rejects invalid currency code (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Invalid Currency', currency: 'XYZ' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -75,7 +77,7 @@ describe('POST /wallets', () => {
   it('rejects currency code that is too short (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Short Currency', currency: 'US' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -84,7 +86,7 @@ describe('POST /wallets', () => {
   it('rejects missing name (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({});
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -93,7 +95,7 @@ describe('POST /wallets', () => {
   it('rejects empty name (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: '' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -102,7 +104,7 @@ describe('POST /wallets', () => {
   it('creates a wallet with initial balance (201)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Cash', balance: '250.00' });
     expect(response.status).toBe(201);
     expect(response.body.name).toBe('Cash');
@@ -112,7 +114,7 @@ describe('POST /wallets', () => {
   it('rejects invalid balance on create (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Bad', balance: 'abc' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -121,7 +123,7 @@ describe('POST /wallets', () => {
   it('creates a wallet with negative initial balance (201)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Debt', balance: '-50.00' });
     expect(response.status).toBe(201);
     expect(response.body.balance).toBe('-50.00');
@@ -129,7 +131,7 @@ describe('POST /wallets', () => {
     // Verify a negative adjustment transaction was created
     const txRes = await request(app)
       .get(`/wallets/${response.body.id}/transactions`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(txRes.status).toBe(200);
     expect(txRes.body.transactions).toHaveLength(1);
     expect(Number(txRes.body.transactions[0].amount)).toBeLessThan(0);
@@ -138,7 +140,7 @@ describe('POST /wallets', () => {
   it('rejects whitespace-only balance on create (400)', async () => {
     const response = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Spaces', balance: '   ' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -163,7 +165,7 @@ describe('GET /wallets', () => {
   it('returns an empty list when no wallets exist (200)', async () => {
     const response = await request(app)
       .get('/wallets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.wallets).toEqual([]);
   });
@@ -171,16 +173,16 @@ describe('GET /wallets', () => {
   it('lists wallets belonging to the authenticated user (200)', async () => {
     await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Wallet A' });
     await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Wallet B', currency: 'EUR' });
 
     const response = await request(app)
       .get('/wallets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.wallets).toHaveLength(2);
     expect(response.body.wallets[0].name).toBe('Wallet A');
@@ -202,13 +204,13 @@ describe('GET /wallets/:id', () => {
   it('returns a single wallet by id (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Single Wallet', currency: 'GBP' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .get(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Single Wallet');
     expect(response.body.currency).toBe('GBP');
@@ -218,14 +220,14 @@ describe('GET /wallets/:id', () => {
   it('returns 404 for a non-existent wallet', async () => {
     const response = await request(app)
       .get('/wallets/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(404);
   });
 
   it('returns 404 when wallet belongs to a different user', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'User A Wallet' });
     const walletId = wallet.body.id;
 
@@ -242,7 +244,7 @@ describe('GET /wallets/:id', () => {
 
     const response = await request(app)
       .get(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${otherToken}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${otherToken}`]);
     expect(response.status).toBe(404);
   });
 });
@@ -258,13 +260,13 @@ describe('PUT /wallets/:id', () => {
   it('updates a wallet name (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Updated' });
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Updated');
@@ -273,33 +275,33 @@ describe('PUT /wallets/:id', () => {
   it('updates a wallet currency (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ currency: 'JPY' });
     expect(response.status).toBe(200);
     expect(response.body.currency).toBe('JPY');
 
     const getResponse = await request(app)
       .get(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(getResponse.body.currency).toBe('JPY');
   });
 
   it('rejects invalid currency update (400)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ currency: 'XYZ' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -308,13 +310,13 @@ describe('PUT /wallets/:id', () => {
   it('rejects empty name update (400)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: '' });
     expect(response.status).toBe(400);
   });
@@ -322,13 +324,13 @@ describe('PUT /wallets/:id', () => {
   it('updates wallet balance (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ balance: '75.00' });
     expect(response.status).toBe(200);
     expect(response.body.balance).toBe('75.00');
@@ -337,13 +339,13 @@ describe('PUT /wallets/:id', () => {
   it('rejects invalid balance on update (400)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ balance: 'infinity' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -352,14 +354,14 @@ describe('PUT /wallets/:id', () => {
   it('returns correct balance when editing metadata only (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Original', balance: '100.00' });
     const walletId = created.body.id;
     expect(created.body.balance).toBe('100.00');
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Updated' });
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Updated');
@@ -369,14 +371,14 @@ describe('PUT /wallets/:id', () => {
   it('updates wallet balance to zero from non-zero (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Savings', balance: '100.00' });
     const walletId = created.body.id;
     expect(created.body.balance).toBe('100.00');
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ balance: '0' });
     expect(response.status).toBe(200);
     expect(response.body.balance).toBe('0.00');
@@ -384,7 +386,7 @@ describe('PUT /wallets/:id', () => {
     // Verify an adjustment transaction was created (2 total: create + update)
     const txRes = await request(app)
       .get(`/wallets/${walletId}/transactions`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(txRes.status).toBe(200);
     expect(txRes.body.transactions).toHaveLength(2);
   });
@@ -392,20 +394,20 @@ describe('PUT /wallets/:id', () => {
   it('does not create a new transaction when balance is unchanged (200)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Stable', balance: '200.00' });
     const walletId = created.body.id;
 
     // Count transactions before the update
     const before = await request(app)
       .get(`/wallets/${walletId}/transactions`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     const txCountBefore = before.body.transactions.length;
 
     // Update with the same balance
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ balance: '200.00' });
     expect(response.status).toBe(200);
     expect(response.body.balance).toBe('200.00');
@@ -413,14 +415,14 @@ describe('PUT /wallets/:id', () => {
     // Verify no new transaction was created
     const after = await request(app)
       .get(`/wallets/${walletId}/transactions`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(after.body.transactions).toHaveLength(txCountBefore);
   });
 
   it('returns 404 when updating a wallet owned by another user', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'User A Wallet' });
     const walletId = wallet.body.id;
 
@@ -437,7 +439,7 @@ describe('PUT /wallets/:id', () => {
 
     const response = await request(app)
       .put(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${otherToken}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${otherToken}`])
       .send({ name: 'Hacked' });
     expect(response.status).toBe(404);
   });
@@ -454,27 +456,27 @@ describe('DELETE /wallets/:id', () => {
   it('deletes an empty wallet (204)', async () => {
     const created = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Empty Wallet' });
     const walletId = created.body.id;
 
     const response = await request(app)
       .delete(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(204);
   });
 
   it('returns 404 for a non-existent wallet', async () => {
     const response = await request(app)
       .delete('/wallets/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(404);
   });
 
   it('returns 404 when deleting a wallet owned by another user', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'User A Wallet' });
     const walletId = wallet.body.id;
 
@@ -491,7 +493,7 @@ describe('DELETE /wallets/:id', () => {
 
     const response = await request(app)
       .delete(`/wallets/${walletId}`)
-      .set('Authorization', `Bearer ${otherToken}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${otherToken}`]);
     expect(response.status).toBe(404);
   });
 });
@@ -507,13 +509,13 @@ describe('POST /wallets/:id/adjust', () => {
   it('adjusts a wallet balance upward and creates a Balance Adjustment category (200)', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Checking' });
     const walletId = wallet.body.id;
 
     const response = await request(app)
       .post(`/wallets/${walletId}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: '100.00' });
 
     expect(response.status).toBe(200);
@@ -522,7 +524,7 @@ describe('POST /wallets/:id/adjust', () => {
     // Verify a "Balance Adjustment" category was auto-created
     const categories = await request(app)
       .get('/categories')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(categories.status).toBe(200);
     const adjustmentCat = categories.body.categories.find(
       (c: { name: string }) => c.name === 'Balance Adjustment',
@@ -533,20 +535,20 @@ describe('POST /wallets/:id/adjust', () => {
   it('adjusts a wallet balance downward reusing existing category (200)', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Checking' });
     const walletId = wallet.body.id;
 
     // First adjustment: 0 → 100
     await request(app)
       .post(`/wallets/${walletId}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: '100.00' });
 
     // Second adjustment: 100 → 50
     const response = await request(app)
       .post(`/wallets/${walletId}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: '50.00' });
 
     expect(response.status).toBe(200);
@@ -555,7 +557,7 @@ describe('POST /wallets/:id/adjust', () => {
     // Verify only one "Balance Adjustment" category exists
     const categories = await request(app)
       .get('/categories')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     const adjustmentCats = categories.body.categories.filter(
       (c: { name: string }) => c.name === 'Balance Adjustment',
     );
@@ -565,12 +567,12 @@ describe('POST /wallets/:id/adjust', () => {
   it('rejects missing targetBalance (400)', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Checking' });
 
     const response = await request(app)
       .post(`/wallets/${wallet.body.id}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({});
 
     expect(response.status).toBe(400);
@@ -580,12 +582,12 @@ describe('POST /wallets/:id/adjust', () => {
   it('rejects non-numeric targetBalance (400)', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Checking' });
 
     const response = await request(app)
       .post(`/wallets/${wallet.body.id}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: 'abc' });
 
     expect(response.status).toBe(400);
@@ -595,12 +597,12 @@ describe('POST /wallets/:id/adjust', () => {
   it('rejects Infinity targetBalance (400)', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Checking' });
 
     const response = await request(app)
       .post(`/wallets/${wallet.body.id}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: 'Infinity' });
 
     expect(response.status).toBe(400);
@@ -610,12 +612,12 @@ describe('POST /wallets/:id/adjust', () => {
   it('rejects -Infinity targetBalance (400)', async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Checking' });
 
     const response = await request(app)
       .post(`/wallets/${wallet.body.id}/adjust`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: '-Infinity' });
 
     expect(response.status).toBe(400);
@@ -625,7 +627,7 @@ describe('POST /wallets/:id/adjust', () => {
   it('returns 404 for a non-existent wallet', async () => {
     const response = await request(app)
       .post('/wallets/00000000-0000-0000-0000-000000000000/adjust')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ targetBalance: '100.00' });
 
     expect(response.status).toBe(404);
@@ -634,7 +636,7 @@ describe('POST /wallets/:id/adjust', () => {
   it("returns 404 for another user's wallet", async () => {
     const wallet = await request(app)
       .post('/wallets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'My Wallet' });
 
     const { user: otherUser } = await register({
@@ -650,7 +652,7 @@ describe('POST /wallets/:id/adjust', () => {
 
     const response = await request(app)
       .post(`/wallets/${wallet.body.id}/adjust`)
-      .set('Authorization', `Bearer ${otherToken}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${otherToken}`])
       .send({ targetBalance: '100.00' });
 
     expect(response.status).toBe(404);

@@ -7,6 +7,7 @@ export default defineConfig({
     fileParallelism: false,
     include: ['server/test/**/*.test.ts', 'server/src/**/*.test.ts'],
     globalSetup: ['./server/test/setup.ts'],
+    setupFiles: ['./server/test/worker-setup.ts'],
     coverage: {
       provider: 'v8',
       reportsDirectory: 'coverage/server',

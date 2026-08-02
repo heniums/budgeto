@@ -5,6 +5,8 @@ import { register } from '../src/auth/service';
 import { deleteAllUsers } from '../src/auth/repository';
 import { signToken } from '../src/auth/token';
 
+import { ACCESS_COOKIE_NAME } from '../src/auth/cookies';
+
 const app = createApp();
 
 async function createTestUser(
@@ -30,7 +32,7 @@ describe('POST /categories', () => {
   it('creates a category with valid input (201)', async () => {
     const response = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -47,7 +49,7 @@ describe('POST /categories', () => {
   it('rejects missing name (400)', async () => {
     const response = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ color: '#FF5733', icon: 'shopping-cart' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -56,7 +58,7 @@ describe('POST /categories', () => {
   it('rejects missing color (400)', async () => {
     const response = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Groceries', icon: 'shopping-cart' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -65,7 +67,7 @@ describe('POST /categories', () => {
   it('rejects invalid color format (400)', async () => {
     const response = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: 'not-a-color',
@@ -78,7 +80,7 @@ describe('POST /categories', () => {
   it('rejects missing icon (400)', async () => {
     const response = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Groceries', color: '#FF5733' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -105,7 +107,7 @@ describe('GET /categories', () => {
   it('returns an empty list when no categories exist (200)', async () => {
     const response = await request(app)
       .get('/categories')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.categories).toEqual([]);
   });
@@ -113,7 +115,7 @@ describe('GET /categories', () => {
   it('lists categories belonging to the authenticated user (200)', async () => {
     await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -121,7 +123,7 @@ describe('GET /categories', () => {
       });
     await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Salary',
         color: '#33FF57',
@@ -130,7 +132,7 @@ describe('GET /categories', () => {
 
     const response = await request(app)
       .get('/categories')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.categories).toHaveLength(2);
     expect(response.body.categories[0].name).toBe('Groceries');
@@ -154,7 +156,7 @@ describe('GET /categories/:id', () => {
   it('returns a single category by id (200)', async () => {
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -164,7 +166,7 @@ describe('GET /categories/:id', () => {
 
     const response = await request(app)
       .get(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Groceries');
     expect(response.body.color).toBe('#FF5733');
@@ -174,14 +176,14 @@ describe('GET /categories/:id', () => {
   it('returns 404 for a non-existent category', async () => {
     const response = await request(app)
       .get('/categories/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(404);
   });
 
   it('returns 400 for a malformed id', async () => {
     const response = await request(app)
       .get('/categories/not-a-valid-uuid')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
@@ -205,7 +207,7 @@ describe('PUT /categories/:id', () => {
   it('updates category name (200)', async () => {
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -215,7 +217,7 @@ describe('PUT /categories/:id', () => {
 
     const response = await request(app)
       .put(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Food',
         color: '#FF5733',
@@ -228,7 +230,7 @@ describe('PUT /categories/:id', () => {
   it('updates all category properties (200)', async () => {
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -238,7 +240,7 @@ describe('PUT /categories/:id', () => {
 
     const response = await request(app)
       .put(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Salary',
         color: '#33FF57',
@@ -253,7 +255,7 @@ describe('PUT /categories/:id', () => {
   it('updates a single field via partial update (200)', async () => {
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -263,7 +265,7 @@ describe('PUT /categories/:id', () => {
 
     const response = await request(app)
       .put(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ name: 'Food' });
     expect(response.status).toBe(200);
     expect(response.body.name).toBe('Food');
@@ -274,7 +276,7 @@ describe('PUT /categories/:id', () => {
   it('returns 404 for a non-existent category', async () => {
     const response = await request(app)
       .put('/categories/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Food',
         color: '#FF5733',
@@ -286,7 +288,7 @@ describe('PUT /categories/:id', () => {
   it('rejects invalid color format on update (400)', async () => {
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -296,7 +298,7 @@ describe('PUT /categories/:id', () => {
 
     const response = await request(app)
       .put(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ color: 'not-a-color' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -325,7 +327,7 @@ describe('DELETE /categories/:id', () => {
   it('deletes a category (204)', async () => {
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -335,14 +337,14 @@ describe('DELETE /categories/:id', () => {
 
     const response = await request(app)
       .delete(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(204);
   });
 
   it('returns 404 for a non-existent category', async () => {
     const response = await request(app)
       .delete('/categories/00000000-0000-0000-0000-000000000000')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(404);
   });
 
@@ -363,7 +365,7 @@ describe('category ownership enforcement', () => {
     const userAToken = await createTestUser('User A', 'usera@example.com');
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${userAToken}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${userAToken}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -375,7 +377,7 @@ describe('category ownership enforcement', () => {
 
     const response = await request(app)
       .get(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${userBToken}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${userBToken}`]);
     expect(response.status).toBe(404);
   });
 
@@ -383,7 +385,7 @@ describe('category ownership enforcement', () => {
     const userAToken = await createTestUser('User A', 'usera@example.com');
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${userAToken}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${userAToken}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -395,7 +397,7 @@ describe('category ownership enforcement', () => {
 
     const response = await request(app)
       .put(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${userBToken}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${userBToken}`])
       .send({
         name: 'Hacked',
         color: '#FF5733',
@@ -408,7 +410,7 @@ describe('category ownership enforcement', () => {
     const userAToken = await createTestUser('User A', 'usera@example.com');
     const created = await request(app)
       .post('/categories')
-      .set('Authorization', `Bearer ${userAToken}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${userAToken}`])
       .send({
         name: 'Groceries',
         color: '#FF5733',
@@ -420,7 +422,7 @@ describe('category ownership enforcement', () => {
 
     const response = await request(app)
       .delete(`/categories/${categoryId}`)
-      .set('Authorization', `Bearer ${userBToken}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${userBToken}`]);
     expect(response.status).toBe(404);
   });
 });

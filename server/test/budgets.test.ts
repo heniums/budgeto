@@ -10,6 +10,8 @@ import { deleteAllWallets } from '../src/wallets/repository';
 import { deleteAllBudgets } from '../src/budgets/repository';
 import { deleteAllTransactions } from '../src/transactions/repository';
 
+import { ACCESS_COOKIE_NAME } from '../src/auth/cookies';
+
 const app = createApp();
 
 async function createTestUser(
@@ -30,7 +32,7 @@ async function createCategory(
 ): Promise<{ id: string }> {
   const response = await request(app)
     .post('/categories')
-    .set('Authorization', `Bearer ${token}`)
+    .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
     .send({
       name,
       color: '#FF5733',
@@ -46,7 +48,7 @@ async function createWallet(
 ): Promise<{ id: string }> {
   const response = await request(app)
     .post('/wallets')
-    .set('Authorization', `Bearer ${token}`)
+    .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
     .send({ name, currency: 'USD' });
   expect(response.status).toBe(201);
   return response.body;
@@ -73,7 +75,7 @@ describe('POST /budgets', () => {
     const dining = await createCategory(token, 'Dining');
     const response = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly Spending',
         icon: 'wallet',
@@ -104,7 +106,7 @@ describe('POST /budgets', () => {
     const groceries = await createCategory(token, 'Groceries');
     const response = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Custom Budget',
         period: 'custom',
@@ -122,7 +124,7 @@ describe('POST /budgets', () => {
     const groceries = await createCategory(token, 'Groceries');
     const response = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Missing Dates',
         period: 'custom',
@@ -137,7 +139,7 @@ describe('POST /budgets', () => {
     const dining = await createCategory(token, 'Dining');
     const response = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Over Budget',
         period: 'monthly',
@@ -155,7 +157,7 @@ describe('POST /budgets', () => {
     const salary = await createCategory(token, 'Salary');
     const response = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Budget With Income Category',
         period: 'monthly',
@@ -169,7 +171,7 @@ describe('POST /budgets', () => {
   it('rejects invalid category (404)', async () => {
     const response = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Bad Budget',
         period: 'monthly',
@@ -213,7 +215,7 @@ describe('GET /budgets', () => {
   it('returns an empty list when no budgets exist (200)', async () => {
     const response = await request(app)
       .get('/budgets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.budgets).toEqual([]);
   });
@@ -225,7 +227,7 @@ describe('GET /budgets', () => {
     const today = dayjs().toISOString();
     await request(app)
       .post(`/wallets/${wallet.id}/transactions`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         amount: '-50.00',
         description: 'Groceries',
@@ -235,7 +237,7 @@ describe('GET /budgets', () => {
 
     await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly',
         period: 'monthly',
@@ -245,7 +247,7 @@ describe('GET /budgets', () => {
 
     const response = await request(app)
       .get('/budgets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.budgets).toHaveLength(1);
     expect(response.body.budgets[0].spent).toBe('50.00');
@@ -268,7 +270,7 @@ describe('GET /budgets', () => {
     const lastMonth = dayjs().subtract(1, 'month').toISOString();
     await request(app)
       .post(`/wallets/${wallet.id}/transactions`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         amount: '-30.00',
         description: 'Groceries',
@@ -278,7 +280,7 @@ describe('GET /budgets', () => {
 
     await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly',
         period: 'monthly',
@@ -288,7 +290,7 @@ describe('GET /budgets', () => {
 
     const response = await request(app)
       .get('/budgets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.budgets[0].spent).toBe('0.00');
     expect(response.body.budgets[0].remaining).toBe('500.00');
@@ -299,7 +301,7 @@ describe('GET /budgets', () => {
 
     await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly',
         period: 'monthly',
@@ -309,7 +311,7 @@ describe('GET /budgets', () => {
 
     const response = await request(app)
       .get('/budgets?period=2024-03')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
 
     expect(response.status).toBe(200);
     expect(response.body.budgets).toHaveLength(1);
@@ -334,7 +336,7 @@ describe('GET /budgets/:id', () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
@@ -344,7 +346,7 @@ describe('GET /budgets/:id', () => {
 
     const response = await request(app)
       .get(`/budgets/${created.body.id}?period=2024-03`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
 
     expect(response.status).toBe(200);
     expect(response.body.period.window.startDate).toBe('2024-03-01');
@@ -359,7 +361,7 @@ describe('GET /budgets/:id', () => {
     // Transaction in January 2024
     await request(app)
       .post(`/wallets/${wallet.id}/transactions`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         amount: '-50.00',
         description: 'Jan groceries',
@@ -370,7 +372,7 @@ describe('GET /budgets/:id', () => {
     // Transaction in March 2024
     await request(app)
       .post(`/wallets/${wallet.id}/transactions`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         amount: '-75.00',
         description: 'Mar groceries',
@@ -380,7 +382,7 @@ describe('GET /budgets/:id', () => {
 
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
@@ -391,7 +393,7 @@ describe('GET /budgets/:id', () => {
     // Get budget for March 2024 — should only include the $75 transaction
     const marResponse = await request(app)
       .get(`/budgets/${created.body.id}?period=2024-03`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(marResponse.status).toBe(200);
     expect(marResponse.body.spent).toBe('75.00');
     expect(marResponse.body.remaining).toBe('925.00');
@@ -400,7 +402,7 @@ describe('GET /budgets/:id', () => {
     // Get budget for January 2024 — should only include the $50 transaction
     const janResponse = await request(app)
       .get(`/budgets/${created.body.id}?period=2024-01`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(janResponse.status).toBe(200);
     expect(janResponse.body.spent).toBe('50.00');
     expect(janResponse.body.remaining).toBe('950.00');
@@ -411,7 +413,7 @@ describe('GET /budgets/:id', () => {
     const category = await createCategory(token, 'Rent');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Yearly Budget',
         period: 'yearly',
@@ -421,7 +423,7 @@ describe('GET /budgets/:id', () => {
 
     const response = await request(app)
       .get(`/budgets/${created.body.id}?period=2024-06`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
 
     expect(response.status).toBe(200);
     expect(response.body.period.window.startDate).toBe('2024-01-01');
@@ -433,7 +435,7 @@ describe('GET /budgets/:id', () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
@@ -443,7 +445,7 @@ describe('GET /budgets/:id', () => {
 
     const response = await request(app)
       .get(`/budgets/${created.body.id}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
 
     expect(response.status).toBe(200);
     expect(response.body.period.window.startDate).toBe(currentMonthStart);
@@ -454,7 +456,7 @@ describe('GET /budgets/:id', () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
@@ -464,7 +466,7 @@ describe('GET /budgets/:id', () => {
 
     const response = await request(app)
       .get(`/budgets/${created.body.id}?period=invalid`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
 
     expect(response.status).toBe(400);
   });
@@ -486,7 +488,7 @@ describe('PUT /budgets/:id', () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly',
         period: 'monthly',
@@ -496,7 +498,7 @@ describe('PUT /budgets/:id', () => {
 
     const response = await request(app)
       .put(`/budgets/${created.body.id}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ totalAmount: '750.00' });
     expect(response.status).toBe(200);
     expect(response.body.totalAmount).toBe('750.00');
@@ -508,7 +510,7 @@ describe('PUT /budgets/:id', () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly',
         period: 'monthly',
@@ -518,7 +520,7 @@ describe('PUT /budgets/:id', () => {
 
     const response = await request(app)
       .put(`/budgets/${created.body.id}`)
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ totalAmount: '100.00' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -541,7 +543,7 @@ describe('DELETE /budgets/:id', () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Monthly',
         period: 'monthly',
@@ -551,12 +553,12 @@ describe('DELETE /budgets/:id', () => {
 
     const response = await request(app)
       .delete(`/budgets/${created.body.id}`)
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(204);
 
     const list = await request(app)
       .get('/budgets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(list.body.budgets).toHaveLength(0);
   });
 });

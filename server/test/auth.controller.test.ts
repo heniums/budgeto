@@ -3,6 +3,10 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { register } from '../src/auth/service';
 import { deleteAllUsers } from '../src/auth/repository';
+import {
+  ACCESS_COOKIE_NAME,
+  REFRESH_COOKIE_NAME,
+} from '../src/auth/cookies';
 
 const app = createApp();
 
@@ -57,12 +61,21 @@ describe('POST /auth/login', () => {
     });
   });
 
-  it('returns a token with valid credentials (200)', async () => {
+  it('returns a user and sets auth cookies with valid credentials (200)', async () => {
     const response = await request(app)
       .post('/auth/login')
       .send({ email: 'judy@example.com', password: 'password123' });
     expect(response.status).toBe(200);
-    expect(response.body.token).toBeTypeOf('string');
+    expect(response.body.user.email).toBe('judy@example.com');
+    const raw = response.headers['set-cookie'];
+    const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    expect(cookies.length).toBeGreaterThan(0);
+    expect(cookies.some((c) => c.startsWith(`${ACCESS_COOKIE_NAME}=`))).toBe(
+      true,
+    );
+    expect(cookies.some((c) => c.startsWith(`${REFRESH_COOKIE_NAME}=`))).toBe(
+      true,
+    );
   });
 
   it('rejects an unknown user (401)', async () => {

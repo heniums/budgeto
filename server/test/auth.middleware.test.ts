@@ -4,6 +4,8 @@ import { createApp } from '../src/app';
 import { register, login } from '../src/auth/service';
 import { deleteAllUsers } from '../src/auth/repository';
 
+import { ACCESS_COOKIE_NAME } from '../src/auth/cookies';
+
 const app = createApp();
 
 async function loginToken(): Promise<string> {
@@ -38,7 +40,7 @@ describe('Protected routes', () => {
   it('rejects an invalid cookie token (401)', async () => {
     const response = await request(app)
       .get('/auth/me')
-      .set('Cookie', ['budgeto_access_token=not-a-real-token']);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=not-a-real-token`]);
     expect(response.status).toBe(401);
   });
 
@@ -46,7 +48,7 @@ describe('Protected routes', () => {
     const token = await loginToken();
     const response = await request(app)
       .get('/auth/me')
-      .set('Cookie', [`budgeto_access_token=${token}`]);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.user.email).toBe('mallory@example.com');
   });

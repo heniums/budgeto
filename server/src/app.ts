@@ -2,6 +2,7 @@ import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { type Express, type Request, type Response } from 'express';
 import { z } from 'zod';
+import { getConfig } from './config';
 import { healthCheck } from './health';
 import authRouter from './auth/router';
 import walletsRouter from './wallets/router';
@@ -13,13 +14,10 @@ import { isAppError } from './errors';
 
 export function createApp(): Express {
   const app = express();
+  const config = getConfig();
   app.use(
     cors({
-      origin: [
-        'http://localhost:5173',
-        'https://budgeto.vercel.app',
-        'https://budgeto.heniums.vercel.app',
-      ],
+      origin: config.corsOrigins,
       credentials: true,
     }),
   );

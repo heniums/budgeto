@@ -4,9 +4,13 @@ import EmbeddedPostgres from 'embedded-postgres';
 import { Pool, types } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
-
-const TEST_PORT = 5434;
-const TEST_DB = 'budgeto_test';
+import {
+  TEST_PORT,
+  TEST_DB,
+  TEST_USER,
+  TEST_PASSWORD,
+  TEST_DATABASE_URL,
+} from './constants';
 
 const rootDir = path.dirname(fileURLToPath(import.meta.url));
 const dataDir = path.resolve(rootDir, '../../.pgdata-test');
@@ -14,8 +18,8 @@ const migrationsDir = path.resolve(rootDir, '../migrations');
 
 const pg = new EmbeddedPostgres({
   databaseDir: dataDir,
-  user: 'postgres',
-  password: 'postgres',
+  user: TEST_USER,
+  password: TEST_PASSWORD,
   port: TEST_PORT,
   persistent: false,
 });
@@ -31,10 +35,9 @@ export async function setup(): Promise<void> {
   await pg.start();
   await pg.createDatabase(TEST_DB);
 
-  const connectionString = `postgresql://postgres:postgres@localhost:${TEST_PORT}/${TEST_DB}`;
-  process.env.DATABASE_URL = connectionString;
+  process.env.DATABASE_URL = TEST_DATABASE_URL;
 
-  const pool = new Pool({ connectionString, max: 1 });
+  const pool = new Pool({ connectionString: TEST_DATABASE_URL, max: 1 });
   const db = drizzle(pool);
 
   // Run Drizzle migrations instead of hand-maintained raw SQL.

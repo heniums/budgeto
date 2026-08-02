@@ -12,6 +12,8 @@ import { deleteAllTransactions } from '../src/transactions/repository';
 import { db } from '../src/db/client';
 import { userWidgets } from '../src/db/schema';
 
+import { ACCESS_COOKIE_NAME } from '../src/auth/cookies';
+
 const app = createApp();
 
 async function createTestUser(
@@ -37,7 +39,7 @@ async function createCategory(
 ): Promise<{ id: string }> {
   const response = await request(app)
     .post('/categories')
-    .set('Authorization', `Bearer ${token}`)
+    .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
     .send({ name, color: '#FF5733', icon: 'shopping-cart' });
   expect(response.status).toBe(201);
   return response.body;
@@ -50,7 +52,7 @@ async function createWallet(
 ): Promise<{ id: string }> {
   const response = await request(app)
     .post('/wallets')
-    .set('Authorization', `Bearer ${token}`)
+    .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
     .send({ name, currency });
   expect(response.status).toBe(201);
   return response.body;
@@ -67,7 +69,7 @@ async function createTransactionViaApi(
   if (categoryId) payload.categoryId = categoryId;
   const response = await request(app)
     .post(`/wallets/${walletId}/transactions`)
-    .set('Authorization', `Bearer ${token}`)
+    .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
     .send(payload);
   expect(response.status).toBe(201);
 }
@@ -88,7 +90,7 @@ describe('GET /dashboard/widgets', () => {
   it('returns an empty array for a fresh user', async () => {
     const response = await request(app)
       .get('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.widgets).toEqual([]);
   });
@@ -119,14 +121,14 @@ describe('GET /dashboard/widgets', () => {
     ];
     const saveResponse = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ widgets });
     expect(saveResponse.status).toBe(200);
     expect(saveResponse.body.widgets).toEqual(widgets);
 
     const listResponse = await request(app)
       .get('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(listResponse.status).toBe(200);
     expect(listResponse.body.widgets).toEqual(widgets);
   });
@@ -169,7 +171,7 @@ describe('POST /dashboard/widgets', () => {
     ];
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({ widgets });
     expect(response.status).toBe(200);
     expect(response.body.widgets).toEqual(widgets);
@@ -178,7 +180,7 @@ describe('POST /dashboard/widgets', () => {
   it('rejects negative order (400)', async () => {
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         widgets: [{ widgetId: 'net-worth', visible: true, order: -1 }],
       });
@@ -189,7 +191,7 @@ describe('POST /dashboard/widgets', () => {
   it('rejects missing widgetId (400)', async () => {
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         widgets: [{ visible: true, order: 0 }],
       });
@@ -200,7 +202,7 @@ describe('POST /dashboard/widgets', () => {
   it('rejects empty widgetId (400)', async () => {
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         widgets: [{ widgetId: '', visible: true, order: 0 }],
       });
@@ -211,7 +213,7 @@ describe('POST /dashboard/widgets', () => {
   it('rejects colSpan > 2 (400)', async () => {
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         widgets: [
           {
@@ -230,7 +232,7 @@ describe('POST /dashboard/widgets', () => {
   it('rejects rowSpan < 1 (400)', async () => {
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         widgets: [
           {
@@ -249,7 +251,7 @@ describe('POST /dashboard/widgets', () => {
   it('rejects colSpan as float (400)', async () => {
     const response = await request(app)
       .post('/dashboard/widgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         widgets: [
           {
@@ -289,7 +291,7 @@ describe('GET /dashboard/summary', () => {
   it('returns zero totals for a user with no transactions', async () => {
     const response = await request(app)
       .get('/dashboard/summary')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
     const { summary } = response.body;
     expect(summary.period).toBeDefined();
@@ -323,7 +325,7 @@ describe('GET /dashboard/summary', () => {
     const today = dayjs();
     const budgetResponse = await request(app)
       .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
       .send({
         name: 'Food Budget',
         icon: 'utensils',
@@ -337,7 +339,7 @@ describe('GET /dashboard/summary', () => {
 
     const response = await request(app)
       .get('/dashboard/summary')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
     expect(response.status).toBe(200);
 
     const { summary } = response.body;
