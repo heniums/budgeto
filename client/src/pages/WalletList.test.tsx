@@ -140,7 +140,7 @@ describe('WalletList page', () => {
     const user = userEvent.setup();
     renderList();
     await screen.findByText('Wallets');
-    await user.click(screen.getByRole('button', { name: /new wallet/i }));
+    await user.click(screen.getAllByRole('button', { name: /new wallet/i })[0]);
 
     await waitFor(() => {
       const titles = screen.getAllByText('New Wallet');

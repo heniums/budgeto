@@ -14,6 +14,7 @@ import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
 import { FormAlert } from '../components/FormAlert';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function WalletList(): JSX.Element {
   const [wallets, setWallets] = useState<WalletData[]>([]);
@@ -60,7 +61,7 @@ export function WalletList(): JSX.Element {
   };
 
   return (
-    <div className="space-y-6 min-w-0">
+    <div className="space-y-6 min-w-0 pb-20">
       <h1 className="text-2xl font-semibold text-foreground">Wallets</h1>
 
       <FormAlert message={error} />
@@ -250,6 +251,11 @@ export function WalletList(): JSX.Element {
           setModalMode(null);
           setSelectedWalletId(null);
         }}
+      />
+
+      <FloatingActionButton
+        onClick={() => setModalMode('create')}
+        label="New Wallet"
       />
     </div>
   );
