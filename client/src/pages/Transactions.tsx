@@ -345,7 +345,7 @@ export function Transactions(): JSX.Element {
   const hasMore = transactions.length < total;
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-24">
       <OnboardingWizard
         open={wizardOpen}
         onOpenChange={setWizardOpen}
@@ -361,7 +361,7 @@ export function Transactions(): JSX.Element {
           {wallets.length > 0 && categories.length > 0 ? (
             <Dialog open={txOpen} onOpenChange={setTxOpen}>
               <DialogTrigger asChild>
-                <Button>Add transaction</Button>
+                <Button data-testid="header-add-button">Add transaction</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -426,6 +426,7 @@ export function Transactions(): JSX.Element {
           ) : (
             <Button
               disabled
+              data-testid="header-add-button"
               title="You need at least one wallet and one category to add a transaction"
             >
               Add transaction

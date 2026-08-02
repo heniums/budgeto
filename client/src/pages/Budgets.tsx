@@ -82,7 +82,7 @@ export function Budgets(): JSX.Element {
   };
 
   return (
-    <div className="p-4 space-y-4 pb-20">
+    <div className="p-4 space-y-4 pb-24">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Budgets</h1>
@@ -92,7 +92,7 @@ export function Budgets(): JSX.Element {
         </div>
         <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
-            <Button onClick={handleAddClick}>Add budget</Button>
+            <Button data-testid="header-add-button" onClick={handleAddClick}>Add budget</Button>
           </DialogTrigger>
           {dialogOpen && (
             <BudgetForm
@@ -138,7 +138,9 @@ export function Budgets(): JSX.Element {
         </div>
       )}
 
-      <FloatingActionButton onClick={handleAddClick} label="Add budget" />
+      {categories.length > 0 && (
+        <FloatingActionButton onClick={handleAddClick} label="Add budget" />
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup, waitFor, act } from '@testing-library/react';
+import { render, screen, cleanup, waitFor, act, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { Budgets } from './Budgets';
@@ -177,5 +178,22 @@ describe('Budgets page', () => {
     });
     // Wait for the component to finish loading and show content again
     await screen.findByText('Monthly Spending');
+  });
+
+  it('opens BudgetForm when clicking the FAB', async () => {
+    const user = userEvent.setup();
+    renderPage();
+    await screen.findByText('Budgets');
+
+    // Two "Add budget" buttons exist (header + FAB); [1] is the FAB.
+    const buttons = screen.getAllByRole('button', { name: /add budget/i });
+    expect(buttons).toHaveLength(2);
+    await user.click(buttons[1]); // [1] is the FAB
+
+    // BudgetForm opens with the "Add budget" dialog title
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).getByRole('heading', { name: /add budget/i }),
+    ).toBeInTheDocument();
   });
 });
