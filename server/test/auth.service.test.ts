@@ -39,7 +39,7 @@ describe('login', () => {
     await deleteAllUsers();
   });
 
-  it('logs in with valid credentials and returns a token', async () => {
+  it('logs in with valid credentials and returns tokens', async () => {
     await register({
       name: 'Frank',
       email: 'frank@example.com',
@@ -49,7 +49,9 @@ describe('login', () => {
       email: 'frank@example.com',
       password: 'password123',
     });
-    expect(result.token).toBeTypeOf('string');
+    expect(result.accessToken).toBeTypeOf('string');
+    expect(result.refreshToken).toBeTypeOf('string');
+    expect(result.refreshExpiresAt).toBeInstanceOf(Date);
     expect(result.user.email).toBe('frank@example.com');
     expect(result.user.name).toBe('Frank');
   });

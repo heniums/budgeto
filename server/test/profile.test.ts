@@ -16,7 +16,7 @@ async function loginToken(): Promise<{ token: string; userId: string }> {
     email: 'nadia@example.com',
     password: 'password123',
   });
-  return { token: loggedIn.token, userId: result.user.id };
+  return { token: loggedIn.accessToken, userId: result.user.id };
 }
 
 describe('GET /auth/me', () => {
@@ -24,11 +24,11 @@ describe('GET /auth/me', () => {
     await deleteAllUsers();
   });
 
-  it('returns the user name for a valid token (200)', async () => {
+  it('returns the user name for a valid cookie (200)', async () => {
     const { token } = await loginToken();
     const response = await request(app)
       .get('/auth/me')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`budgeto_access_token=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.user.email).toBe('nadia@example.com');
     expect(response.body.user.name).toBe('Nadia');
@@ -40,18 +40,18 @@ describe('PATCH /auth/me', () => {
     await deleteAllUsers();
   });
 
-  it('updates the user name for a valid token (200)', async () => {
+  it('updates the user name for a valid cookie (200)', async () => {
     const { token } = await loginToken();
     const response = await request(app)
       .patch('/auth/me')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`budgeto_access_token=${token}`])
       .send({ name: 'Nadia R.' });
     expect(response.status).toBe(200);
     expect(response.body.user.name).toBe('Nadia R.');
 
     const me = await request(app)
       .get('/auth/me')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`budgeto_access_token=${token}`]);
     expect(me.body.user.name).toBe('Nadia R.');
   });
 
@@ -59,7 +59,7 @@ describe('PATCH /auth/me', () => {
     const { token } = await loginToken();
     const response = await request(app)
       .patch('/auth/me')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`budgeto_access_token=${token}`])
       .send({ name: '' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');

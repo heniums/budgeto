@@ -11,7 +11,7 @@ async function loginToken(): Promise<string> {
     email: 'mallory@example.com',
     password: 'password123',
   });
-  return result.token;
+  return result.accessToken;
 }
 
 describe('Protected routes', () => {
@@ -30,25 +30,23 @@ describe('Protected routes', () => {
     expect(response.body.code).toBe('UNAUTHORIZED');
   });
 
-  it('rejects a malformed Authorization header (401)', async () => {
-    const response = await request(app)
-      .get('/auth/me')
-      .set('Authorization', 'Token abc');
+  it('rejects a request with no cookie (401)', async () => {
+    const response = await request(app).get('/auth/me');
     expect(response.status).toBe(401);
   });
 
-  it('rejects an invalid token (401)', async () => {
+  it('rejects an invalid cookie token (401)', async () => {
     const response = await request(app)
       .get('/auth/me')
-      .set('Authorization', 'Bearer not-a-real-token');
+      .set('Cookie', ['budgeto_access_token=not-a-real-token']);
     expect(response.status).toBe(401);
   });
 
-  it('returns the user for a valid token (200)', async () => {
+  it('returns the user for a valid cookie (200)', async () => {
     const token = await loginToken();
     const response = await request(app)
       .get('/auth/me')
-      .set('Authorization', `Bearer ${token}`);
+      .set('Cookie', [`budgeto_access_token=${token}`]);
     expect(response.status).toBe(200);
     expect(response.body.user.email).toBe('mallory@example.com');
   });
