@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
@@ -57,6 +57,30 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }): JSX.Element {
   );
 }
 
+interface SidebarContentProps {
+  children: ReactNode;
+  onNavigate?: () => void;
+}
+
+function SidebarContent({
+  children,
+  onNavigate,
+}: SidebarContentProps): JSX.Element {
+  return (
+    <>
+      <div className="mb-6 shrink-0 px-2 text-lg font-semibold text-foreground">
+        Budgeto
+      </div>
+      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+        <NavLinks onNavigate={onNavigate} />
+      </nav>
+      <div className="mt-auto flex shrink-0 flex-col gap-3 border-t pt-4">
+        {children}
+      </div>
+    </>
+  );
+}
+
 export function Layout(): JSX.Element {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -88,17 +112,11 @@ export function Layout(): JSX.Element {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="hidden w-60 shrink-0 flex-col border-r bg-card p-4 md:flex">
-        <div className="mb-6 px-2 text-lg font-semibold text-foreground">
-          Budgeto
-        </div>
-        <nav className="flex flex-col gap-1">
-          <NavLinks />
-        </nav>
-        <div className="mt-auto flex flex-col gap-3 border-t pt-4">
+      <aside className="sticky top-0 h-screen w-60 shrink-0 flex-col overflow-hidden border-r bg-card p-4 md:flex">
+        <SidebarContent>
           {userBlock}
           {logoutButton}
-        </div>
+        </SidebarContent>
       </aside>
 
       <div className="flex flex-1 flex-col">
@@ -111,15 +129,11 @@ export function Layout(): JSX.Element {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-60 p-4">
-              <div className="mb-6 px-2 text-lg font-semibold text-foreground">
-                Budgeto
-              </div>
-              <nav className="flex flex-col gap-1">
-                <NavLinks onNavigate={() => setOpen(false)} />
-              </nav>
-              <div className="mt-auto flex flex-col gap-3 border-t pt-4">
-                {userBlock}
-                {logoutButton}
+              <div className="flex h-full flex-col overflow-hidden">
+                <SidebarContent onNavigate={() => setOpen(false)}>
+                  {userBlock}
+                  {logoutButton}
+                </SidebarContent>
               </div>
             </SheetContent>
           </Sheet>
