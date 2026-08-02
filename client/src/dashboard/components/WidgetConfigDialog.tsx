@@ -60,43 +60,45 @@ export function WidgetConfigDialog({
           <DialogTitle>Configure Widget</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSave}>
-        <div className="space-y-4 py-2">
-          <div>
-            <label className="text-sm font-medium">Widget</label>
-            <p className="text-sm text-muted-foreground">{meta?.title ?? widget.id}</p>
+          <div className="space-y-4 py-2">
+            <div>
+              <label className="text-sm font-medium">Widget</label>
+              <p className="text-sm text-muted-foreground">
+                {meta?.title ?? widget.id}
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium" htmlFor="colSpan">
+                Column span (1–2)
+              </label>
+              <Input
+                id="colSpan"
+                type="number"
+                min={1}
+                max={2}
+                value={colSpan}
+                onChange={(e) => setColSpan(Number(e.target.value))}
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <label className="text-sm font-medium" htmlFor="rowSpan">
+                Row span (1–4)
+              </label>
+              <Input
+                id="rowSpan"
+                type="number"
+                min={1}
+                max={4}
+                value={rowSpan}
+                onChange={(e) => setRowSpan(Number(e.target.value))}
+                className="mt-1"
+              />
+            </div>
           </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="colSpan">
-              Column span (1–2)
-            </label>
-            <Input
-              id="colSpan"
-              type="number"
-              min={1}
-              max={2}
-              value={colSpan}
-              onChange={(e) => setColSpan(Number(e.target.value))}
-              className="mt-1"
-            />
-          </div>
-          <div>
-            <label className="text-sm font-medium" htmlFor="rowSpan">
-              Row span (1–4)
-            </label>
-            <Input
-              id="rowSpan"
-              type="number"
-              min={1}
-              max={4}
-              value={rowSpan}
-              onChange={(e) => setRowSpan(Number(e.target.value))}
-              className="mt-1"
-            />
-          </div>
-        </div>
-        <DialogFooter>
-          <Button type="submit">Save</Button>
-        </DialogFooter>
+          <DialogFooter>
+            <Button type="submit">Save</Button>
+          </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>

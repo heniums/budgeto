@@ -17,7 +17,7 @@ async function loginToken(): Promise<string> {
     email: 'omar@example.com',
     password: 'password123',
   });
-  return result.token;
+  return result.accessToken;
 }
 
 describe('POST /auth/change-password', () => {
@@ -29,7 +29,7 @@ describe('POST /auth/change-password', () => {
     const token = await loginToken();
     const response = await request(app)
       .post('/auth/change-password')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`budgeto_access_token=${token}`])
       .send({ currentPassword: 'password123', newPassword: 'newpassword123' });
     expect(response.status).toBe(204);
 
@@ -46,16 +46,16 @@ describe('POST /auth/change-password', () => {
         })
       ).user.id,
     );
-    expect(user && (await verifyPassword('newpassword123', user.passwordHash))).toBe(
-      true,
-    );
+    expect(
+      user && (await verifyPassword('newpassword123', user.passwordHash)),
+    ).toBe(true);
   });
 
   it('rejects a wrong current password (401)', async () => {
     const token = await loginToken();
     const response = await request(app)
       .post('/auth/change-password')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`budgeto_access_token=${token}`])
       .send({ currentPassword: 'wrong', newPassword: 'newpassword123' });
     expect(response.status).toBe(401);
     expect(response.body.code).toBe('UNAUTHORIZED');
@@ -65,7 +65,7 @@ describe('POST /auth/change-password', () => {
     const token = await loginToken();
     const response = await request(app)
       .post('/auth/change-password')
-      .set('Authorization', `Bearer ${token}`)
+      .set('Cookie', [`budgeto_access_token=${token}`])
       .send({ currentPassword: 'password123', newPassword: 'short' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');

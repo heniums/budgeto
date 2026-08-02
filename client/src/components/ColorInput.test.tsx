@@ -6,16 +6,14 @@ import { ColorInput } from './ColorInput';
 describe('ColorInput', () => {
   it('renders a trigger button showing the current hex value', () => {
     render(<ColorInput value="#ff0000" onChange={vi.fn()} />);
-    expect(
-      screen.getByRole('button', { name: '#ff0000' }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '#ff0000' })).toBeInTheDocument();
   });
 
   it('shows the current hex value in the trigger', () => {
     render(<ColorInput value="#1f8a4c" onChange={vi.fn()} />);
-    expect(
-      screen.getByRole('button', { name: '#1f8a4c' }),
-    ).toHaveTextContent('#1f8a4c');
+    expect(screen.getByRole('button', { name: '#1f8a4c' })).toHaveTextContent(
+      '#1f8a4c',
+    );
   });
 
   it('opens the popover on click', async () => {
@@ -55,9 +53,15 @@ describe('ColorInput', () => {
     render(<ColorInput value="#1f8a4c" onChange={vi.fn()} />);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: '#1f8a4c' }));
-    const activePreset = screen.getByRole('button', { name: '#1f8a4c', pressed: true });
+    const activePreset = screen.getByRole('button', {
+      name: '#1f8a4c',
+      pressed: true,
+    });
     expect(activePreset).toBeInTheDocument();
-    const inactivePreset = screen.getByRole('button', { name: '#ef4444', pressed: false });
+    const inactivePreset = screen.getByRole('button', {
+      name: '#ef4444',
+      pressed: false,
+    });
     expect(inactivePreset).toBeInTheDocument();
   });
 });

@@ -43,9 +43,7 @@ export function CategoryBudgetField({
         >
           <option value="">Select category</option>
           {categories
-            .filter(
-              (c) => !usedCategoryIds.has(c.id) || c.id === categoryId,
-            )
+            .filter((c) => !usedCategoryIds.has(c.id) || c.id === categoryId)
             .map((category) => (
               <option key={category.id} value={category.id}>
                 {category.name}
@@ -63,12 +61,7 @@ export function CategoryBudgetField({
         />
         <FormError message={error?.limitAmount?.message} />
       </div>
-      <Button
-        type="button"
-        variant="ghost"
-        size="sm"
-        onClick={onRemove}
-      >
+      <Button type="button" variant="ghost" size="sm" onClick={onRemove}>
         ✕
       </Button>
     </div>

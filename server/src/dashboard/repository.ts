@@ -97,7 +97,9 @@ export async function getThisMonthStats(
   const income = incomeRow?.total ?? '0';
   const expense = expenseRow?.total ?? '0';
   const net = (Number(income) - Number(expense)).toFixed(2);
-  const dailySpendingRate = (Number(expense) / Math.max(1, daysElapsed)).toFixed(2);
+  const dailySpendingRate = (
+    Number(expense) / Math.max(1, daysElapsed)
+  ).toFixed(2);
 
   const [biggestRow] = await db
     .select({
@@ -240,7 +242,13 @@ export async function findWidgetsByUserId(
 
 export async function upsertUserWidgets(
   userId: string,
-  widgets: { widgetId: string; visible: boolean; order: number; colSpan: number; rowSpan: number }[],
+  widgets: {
+    widgetId: string;
+    visible: boolean;
+    order: number;
+    colSpan: number;
+    rowSpan: number;
+  }[],
 ): Promise<void> {
   await db.transaction(async (tx) => {
     await tx.delete(userWidgets).where(eq(userWidgets.userId, userId));

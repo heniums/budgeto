@@ -18,7 +18,9 @@ export const users = pgTable('user', {
   email: text('email').notNull().unique(),
   name: text('name').notNull().default(''),
   passwordHash: text('password_hash').notNull(),
-  settings: jsonb('settings').notNull().default(sql`'{}'::jsonb`),
+  settings: jsonb('settings')
+    .notNull()
+    .default(sql`'{}'::jsonb`),
   createdAt: timestamp('created_at', { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -62,7 +64,9 @@ export const transactions = pgTable(
     }),
     amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),
     description: text('description').default(''),
-    date: timestamp('date', { withTimezone: true, mode: 'string' }).notNull().defaultNow(),
+    date: timestamp('date', { withTimezone: true, mode: 'string' })
+      .notNull()
+      .defaultNow(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),
@@ -142,32 +146,56 @@ export const budgetCategories = pgTable(
       table.budgetId,
       table.categoryId,
     ),
-    categoryIdIdx: index('budget_category_category_id_idx').on(table.categoryId),
+    categoryIdIdx: index('budget_category_category_id_idx').on(
+      table.categoryId,
+    ),
   }),
 );
 
-export const userWidgets = pgTable('user_widget', {
-  id: uuid('id').primaryKey().defaultRandom(),
-  userId: uuid('user_id')
-    .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
-  widgetId: text('widget_id').notNull(),
-  visible: boolean('visible').notNull().default(true),
-  order: integer('order').notNull().default(0),
-  colSpan: integer('col_span').notNull().default(1),
-  rowSpan: integer('row_span').notNull().default(1),
-  createdAt: timestamp('created_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-}, (table) => ({
-  userWidgetUnique: unique('user_widget_user_id_widget_id_idx').on(
-    table.userId,
-    table.widgetId,
-  ),
-}));
+export const userWidgets = pgTable(
+  'user_widget',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    widgetId: text('widget_id').notNull(),
+    visible: boolean('visible').notNull().default(true),
+    order: integer('order').notNull().default(0),
+    colSpan: integer('col_span').notNull().default(1),
+    rowSpan: integer('row_span').notNull().default(1),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userWidgetUnique: unique('user_widget_user_id_widget_id_idx').on(
+      table.userId,
+      table.widgetId,
+    ),
+  }),
+);
+
+export const refreshTokens = pgTable(
+  'refresh_token',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    userId: uuid('user_id')
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (table) => ({
+    userIdIdx: index('refresh_token_user_id_idx').on(table.userId),
+  }),
+);
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
@@ -183,3 +211,5 @@ export type BudgetCategory = typeof budgetCategories.$inferSelect;
 export type NewBudgetCategory = typeof budgetCategories.$inferInsert;
 export type UserWidget = typeof userWidgets.$inferSelect;
 export type NewUserWidget = typeof userWidgets.$inferInsert;
+export type RefreshToken = typeof refreshTokens.$inferSelect;
+export type NewRefreshToken = typeof refreshTokens.$inferInsert;

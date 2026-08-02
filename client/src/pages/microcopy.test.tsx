@@ -30,7 +30,11 @@ function renderAt(path: string, element: JSX.Element): void {
 describe('conversational microcopy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue({ id: 'u1', email: 'a@b.co', name: 'Ada' });
+    vi.mocked(getMe).mockResolvedValue({
+      id: 'u1',
+      email: 'a@b.co',
+      name: 'Ada',
+    });
     window.localStorage.clear();
     cleanup();
   });

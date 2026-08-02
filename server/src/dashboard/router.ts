@@ -1,6 +1,10 @@
 import { Router } from 'express';
 import { authenticate } from '../auth/middleware';
-import { summaryHandler, listWidgetsHandler, saveWidgetsHandler } from './controller';
+import {
+  summaryHandler,
+  listWidgetsHandler,
+  saveWidgetsHandler,
+} from './controller';
 
 const router = Router();
 router.use(authenticate);

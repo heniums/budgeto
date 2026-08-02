@@ -60,7 +60,6 @@ export function TransferForm({
 
   const sourceWalletId = watch('sourceId');
 
-
   const onSubmit = async (values: TransferValues): Promise<void> => {
     setFormError(null);
     try {
@@ -128,8 +127,7 @@ export function TransferForm({
             <MoneyInput
               id="transfer-amount"
               currency={
-                wallets.find((w) => w.id === sourceWalletId)?.currency ??
-                'USD'
+                wallets.find((w) => w.id === sourceWalletId)?.currency ?? 'USD'
               }
               placeholder="50.00"
               value={field.value}

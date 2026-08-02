@@ -9,6 +9,7 @@ import {
 } from 'react';
 import {
   getMe,
+  logout as apiLogout,
   updateSettings as updateSettingsApi,
   type AuthUser,
   type UserSettings,
@@ -17,15 +18,13 @@ import { UNAUTHORIZED_EVENT } from '../api/client';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
-const AUTH_TOKEN_KEY = 'budgeto:token';
-
 export interface AuthContextValue {
   user: AuthUser | null;
   status: AuthStatus;
-  /** Persists the current user and token. */
-  login: (user: AuthUser, token: string) => void;
+  /** Persists the current user. */
+  login: (user: AuthUser) => void;
   /** Clears the session and returns to the unauthenticated state. */
-  logout: () => void;
+  logout: () => Promise<void>;
   /** Refreshes the current user from the server. */
   refreshUser: () => Promise<void>;
   /** Updates user settings on the server and locally. */
@@ -34,25 +33,23 @@ export interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-export function AuthProvider({ children }: { children: ReactNode }): JSX.Element {
+export function AuthProvider({
+  children,
+}: {
+  children: ReactNode;
+}): JSX.Element {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
 
   const clearSession = useCallback(() => {
-    localStorage.removeItem(AUTH_TOKEN_KEY);
     setUser(null);
     setStatus('unauthenticated');
   }, []);
 
   useEffect(() => {
     let active = true;
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
-    if (!token) {
-      setStatus('unauthenticated');
-      return;
-    }
     setStatus('loading');
-    getMe()
+    getMe({ skipRefresh: true })
       .then((fetched) => {
         if (!active) return;
         setUser(fetched);
@@ -60,8 +57,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
       })
       .catch((error) => {
         if (!active) return;
-        // Only clear session on 401 — transient errors (network, CORS, 500)
-        // should not wipe a valid token
         if (error?.status === 401) {
           clearSession();
         }
@@ -81,13 +76,17 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     };
   }, [clearSession]);
 
-  const login = useCallback((nextUser: AuthUser, token: string) => {
-    localStorage.setItem(AUTH_TOKEN_KEY, token);
+  const login = useCallback((nextUser: AuthUser) => {
     setUser(nextUser);
     setStatus('authenticated');
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
+    try {
+      await apiLogout();
+    } catch {
+      // Ignore errors, clear local state anyway
+    }
     clearSession();
   }, [clearSession]);
 
@@ -112,7 +111,6 @@ export function AuthProvider({ children }: { children: ReactNode }): JSX.Element
     () => ({ user, status, login, logout, refreshUser, updateSettings }),
     [user, status, login, logout, refreshUser, updateSettings],
   );
-
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

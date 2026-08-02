@@ -62,8 +62,8 @@ export function Layout(): JSX.Element {
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
 
-  const handleLogout = (): void => {
-    logout();
+  const handleLogout = async (): Promise<void> => {
+    await logout();
     navigate('/login', { replace: true });
   };
 

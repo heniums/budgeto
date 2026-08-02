@@ -16,20 +16,22 @@ const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 vi.mock('./api/auth', () => ({
   getMe: vi.fn(),
+  logout: vi.fn().mockResolvedValue(undefined),
 }));
 import { getMe } from './api/auth';
+import { ApiError } from './api/client';
 
 function LoginSpy(): JSX.Element {
   const location = useLocation();
-  const from = (location.state as { from?: { pathname?: string } } | null)?.from;
+  const from = (location.state as { from?: { pathname?: string } } | null)
+    ?.from;
   return <div>login spy: {from?.pathname ?? 'none'}</div>;
 }
 
 describe('router guards', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
-    window.localStorage.clear();
+    vi.mocked(getMe).mockRejectedValue(new ApiError('Unauthorized', 401));
     cleanup();
   });
 
@@ -73,13 +75,10 @@ describe('router guards', () => {
         </MemoryRouter>
       </AuthProvider>,
     );
-    expect(
-      await screen.findByText('login spy: /profile'),
-    ).toBeInTheDocument();
+    expect(await screen.findByText('login spy: /profile')).toBeInTheDocument();
   });
 
   it('lets an authenticated user reach /profile', async () => {
-    window.localStorage.setItem('budgeto:token', 'test-token');
     vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>
@@ -102,7 +101,7 @@ describe('router guards', () => {
   });
 
   it('renders the landing page at the index route when unauthenticated', async () => {
-    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
+    vi.mocked(getMe).mockRejectedValue(new ApiError('Unauthorized', 401));
     const router = createMemoryRouter(routes, { initialEntries: ['/'] });
     render(
       <AuthProvider>

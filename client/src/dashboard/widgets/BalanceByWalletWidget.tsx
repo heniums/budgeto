@@ -13,9 +13,7 @@ export function BalanceByWalletWidget(): JSX.Element {
       datasets: [
         {
           data: summary.wallets.map((w) => Number(w.balance) || 0),
-          backgroundColor: summary.wallets.map(
-            (w) => w.color || '#6366f1',
-          ),
+          backgroundColor: summary.wallets.map((w) => w.color || '#6366f1'),
           borderRadius: 4,
         },
       ],

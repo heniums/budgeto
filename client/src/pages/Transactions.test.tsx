@@ -71,10 +71,7 @@ vi.mock('../api/categories', async (importOriginal) => {
   return { ...actual, getCategories: vi.fn() };
 });
 
-import {
-  getTransactions,
-  type TransactionData,
-} from '../api/transactions';
+import { getTransactions, type TransactionData } from '../api/transactions';
 import { getWallets, getWallet, createWallet } from '../api/wallets';
 import { getCategories } from '../api/categories';
 
@@ -487,8 +484,6 @@ describe('Home sequential modal — transaction + wallet/category', () => {
     });
   });
 });
-
-
 
 describe('Home responsive layout', () => {
   beforeEach(() => {

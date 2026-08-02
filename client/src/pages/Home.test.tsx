@@ -8,7 +8,13 @@ const sampleWidgets: WidgetConfig[] = [
   { id: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 1 },
   { id: 'monthly-cash-flow', visible: false, order: 1, colSpan: 1, rowSpan: 2 },
   { id: 'income-vs-expense', visible: true, order: 2, colSpan: 1, rowSpan: 2 },
-  { id: 'recent-transactions', visible: false, order: 3, colSpan: 1, rowSpan: 2 },
+  {
+    id: 'recent-transactions',
+    visible: false,
+    order: 3,
+    colSpan: 1,
+    rowSpan: 2,
+  },
 ];
 
 vi.mock('@/dashboard/DashboardDataProvider', () => ({
@@ -27,9 +33,7 @@ vi.mock('@/dashboard/DashboardDataProvider', () => ({
 
 vi.mock('@/dashboard/WidgetSettingsDialog', () => ({
   WidgetSettingsDialog: ({ open }: { open: boolean }) =>
-    open ? (
-      <div data-testid="settings-dialog">Settings Dialog</div>
-    ) : null,
+    open ? <div data-testid="settings-dialog">Settings Dialog</div> : null,
 }));
 
 vi.mock('@/dashboard/registry', () => ({
@@ -54,9 +58,7 @@ vi.mock('@/dashboard/registry', () => ({
     'recent-transactions': {
       id: 'recent-transactions',
       title: 'Recent Transactions',
-      component: () => (
-        <div data-testid="widget-recent-tx">RecentTx</div>
-      ),
+      component: () => <div data-testid="widget-recent-tx">RecentTx</div>,
     },
   },
 }));
@@ -64,9 +66,7 @@ vi.mock('@/dashboard/registry', () => ({
 describe('Home page', () => {
   it('renders the Home heading and Customize button', () => {
     render(<Home />);
-    expect(
-      screen.getByRole('heading', { name: /home/i }),
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /home/i })).toBeInTheDocument();
     expect(
       screen.getByRole('button', { name: /customize/i }),
     ).toBeInTheDocument();

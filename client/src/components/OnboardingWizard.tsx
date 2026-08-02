@@ -163,7 +163,9 @@ export function OnboardingWizard({
                 placeholder="e.g. Food, Rent"
                 {...categoryForm.register('name')}
               />
-              <FormError message={categoryForm.formState.errors.name?.message} />
+              <FormError
+                message={categoryForm.formState.errors.name?.message}
+              />
             </div>
             <Button
               type="submit"

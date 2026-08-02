@@ -56,7 +56,10 @@ describe('wallets API client', () => {
       },
     });
     const wallet = await createWallet({ name: 'Savings', balance: '100.00' });
-    expect(mockPost).toHaveBeenCalledWith('/wallets', { name: 'Savings', balance: '100.00' });
+    expect(mockPost).toHaveBeenCalledWith('/wallets', {
+      name: 'Savings',
+      balance: '100.00',
+    });
     expect(wallet.name).toBe('Savings');
     expect(wallet.id).toBe('w1');
   });
@@ -89,8 +92,14 @@ describe('wallets API client', () => {
     mockPut.mockResolvedValue({
       data: { id: 'w1', name: 'Updated', currency: 'USD', balance: '0' },
     });
-    const wallet = await updateWallet('w1', { name: 'Updated', balance: '50.00' });
-    expect(mockPut).toHaveBeenCalledWith('/wallets/w1', { name: 'Updated', balance: '50.00' });
+    const wallet = await updateWallet('w1', {
+      name: 'Updated',
+      balance: '50.00',
+    });
+    expect(mockPut).toHaveBeenCalledWith('/wallets/w1', {
+      name: 'Updated',
+      balance: '50.00',
+    });
     expect(wallet.name).toBe('Updated');
   });
 

@@ -7,11 +7,15 @@ function formatPeriodLabel(periodStr: string): string {
 }
 
 function computePrevPeriod(periodStr: string): string {
-  return dayjs(periodStr + '-01').subtract(1, 'month').format('YYYY-MM');
+  return dayjs(periodStr + '-01')
+    .subtract(1, 'month')
+    .format('YYYY-MM');
 }
 
 function computeNextPeriod(periodStr: string): string {
-  return dayjs(periodStr + '-01').add(1, 'month').format('YYYY-MM');
+  return dayjs(periodStr + '-01')
+    .add(1, 'month')
+    .format('YYYY-MM');
 }
 
 interface BudgetPeriodNavProps {

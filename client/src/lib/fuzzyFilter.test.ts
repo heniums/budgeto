@@ -43,6 +43,11 @@ describe('fuzzyFilter', () => {
 
   it('matches multiple items when applicable', () => {
     const result = fuzzyFilter(items, 'a', (i) => i.name);
-    expect(result.map((i) => i.name)).toEqual(['Bank', 'Cash', 'Savings', 'Salary']);
+    expect(result.map((i) => i.name)).toEqual([
+      'Bank',
+      'Cash',
+      'Savings',
+      'Salary',
+    ]);
   });
 });

@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  getCategories,
-  type CategoryData,
-} from '../api/categories';
+import { getCategories, type CategoryData } from '../api/categories';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -52,7 +49,6 @@ export function Categories(): JSX.Element {
     return categories.filter((c) => c.name.toLowerCase().includes(q));
   }, [categories, search]);
 
-
   const formatDate = (iso: string): string => {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString(undefined, {
@@ -87,7 +83,9 @@ export function Categories(): JSX.Element {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Color</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Created</TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Created
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -122,7 +120,9 @@ export function Categories(): JSX.Element {
               <TableRow>
                 <TableHead>Name</TableHead>
                 <TableHead>Color</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Created</TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Created
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

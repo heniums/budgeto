@@ -4,6 +4,8 @@ export interface Config {
   databaseUrl: string;
   jwtSecret: string;
   jwtExpiresIn: number;
+  refreshTokenExpiresIn: number;
+  cookieSecure: boolean;
   port: number;
   nodeEnv: string;
 }
@@ -24,9 +26,22 @@ export function getConfig(): Config {
     'postgresql://postgres:postgres@localhost:5433/budgeto';
   const jwtSecret =
     process.env.JWT_SECRET ?? 'dev-only-insecure-secret-change-me';
-  const jwtExpiresIn = Number(process.env.JWT_EXPIRES_IN ?? '86400');
+  const jwtExpiresIn = Number(process.env.JWT_EXPIRES_IN ?? '900');
+  const refreshTokenExpiresIn = Number(
+    process.env.REFRESH_TOKEN_EXPIRES_IN ?? '604800',
+  );
   const port = Number(process.env.PORT ?? '3000');
   const nodeEnv = process.env.NODE_ENV ?? 'development';
-  cached = { databaseUrl, jwtSecret, jwtExpiresIn, port, nodeEnv };
+  const cookieSecure =
+    process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
+  cached = {
+    databaseUrl,
+    jwtSecret,
+    jwtExpiresIn,
+    refreshTokenExpiresIn,
+    cookieSecure,
+    port,
+    nodeEnv,
+  };
   return cached;
 }

@@ -1,16 +1,10 @@
 import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import {
-  getBudgets,
-  type BudgetData,
-} from '../api/budgets';
+import { getBudgets, type BudgetData } from '../api/budgets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogTrigger } from '@/components/ui/dialog';
 import { BudgetCard } from '../components/BudgetCard';
 import { BudgetForm } from '../components/BudgetForm';
 import { BudgetPeriodNav } from '../components/BudgetPeriodNav';

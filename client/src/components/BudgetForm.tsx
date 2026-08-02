@@ -60,8 +60,12 @@ const budgetSchema = z
   .refine(
     (data) => {
       if (data.period !== 'custom') return true;
-      return !!data.startDate && data.startDate.length > 0
-        && !!data.endDate && data.endDate.length > 0;
+      return (
+        !!data.startDate &&
+        data.startDate.length > 0 &&
+        !!data.endDate &&
+        data.endDate.length > 0
+      );
     },
     {
       message: 'Start and end dates are required for custom periods.',
@@ -231,11 +235,7 @@ export function BudgetForm({
           {editingBudget ? 'Edit budget' : 'Add budget'}
         </DialogTitle>
       </DialogHeader>
-      <form
-        onSubmit={handleSubmit(onSubmit)}
-        noValidate
-        className="space-y-4"
-      >
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
         <FormAlert message={errors.root?.message} />
         <div className="space-y-2">
           <Label htmlFor="budget-name">Name</Label>
@@ -276,8 +276,7 @@ export function BudgetForm({
                     : 'border-transparent hover:bg-muted',
                 )}
                 style={{
-                  color:
-                    selectedIcon === iconName ? selectedColor : undefined,
+                  color: selectedIcon === iconName ? selectedColor : undefined,
                 }}
               >
                 <Icon size={18} />
@@ -323,20 +322,12 @@ export function BudgetForm({
           <div className="flex gap-4">
             <div className="space-y-2">
               <Label htmlFor="budget-start">Start date</Label>
-              <Input
-                id="budget-start"
-                type="date"
-                {...register('startDate')}
-              />
+              <Input id="budget-start" type="date" {...register('startDate')} />
               <FormError message={errors.startDate?.message} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="budget-end">End date</Label>
-              <Input
-                id="budget-end"
-                type="date"
-                {...register('endDate')}
-              />
+              <Input id="budget-end" type="date" {...register('endDate')} />
               <FormError message={errors.endDate?.message} />
             </div>
           </div>
@@ -394,12 +385,14 @@ export function BudgetForm({
               }
               onRemove={() => remove(index)}
               error={
-                (errors.categories?.[index] as CategoryBudgetFieldError | undefined) ??
-                undefined
+                (errors.categories?.[index] as
+                  CategoryBudgetFieldError | undefined) ?? undefined
               }
             />
           ))}
-          <FormError message={errors.categories?.message as string | undefined} />
+          <FormError
+            message={errors.categories?.message as string | undefined}
+          />
         </div>
 
         <div
@@ -416,11 +409,7 @@ export function BudgetForm({
             </Button>
           )}
           <div className="flex gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={onCancel}
-            >
+            <Button type="button" variant="outline" onClick={onCancel}>
               Cancel
             </Button>
             <Button type="submit" disabled={isSubmitting}>

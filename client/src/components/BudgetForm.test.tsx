@@ -123,11 +123,15 @@ describe('BudgetForm', () => {
     const user = userEvent.setup();
 
     // Click "Add category" button
-    const addCategoryButton = screen.getByRole('button', { name: /add category/i });
+    const addCategoryButton = screen.getByRole('button', {
+      name: /add category/i,
+    });
     await user.click(addCategoryButton);
 
     // A category select should appear
-    const categorySelect = screen.getByLabelText('Category 1') as HTMLSelectElement;
+    const categorySelect = screen.getByLabelText(
+      'Category 1',
+    ) as HTMLSelectElement;
     expect(categorySelect).toBeInTheDocument();
 
     // Select "Food" category
@@ -172,14 +176,18 @@ describe('BudgetForm', () => {
     await user.type(nameInput, 'My Budget');
 
     // Fill total amount
-    const totalInput = screen.getByLabelText('Total amount') as HTMLInputElement;
+    const totalInput = screen.getByLabelText(
+      'Total amount',
+    ) as HTMLInputElement;
     await user.click(totalInput);
     await user.clear(totalInput);
     await user.type(totalInput, '500');
 
     // Add a category
     await user.click(screen.getByRole('button', { name: /add category/i }));
-    const categorySelect = screen.getByLabelText('Category 1') as HTMLSelectElement;
+    const categorySelect = screen.getByLabelText(
+      'Category 1',
+    ) as HTMLSelectElement;
     await user.selectOptions(categorySelect, testCategories[0].id);
 
     const limitInput = screen.getByLabelText('Limit 1') as HTMLInputElement;
@@ -223,7 +231,9 @@ describe('BudgetForm', () => {
     expect(nameInput.value).toBe('Monthly Groceries');
 
     // Total amount shows formatted when not focused; focus to see raw
-    const totalInput = screen.getByLabelText('Total amount') as HTMLInputElement;
+    const totalInput = screen.getByLabelText(
+      'Total amount',
+    ) as HTMLInputElement;
     await user.click(totalInput);
     expect(totalInput.value).toBe('500');
 
@@ -262,14 +272,18 @@ describe('BudgetForm', () => {
     await user.clear(nameInput);
     await user.type(nameInput, 'Test Budget');
 
-    const totalInput = screen.getByLabelText('Total amount') as HTMLInputElement;
+    const totalInput = screen.getByLabelText(
+      'Total amount',
+    ) as HTMLInputElement;
     await user.click(totalInput);
     await user.clear(totalInput);
     await user.type(totalInput, '100');
 
     // Add category with matching limit
     await user.click(screen.getByRole('button', { name: /add category/i }));
-    const categorySelect = screen.getByLabelText('Category 1') as HTMLSelectElement;
+    const categorySelect = screen.getByLabelText(
+      'Category 1',
+    ) as HTMLSelectElement;
     await user.selectOptions(categorySelect, testCategories[0].id);
 
     const limitInput = screen.getByLabelText('Limit 1') as HTMLInputElement;

@@ -89,11 +89,11 @@ describe('Profile page', () => {
     await user.type(screen.getByLabelText(/current password/i), 'oldpass1');
     await user.type(screen.getByLabelText(/^new password$/i), 'short');
     await user.type(screen.getByLabelText(/confirm new password/i), 'short');
-    await user.click(
-      screen.getByRole('button', { name: /update password/i }),
-    );
+    await user.click(screen.getByRole('button', { name: /update password/i }));
     await waitFor(() => {
-      const alerts = screen.getAllByText(/password must be at least 8 characters/i);
+      const alerts = screen.getAllByText(
+        /password must be at least 8 characters/i,
+      );
       expect(alerts.length).toBeGreaterThan(0);
     });
     expect(vi.mocked(changePassword)).not.toHaveBeenCalled();
@@ -105,10 +105,11 @@ describe('Profile page', () => {
     await screen.findByText('Ada Lovelace');
     await user.type(screen.getByLabelText(/current password/i), 'oldpass1');
     await user.type(screen.getByLabelText(/^new password$/i), 'newpassword');
-    await user.type(screen.getByLabelText(/confirm new password/i), 'other1234');
-    await user.click(
-      screen.getByRole('button', { name: /update password/i }),
+    await user.type(
+      screen.getByLabelText(/confirm new password/i),
+      'other1234',
     );
+    await user.click(screen.getByRole('button', { name: /update password/i }));
     expect(
       await screen.findByText(/passwords do not match/i),
     ).toBeInTheDocument();
@@ -121,10 +122,11 @@ describe('Profile page', () => {
     await screen.findByText('Ada Lovelace');
     await user.type(screen.getByLabelText(/current password/i), 'oldpass1');
     await user.type(screen.getByLabelText(/^new password$/i), 'newpassword');
-    await user.type(screen.getByLabelText(/confirm new password/i), 'newpassword');
-    await user.click(
-      screen.getByRole('button', { name: /update password/i }),
+    await user.type(
+      screen.getByLabelText(/confirm new password/i),
+      'newpassword',
     );
+    await user.click(screen.getByRole('button', { name: /update password/i }));
     expect(await screen.findByText(/password updated/i)).toBeInTheDocument();
     expect(vi.mocked(changePassword)).toHaveBeenCalledWith({
       currentPassword: 'oldpass1',
@@ -141,10 +143,11 @@ describe('Profile page', () => {
     await screen.findByText('Ada Lovelace');
     await user.type(screen.getByLabelText(/current password/i), 'wrong');
     await user.type(screen.getByLabelText(/^new password$/i), 'newpassword');
-    await user.type(screen.getByLabelText(/confirm new password/i), 'newpassword');
-    await user.click(
-      screen.getByRole('button', { name: /update password/i }),
+    await user.type(
+      screen.getByLabelText(/confirm new password/i),
+      'newpassword',
     );
+    await user.click(screen.getByRole('button', { name: /update password/i }));
     expect(
       await screen.findByText(/current password is incorrect/i),
     ).toBeInTheDocument();

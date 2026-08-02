@@ -3,18 +3,20 @@ import { Input } from '@/components/ui/input';
 import { formatMoney } from '@/lib/currencies';
 import { cn } from '@/lib/utils';
 
-export interface MoneyInputProps
-  extends Omit<
-    React.InputHTMLAttributes<HTMLInputElement>,
-    'onChange' | 'value'
-  > {
+export interface MoneyInputProps extends Omit<
+  React.InputHTMLAttributes<HTMLInputElement>,
+  'onChange' | 'value'
+> {
   onChange: (value: string) => void;
   value?: string;
   currency: string;
 }
 
 export const MoneyInput = React.forwardRef<HTMLInputElement, MoneyInputProps>(
-  ({ className, currency, value, onChange, onBlur, placeholder, ...props }, ref) => {
+  (
+    { className, currency, value, onChange, onBlur, placeholder, ...props },
+    ref,
+  ) => {
     const [isFocused, setIsFocused] = React.useState(false);
 
     const isDisabled = !currency || props.disabled;

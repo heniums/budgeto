@@ -29,9 +29,7 @@ interface DashboardData {
 
 const DashboardContext = createContext<DashboardData | null>(null);
 
-function mergeWithDefaults(
-  serverWidgets: WidgetConfigInput[],
-): WidgetConfig[] {
+function mergeWithDefaults(serverWidgets: WidgetConfigInput[]): WidgetConfig[] {
   const byId = new Map(
     serverWidgets.map((w) => {
       const defaultW = DEFAULT_WIDGETS.find((d) => d.id === w.widgetId);
@@ -47,14 +45,15 @@ function mergeWithDefaults(
       ];
     }),
   );
-  const merged = DEFAULT_WIDGETS.map((defaultW) =>
-    byId.get(defaultW.id) ?? {
-      id: defaultW.id,
-      visible: defaultW.visible,
-      order: defaultW.order,
-      colSpan: defaultW.colSpan,
-      rowSpan: defaultW.rowSpan,
-    },
+  const merged = DEFAULT_WIDGETS.map(
+    (defaultW) =>
+      byId.get(defaultW.id) ?? {
+        id: defaultW.id,
+        visible: defaultW.visible,
+        order: defaultW.order,
+        colSpan: defaultW.colSpan,
+        rowSpan: defaultW.rowSpan,
+      },
   );
   const extra = serverWidgets
     .filter((w) => !DEFAULT_WIDGETS.some((d) => d.id === w.widgetId))

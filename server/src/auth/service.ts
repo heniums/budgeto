@@ -1,3 +1,4 @@
+import crypto from 'node:crypto';
 import { z } from 'zod';
 import {
   findUserByEmail,
@@ -5,10 +6,15 @@ import {
   createUser,
   updateUserProfile,
   updateUserPasswordHash,
+  createRefreshToken,
+  findRefreshTokenByHash,
+  deleteRefreshToken,
+  deleteAllRefreshTokensForUser,
 } from './repository';
 import { hashPassword, verifyPassword } from './password';
 import { signToken, type TokenPayload } from './token';
 import { conflictError, unauthorizedError } from '../errors';
+import { getConfig } from '../config';
 
 export const registerSchema = z.object({
   name: z.string().min(1).max(128),
@@ -40,16 +46,17 @@ export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 
 export interface AuthResult {
-  token: string;
   user: { id: string; email: string; name: string };
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
 }
 
 /**
  * Registers a new user, hashing the password and guarding against duplicates.
+ * On success, issues a short-lived access JWT and an opaque refresh token.
  */
-export async function register(
-  input: RegisterInput,
-): Promise<AuthResult> {
+export async function register(input: RegisterInput): Promise<AuthResult> {
   const existing = await findUserByEmail(input.email);
   if (existing) {
     throw conflictError('Email already registered');
@@ -61,12 +68,21 @@ export async function register(
     name: input.name,
     settings: {},
   });
-  const token = signToken({ sub: user.id, email: user.email, name: user.name });
-  return { token, user: { id: user.id, email: user.email, name: user.name } };
+  const { accessToken, refreshToken, refreshExpiresAt } = await issueTokens(
+    user.id,
+    user.email,
+    user.name,
+  );
+  return {
+    user: { id: user.id, email: user.email, name: user.name },
+    accessToken,
+    refreshToken,
+    refreshExpiresAt,
+  };
 }
 
 /**
- * Authenticates a user and issues a JWT on success.
+ * Authenticates a user and issues an access JWT plus a refresh token.
  */
 export async function login(input: LoginInput): Promise<AuthResult> {
   const user = await findUserByEmail(input.email);
@@ -77,8 +93,17 @@ export async function login(input: LoginInput): Promise<AuthResult> {
   if (!valid) {
     throw unauthorizedError('Invalid credentials');
   }
-  const token = signToken({ sub: user.id, email: user.email, name: user.name });
-  return { token, user: { id: user.id, email: user.email, name: user.name } };
+  const { accessToken, refreshToken, refreshExpiresAt } = await issueTokens(
+    user.id,
+    user.email,
+    user.name,
+  );
+  return {
+    user: { id: user.id, email: user.email, name: user.name },
+    accessToken,
+    refreshToken,
+    refreshExpiresAt,
+  };
 }
 
 export type { TokenPayload };
@@ -88,12 +113,22 @@ export type { TokenPayload };
  */
 export async function getProfile(
   id: string,
-): Promise<{ id: string; email: string; name: string; settings: Record<string, unknown> }> {
+): Promise<{
+  id: string;
+  email: string;
+  name: string;
+  settings: Record<string, unknown>;
+}> {
   const user = await findUserById(id);
   if (!user) {
     throw unauthorizedError('User not found');
   }
-  return { id: user.id, email: user.email, name: user.name, settings: user.settings as Record<string, unknown> };
+  return {
+    id: user.id,
+    email: user.email,
+    name: user.name,
+    settings: user.settings as Record<string, unknown>,
+  };
 }
 
 /**
@@ -102,17 +137,28 @@ export async function getProfile(
 export async function updateProfile(
   id: string,
   input: ProfileUpdateInput,
-): Promise<{ id: string; email: string; name: string; settings: Record<string, unknown> }> {
+): Promise<{
+  id: string;
+  email: string;
+  name: string;
+  settings: Record<string, unknown>;
+}> {
   const updated = await updateUserProfile(id, input);
   if (!updated) {
     throw unauthorizedError('User not found');
   }
-  return { id: updated.id, email: updated.email, name: updated.name, settings: updated.settings as Record<string, unknown> };
+  return {
+    id: updated.id,
+    email: updated.email,
+    name: updated.name,
+    settings: updated.settings as Record<string, unknown>,
+  };
 }
 
 /**
  * Changes the password after verifying the current one. Rejects if the current
- * password is wrong, then stores a fresh bcrypt hash.
+ * password is wrong, then stores a fresh bcrypt hash and revokes every refresh
+ * token so all devices must sign in again.
  */
 export async function changePassword(
   id: string,
@@ -128,4 +174,73 @@ export async function changePassword(
   }
   const passwordHash = await hashPassword(input.newPassword);
   await updateUserPasswordHash(id, passwordHash);
+  await deleteAllRefreshTokensForUser(id);
+}
+
+/**
+ * Rotates a valid refresh token: deletes the old one and issues a new pair.
+ * Throws `unauthorizedError` when the token is missing, unknown, or expired.
+ */
+export async function refreshSession(
+  rawRefreshToken: string,
+): Promise<AuthResult> {
+  const hash = hashRefreshToken(rawRefreshToken);
+  const stored = await findRefreshTokenByHash(hash);
+  if (!stored || stored.expiresAt.getTime() < Date.now()) {
+    throw unauthorizedError('Invalid or expired refresh token');
+  }
+  await deleteRefreshToken(stored.id);
+  const user = await findUserById(stored.userId);
+  if (!user) {
+    throw unauthorizedError('User not found');
+  }
+  const { accessToken, refreshToken, refreshExpiresAt } = await issueTokens(
+    user.id,
+    user.email,
+    user.name,
+  );
+  return {
+    user: { id: user.id, email: user.email, name: user.name },
+    accessToken,
+    refreshToken,
+    refreshExpiresAt,
+  };
+}
+
+/**
+ * Invalidates a single refresh token (logout from one device). Idempotent —
+ * succeeds even if the token is already gone.
+ */
+export async function logout(rawRefreshToken?: string): Promise<void> {
+  if (!rawRefreshToken) {
+    return;
+  }
+  const hash = hashRefreshToken(rawRefreshToken);
+  const stored = await findRefreshTokenByHash(hash);
+  if (stored) {
+    await deleteRefreshToken(stored.id);
+  }
+}
+
+function hashRefreshToken(token: string): string {
+  return crypto.createHash('sha256').update(token).digest('hex');
+}
+
+async function issueTokens(
+  userId: string,
+  email: string,
+  name: string,
+): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+}> {
+  const accessToken = signToken({ sub: userId, email, name });
+  const rawRefreshToken = crypto.randomBytes(64).toString('hex');
+  const refreshExpiresAt = new Date(
+    Date.now() + getConfig().refreshTokenExpiresIn * 1000,
+  );
+  const tokenHash = hashRefreshToken(rawRefreshToken);
+  await createRefreshToken(userId, tokenHash, refreshExpiresAt);
+  return { accessToken, refreshToken: rawRefreshToken, refreshExpiresAt };
 }

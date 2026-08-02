@@ -12,13 +12,11 @@ describe('POST /auth/register', () => {
   });
 
   it('creates a user with valid input (201)', async () => {
-    const response = await request(app)
-      .post('/auth/register')
-      .send({
-        name: 'Heidi',
-        email: 'heidi@example.com',
-        password: 'password123',
-      });
+    const response = await request(app).post('/auth/register').send({
+      name: 'Heidi',
+      email: 'heidi@example.com',
+      password: 'password123',
+    });
     expect(response.status).toBe(201);
     expect(response.body.user.email).toBe('heidi@example.com');
     expect(response.body.user.name).toBe('Heidi');
@@ -39,13 +37,11 @@ describe('POST /auth/register', () => {
       email: 'ivan@example.com',
       password: 'password123',
     });
-    const response = await request(app)
-      .post('/auth/register')
-      .send({
-        name: 'Ivan',
-        email: 'ivan@example.com',
-        password: 'password123',
-      });
+    const response = await request(app).post('/auth/register').send({
+      name: 'Ivan',
+      email: 'ivan@example.com',
+      password: 'password123',
+    });
     expect(response.status).toBe(409);
     expect(response.body.code).toBe('CONFLICT');
   });

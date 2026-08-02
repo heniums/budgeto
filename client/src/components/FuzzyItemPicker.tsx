@@ -17,8 +17,20 @@ export interface FuzzyItemPickerProps<T> {
   emptyMessage: string;
 }
 
-export function FuzzyItemPicker<T>(props: FuzzyItemPickerProps<T>): JSX.Element {
-  const { items, selectedId, onSelect, getId, getLabel, renderItem, title, searchPlaceholder, emptyMessage } = props;
+export function FuzzyItemPicker<T>(
+  props: FuzzyItemPickerProps<T>,
+): JSX.Element {
+  const {
+    items,
+    selectedId,
+    onSelect,
+    getId,
+    getLabel,
+    renderItem,
+    title,
+    searchPlaceholder,
+    emptyMessage,
+  } = props;
   const [query, setQuery] = useState('');
 
   const filtered = useMemo(
@@ -30,7 +42,10 @@ export function FuzzyItemPicker<T>(props: FuzzyItemPickerProps<T>): JSX.Element 
     <div className="space-y-2">
       <div className="text-sm font-medium">{title}</div>
       <div className="relative">
-        <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+        <Search
+          className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+          aria-hidden
+        />
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -42,7 +57,9 @@ export function FuzzyItemPicker<T>(props: FuzzyItemPickerProps<T>): JSX.Element 
       <ScrollArea className="h-72 w-full">
         <div className="space-y-1 pr-3" role="listbox" aria-label={title}>
           {filtered.length === 0 ? (
-            <div className="py-2 text-sm text-muted-foreground">{emptyMessage}</div>
+            <div className="py-2 text-sm text-muted-foreground">
+              {emptyMessage}
+            </div>
           ) : (
             filtered.map((item) => {
               const id = getId(item);
@@ -55,7 +72,9 @@ export function FuzzyItemPicker<T>(props: FuzzyItemPickerProps<T>): JSX.Element 
                   tabIndex={-1}
                   className={cn(
                     'flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                    isSelected ? 'bg-accent text-accent-foreground' : 'hover:bg-muted',
+                    isSelected
+                      ? 'bg-accent text-accent-foreground'
+                      : 'hover:bg-muted',
                   )}
                   onClick={() => onSelect(id)}
                   onKeyDown={(e) => {

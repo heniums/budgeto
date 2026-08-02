@@ -723,7 +723,11 @@ describe('GET /transactions (user-scoped)', () => {
       email: 'b@example.com',
       password: 'password123',
     });
-    const tokenB = signToken({ sub: userB.id, email: userB.email, name: userB.name });
+    const tokenB = signToken({
+      sub: userB.id,
+      email: userB.email,
+      name: userB.name,
+    });
     const walletB = await createWallet(tokenB, 'B Wallet');
 
     await request(app)

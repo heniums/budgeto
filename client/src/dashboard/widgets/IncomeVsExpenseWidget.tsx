@@ -7,8 +7,7 @@ export function IncomeVsExpenseWidget(): JSX.Element {
   const thisMonth = summary?.thisMonth;
 
   // Use the first wallet's currency as default
-  const currency =
-    summary?.wallets?.[0]?.currency ?? 'USD';
+  const currency = summary?.wallets?.[0]?.currency ?? 'USD';
 
   return (
     <WidgetCard loading={loading} error={error} title="Income vs Expense">

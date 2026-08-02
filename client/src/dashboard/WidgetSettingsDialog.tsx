@@ -38,16 +38,12 @@ export function WidgetSettingsDialog({
 
   const toggleVisibility = useCallback((id: string) => {
     setLocal((prev) =>
-      prev.map((w) =>
-        w.id === id ? { ...w, visible: !w.visible } : w,
-      ),
+      prev.map((w) => (w.id === id ? { ...w, visible: !w.visible } : w)),
     );
   }, []);
 
   const resetToDefaults = useCallback(() => {
-    setLocal(
-      DEFAULT_WIDGETS.map((w, i) => ({ ...w, order: i })),
-    );
+    setLocal(DEFAULT_WIDGETS.map((w, i) => ({ ...w, order: i })));
   }, []);
 
   const handleSave = useCallback(async () => {

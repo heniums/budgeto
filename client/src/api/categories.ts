@@ -32,8 +32,9 @@ export async function createCategory(
 export async function getCategories(): Promise<{
   categories: CategoryData[];
 }> {
-  const response =
-    await apiClient.get<{ categories: CategoryData[] }>('/categories');
+  const response = await apiClient.get<{ categories: CategoryData[] }>(
+    '/categories',
+  );
   return response.data;
 }
 

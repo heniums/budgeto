@@ -208,7 +208,10 @@ export interface CurrencyEntry {
 
 /** Normalize a string for comparison: strip diacritics, lower-case. */
 function normalize(s: string): string {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  return s
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
 }
 
 /**

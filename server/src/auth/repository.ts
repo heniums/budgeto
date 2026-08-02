@@ -1,6 +1,13 @@
 import { eq } from 'drizzle-orm';
 import { db } from '../db/client';
-import { users, wallets, categories, type User } from '../db/schema';
+import {
+  users,
+  wallets,
+  categories,
+  refreshTokens,
+  type User,
+  type RefreshToken,
+} from '../db/schema';
 
 /**
  * Data-access functions for the `user` table, backed by the shared Drizzle
@@ -57,19 +64,15 @@ export async function updateUserPasswordHash(
   return user;
 }
 
-export async function findUserByEmail(email: string): Promise<User | undefined> {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.email, email));
+export async function findUserByEmail(
+  email: string,
+): Promise<User | undefined> {
+  const [user] = await db.select().from(users).where(eq(users.email, email));
   return user;
 }
 
 export async function findUserById(id: string): Promise<User | undefined> {
-  const [user] = await db
-    .select()
-    .from(users)
-    .where(eq(users.id, id));
+  const [user] = await db.select().from(users).where(eq(users.id, id));
   return user;
 }
 
@@ -80,3 +83,36 @@ export async function deleteAllUsers(): Promise<void> {
 }
 
 export type { User };
+
+export async function createRefreshToken(
+  userId: string,
+  tokenHash: string,
+  expiresAt: Date,
+): Promise<RefreshToken> {
+  const [token] = await db
+    .insert(refreshTokens)
+    .values({ userId, tokenHash, expiresAt })
+    .returning();
+  return token;
+}
+
+export async function findRefreshTokenByHash(
+  tokenHash: string,
+): Promise<RefreshToken | undefined> {
+  const [token] = await db
+    .select()
+    .from(refreshTokens)
+    .where(eq(refreshTokens.tokenHash, tokenHash))
+    .limit(1);
+  return token;
+}
+
+export async function deleteRefreshToken(id: string): Promise<void> {
+  await db.delete(refreshTokens).where(eq(refreshTokens.id, id));
+}
+
+export async function deleteAllRefreshTokensForUser(
+  userId: string,
+): Promise<void> {
+  await db.delete(refreshTokens).where(eq(refreshTokens.userId, userId));
+}
