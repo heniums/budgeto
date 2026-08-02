@@ -1,124 +1,135 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import type { InternalAxiosRequestConfig } from 'axios';
-import { apiClient, ApiError } from './client';
+
+const refreshSessionMock = vi.fn();
+
+vi.mock('./auth', () => ({
+  refreshSession: (...args: unknown[]) => refreshSessionMock(...args),
+}));
+
+import { apiClient, ApiError, UNAUTHORIZED_EVENT } from './client';
 
 // axios InterceptorManager.handlers is not part of the public API, so we cast
 // through unknown to access the registered interceptor functions for direct
 // unit testing.
-const getRequestHandler = () => {
-  const { handlers } = apiClient.interceptors.request as unknown as {
-    handlers: Array<{
-      fulfilled: (
-        config: InternalAxiosRequestConfig,
-      ) => InternalAxiosRequestConfig;
-    }>;
-  };
-  return handlers[0].fulfilled;
-};
-
 const getResponseErrorHandler = () => {
   const { handlers } = apiClient.interceptors.response as unknown as {
-    handlers: Array<{ rejected: (error: unknown) => never }>;
+    handlers: Array<{
+      fulfilled: (value: unknown) => unknown;
+      rejected: (error: unknown) => unknown;
+    }>;
   };
   return handlers[0].rejected;
 };
 
-function expectThrows<T extends Error>(
-  fn: () => void,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  errorClass: new (...args: any[]) => T,
-): T {
-  let thrown: unknown;
-  try {
-    fn();
-  } catch (e) {
-    thrown = e;
-  }
-  expect(thrown).toBeInstanceOf(errorClass);
-  return thrown as T;
-}
-
-describe('apiClient interceptors', () => {
+describe('apiClient', () => {
   beforeEach(() => {
-    localStorage.clear();
+    vi.clearAllMocks();
   });
 
-  describe('request interceptor', () => {
-    it('adds Authorization header when token is in localStorage', () => {
-      localStorage.setItem('budgeto:token', 'my-jwt-token');
-      const handler = getRequestHandler();
-      const config = { headers: {} } as InternalAxiosRequestConfig;
-      const result = handler(config);
-      expect(result.headers.Authorization).toBe('Bearer my-jwt-token');
-    });
+  it('has withCredentials enabled', () => {
+    expect(apiClient.defaults.withCredentials).toBe(true);
+  });
 
-    it('does not add Authorization header when no token exists', () => {
-      const handler = getRequestHandler();
-      const config = { headers: {} } as InternalAxiosRequestConfig;
-      const result = handler(config);
-      expect(result.headers.Authorization).toBeUndefined();
-    });
+  it('has no request interceptors', () => {
+    const { handlers } = apiClient.interceptors.request as unknown as {
+      handlers: unknown[];
+    };
+    expect(handlers.length).toBe(0);
   });
 
   describe('response interceptor', () => {
-    it('builds ApiError using data.message', () => {
+    it('passes through successful responses', () => {
+      const { handlers } = apiClient.interceptors.response as unknown as {
+        handlers: Array<{ fulfilled: (value: unknown) => unknown }>;
+      };
+      const response = { data: { ok: true }, status: 200 };
+      expect(handlers[0].fulfilled(response)).toBe(response);
+    });
+
+    it('builds ApiError using data.message', async () => {
       const handler = getResponseErrorHandler();
       const error = {
+        config: { url: '/some-endpoint' },
         response: {
           data: { message: 'Something went wrong', code: 'BAD_REQUEST' },
           status: 400,
         },
       };
-      const err = expectThrows(() => handler(error), ApiError);
-      expect(err.message).toBe('Something went wrong');
-      expect(err.status).toBe(400);
-      expect(err.code).toBe('BAD_REQUEST');
+      await expect(handler(error)).rejects.toMatchObject({
+        message: 'Something went wrong',
+        status: 400,
+        code: 'BAD_REQUEST',
+      });
     });
 
-    it('builds ApiError using data.error when message is absent', () => {
+    it('builds ApiError using data.error when message is absent', async () => {
       const handler = getResponseErrorHandler();
       const error = {
+        config: { url: '/some-endpoint' },
         response: {
           data: { error: 'Fallback error' },
           status: 422,
         },
       };
-      const err = expectThrows(() => handler(error), ApiError);
-      expect(err.message).toBe('Fallback error');
-      expect(err.status).toBe(422);
+      await expect(handler(error)).rejects.toMatchObject({
+        message: 'Fallback error',
+        status: 422,
+      });
     });
 
-    it('dispatches budgeto:unauthorized event on 401', () => {
+    it('throws ApiError(401) on /auth/login without dispatching unauthorized', async () => {
       const handler = getResponseErrorHandler();
       const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
       const error = {
+        config: { url: '/auth/login' },
+        response: {
+          data: { message: 'Invalid credentials' },
+          status: 401,
+        },
+      };
+      await expect(handler(error)).rejects.toBeInstanceOf(ApiError);
+      expect(dispatchSpy).not.toHaveBeenCalled();
+      dispatchSpy.mockRestore();
+    });
+
+    it('dispatches unauthorized event on /auth/refresh 401', async () => {
+      const handler = getResponseErrorHandler();
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      const error = {
+        config: { url: '/auth/refresh' },
         response: {
           data: { message: 'Unauthorized' },
           status: 401,
         },
       };
-      try {
-        handler(error);
-      } catch {
-        // expected
-      }
+      await expect(handler(error)).rejects.toBeInstanceOf(ApiError);
       expect(dispatchSpy).toHaveBeenCalled();
       const event = dispatchSpy.mock.calls[0][0] as CustomEvent;
-      expect(event.type).toBe('budgeto:unauthorized');
+      expect(event.type).toBe(UNAUTHORIZED_EVENT);
       dispatchSpy.mockRestore();
     });
 
-    it('re-throws network/non-response errors unchanged', () => {
+    it('dispatches unauthorized event on 401 with skipRefresh', async () => {
+      const handler = getResponseErrorHandler();
+      const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+      const error = {
+        config: { url: '/some-endpoint', skipRefresh: true },
+        response: {
+          data: { message: 'Unauthorized' },
+          status: 401,
+        },
+      };
+      await expect(handler(error)).rejects.toBeInstanceOf(ApiError);
+      expect(dispatchSpy).toHaveBeenCalled();
+      const event = dispatchSpy.mock.calls[0][0] as CustomEvent;
+      expect(event.type).toBe(UNAUTHORIZED_EVENT);
+      dispatchSpy.mockRestore();
+    });
+
+    it('re-throws network/non-response errors unchanged', async () => {
       const handler = getResponseErrorHandler();
       const networkError = new Error('Network Error');
-      let thrown: unknown;
-      try {
-        handler(networkError);
-      } catch (e) {
-        thrown = e;
-      }
-      expect(thrown).toBe(networkError);
-      expect(thrown).not.toBeInstanceOf(ApiError);
+      await expect(handler(networkError)).rejects.toBe(networkError);
     });
   });
 });

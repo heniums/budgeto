@@ -34,7 +34,9 @@ describe('auth API client', () => {
   });
 
   it('register posts credentials and returns the user', async () => {
-    mockPost.mockResolvedValue({ data: { id: 'u1', email: 'a@b.co', name: 'A' } });
+    mockPost.mockResolvedValue({
+      data: { user: { id: 'u1', email: 'a@b.co', name: 'A' } },
+    });
     const input = { name: 'A', email: 'a@b.co', password: 'password123' };
     const user = await register(input);
     expect(mockPost).toHaveBeenCalledWith('/auth/register', input);
@@ -48,7 +50,7 @@ describe('auth API client', () => {
     const input = { email: 'a@b.co', password: 'password123' };
     const result = await login(input);
     expect(mockPost).toHaveBeenCalledWith('/auth/login', input);
-    expect(result.user.email).toBe('a@b.co');
+    expect(result.email).toBe('a@b.co');
   });
 
   it('getMe sends GET', async () => {
@@ -56,7 +58,9 @@ describe('auth API client', () => {
       data: { user: { id: 'u1', email: 'a@b.co', name: 'A' } },
     });
     const user = await getMe();
-    expect(mockGet).toHaveBeenCalledWith('/auth/me');
+    expect(mockGet).toHaveBeenCalledWith('/auth/me', {
+      skipRefresh: undefined,
+    });
     expect(user.name).toBe('A');
   });
 
@@ -83,8 +87,12 @@ describe('auth API client', () => {
   it('throws an ApiError on failure', async () => {
     const apiError = new ApiError('Invalid credentials', 401, 'UNAUTHORIZED');
     mockPost.mockRejectedValue(apiError);
-    await expect(login({ email: 'a@b.co', password: 'x' })).rejects.toBeInstanceOf(ApiError);
-    await expect(login({ email: 'a@b.co', password: 'x' })).rejects.toMatchObject({
+    await expect(
+      login({ email: 'a@b.co', password: 'x' }),
+    ).rejects.toBeInstanceOf(ApiError);
+    await expect(
+      login({ email: 'a@b.co', password: 'x' }),
+    ).rejects.toMatchObject({
       status: 401,
       code: 'UNAUTHORIZED',
     });

@@ -15,11 +15,10 @@ vi.mock('../api/auth', async (importOriginal) => {
     ...actual,
     getMe: vi.fn(),
     register: vi.fn(),
-    login: vi.fn(),
   };
 });
 
-import { getMe, register, login } from '../api/auth';
+import { getMe, register } from '../api/auth';
 import { ApiError } from '../api/client';
 
 function LocationSpy(): JSX.Element {
@@ -47,8 +46,6 @@ describe('SignUp form', () => {
     vi.clearAllMocks();
     vi.mocked(getMe).mockResolvedValue(mockUser);
     vi.mocked(register).mockResolvedValue(mockUser);
-    vi.mocked(login).mockResolvedValue({ token: 'token-1', user: mockUser });
-    window.localStorage.clear();
     cleanup();
   });
 
@@ -105,10 +102,6 @@ describe('SignUp form', () => {
     expect(await screen.findByText('Home')).toBeInTheDocument();
     expect(vi.mocked(register)).toHaveBeenCalledWith({
       name: 'Ada',
-      email: 'ada@example.com',
-      password: 'supersecret',
-    });
-    expect(vi.mocked(login)).toHaveBeenCalledWith({
       email: 'ada@example.com',
       password: 'supersecret',
     });
