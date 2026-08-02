@@ -1,6 +1,8 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState, useRef } from 'react';
+import { Popover, PopoverTrigger } from '@/components/ui/popover';
+import * as PopoverPrimitive from '@radix-ui/react-popover';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,7 +11,8 @@ import {
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import { useLongPress } from '../hooks/use-long-press';
-import { Plus, Grid3X3 } from 'lucide-react';
+import { Plus, Grid3X3, MoreHorizontal } from 'lucide-react';
+import { FuzzyItemPicker } from './FuzzyItemPicker';
 
 export interface WalletItem {
   id: string;
@@ -103,6 +106,9 @@ export function WalletSelectList({
   onEdit,
   onViewAll,
 }: WalletSelectListProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   if (wallets.length === 0) {
     return (
       <div
@@ -139,7 +145,7 @@ export function WalletSelectList({
     }
 
     if (nextIndex !== null) {
-      const nextEl = document.querySelector(
+      const nextEl = containerRef.current?.querySelector(
         `[data-wallet-index="${nextIndex}"]`,
       ) as HTMLElement | null;
       nextEl?.focus();
@@ -148,12 +154,51 @@ export function WalletSelectList({
 
   const hasActions = onRefresh || onCreate || onViewAll;
 
+
   return (
-    <ScrollArea className="w-full" role="listbox">
+    <div className="relative w-full min-w-0" data-testid="wallet-select-list">
       <div
-        className="flex items-center gap-2 px-0.5 py-1"
-        data-testid="wallet-select-list"
+        ref={containerRef}
+        className="flex scrollbar-hide min-w-0 items-center gap-2 overflow-x-auto pr-2 py-1"
       >
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label="More wallets"
+              className="sticky left-0 z-10 shrink-0 h-7 w-7"
+            >
+              <MoreHorizontal size={16} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverPrimitive.Content align="start" className="z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none" sideOffset={4}>
+            <FuzzyItemPicker
+              key={open ? 'open' : 'closed'}
+              items={wallets}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                onSelect(id);
+                setOpen(false);
+              }}
+              getId={(w) => w.id}
+              getLabel={(w) => w.name}
+              renderItem={(wallet) => (
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: wallet.color }}
+                  />
+                  <span className="truncate">{wallet.name}</span>
+                </div>
+              )}
+              title="All wallets"
+              searchPlaceholder="Search wallets..."
+              emptyMessage="No wallets match your search"
+            />
+          </PopoverPrimitive.Content>
+        </Popover>
         {wallets.map((wallet, index) => {
           const isSelected = wallet.id === selectedId;
           return (
@@ -172,6 +217,7 @@ export function WalletSelectList({
           <>
             {onCreate && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-7 w-7"
@@ -183,6 +229,7 @@ export function WalletSelectList({
             )}
             {onViewAll && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-7 w-7"
@@ -195,6 +242,7 @@ export function WalletSelectList({
           </>
         )}
       </div>
-    </ScrollArea>
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" aria-hidden />
+    </div>
   );
 }
