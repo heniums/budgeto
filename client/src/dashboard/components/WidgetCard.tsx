@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { cn } from '@/lib/utils';
 import {
   Card,
   CardContent,
@@ -23,7 +24,7 @@ export function WidgetCard({
   className,
 }: WidgetCardProps): JSX.Element {
   return (
-    <Card className={`h-full flex flex-col ${className ?? ''}`}>
+    <Card className={cn('h-full flex flex-col', className)}>
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>
