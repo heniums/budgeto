@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuth } from '../auth/AuthContext';
-import { login as apiLogin, register as apiRegister } from '../api/auth';
+import { register as apiRegister } from '../api/auth';
 import { FormError } from '../components/FormError';
 import { FormAlert } from '../components/FormAlert';
 
@@ -51,11 +51,7 @@ export function SignUp(): JSX.Element {
         email: data.email.trim(),
         password: data.password,
       });
-      const { token } = await apiLogin({
-        email: data.email.trim(),
-        password: data.password,
-      });
-      signIn(user, token);
+      signIn(user);
       navigate('/home');
     } catch (err) {
       setError('root', {
@@ -84,10 +80,7 @@ export function SignUp(): JSX.Element {
             aria-invalid={errors.name ? true : undefined}
             aria-describedby={errors.name ? `${ids.name}-error` : undefined}
           />
-          <FormError
-            id={`${ids.name}-error`}
-            message={errors.name?.message}
-          />
+          <FormError id={`${ids.name}-error`} message={errors.name?.message} />
         </div>
 
         <div className="field">

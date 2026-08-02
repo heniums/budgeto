@@ -43,11 +43,11 @@ export function SignIn(): JSX.Element {
 
   const onSubmit = async (data: SignInValues): Promise<void> => {
     try {
-      const { user, token } = await login({
+      const user = await login({
         email: data.email.trim(),
         password: data.password,
       });
-      signIn(user, token);
+      signIn(user);
       navigate(from, { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 401) {

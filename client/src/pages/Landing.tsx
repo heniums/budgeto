@@ -33,8 +33,8 @@ export function Landing(): JSX.Element {
   const { user, status, logout } = useAuth();
   const navigate = useNavigate();
 
-  const handleLogout = (): void => {
-    logout();
+  const handleLogout = async (): Promise<void> => {
+    await logout();
     navigate('/', { replace: true });
   };
   return (
@@ -45,7 +45,10 @@ export function Landing(): JSX.Element {
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
               <div className="p-2 rounded-lg bg-primary">
-                <Wallet className="h-5 w-5 text-primary-foreground" aria-hidden />
+                <Wallet
+                  className="h-5 w-5 text-primary-foreground"
+                  aria-hidden
+                />
               </div>
               <span className="text-xl font-bold">Budgeto</span>
             </div>
@@ -54,8 +57,12 @@ export function Landing(): JSX.Element {
                 <>
                   <div className="flex items-center gap-3 text-sm">
                     <div className="text-right leading-tight hidden sm:block">
-                      <div className="font-medium text-foreground">{user.name}</div>
-                      <div className="text-muted-foreground text-xs">{user.email}</div>
+                      <div className="font-medium text-foreground">
+                        {user.name}
+                      </div>
+                      <div className="text-muted-foreground text-xs">
+                        {user.email}
+                      </div>
                     </div>
                     <Button variant="outline" size="sm" onClick={handleLogout}>
                       <LogOut className="mr-2 h-4 w-4" aria-hidden />
@@ -86,12 +93,11 @@ export function Landing(): JSX.Element {
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto">
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              Your Money,{' '}
-              <span className="text-primary">Under Control</span>
+              Your Money, <span className="text-primary">Under Control</span>
             </h1>
             <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed">
-              Track expenses, manage multiple wallets, and understand your spending habits. 
-              Simple personal finance management for everyone.
+              Track expenses, manage multiple wallets, and understand your
+              spending habits. Simple personal finance management for everyone.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button asChild size="lg" className="w-full sm:w-auto">
@@ -100,7 +106,12 @@ export function Landing(): JSX.Element {
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
                 </Link>
               </Button>
-              <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
+              <Button
+                asChild
+                variant="outline"
+                size="lg"
+                className="w-full sm:w-auto"
+              >
                 <Link to="/login">Sign in</Link>
               </Button>
             </div>
@@ -114,7 +125,8 @@ export function Landing(): JSX.Element {
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Everything you need</h2>
             <p className="text-muted-foreground max-w-2xl mx-auto">
-              Simple yet powerful tools to help you take control of your finances
+              Simple yet powerful tools to help you take control of your
+              finances
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -157,7 +169,8 @@ export function Landing(): JSX.Element {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-3xl font-bold mb-4">Ready to take control?</h2>
           <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Join thousands of users who have simplified their personal finance management with Budgeto.
+            Join thousands of users who have simplified their personal finance
+            management with Budgeto.
           </p>
           <Button asChild size="lg">
             <Link to="/signup">
@@ -174,7 +187,10 @@ export function Landing(): JSX.Element {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="p-1.5 rounded-lg bg-primary">
-                <Wallet className="h-4 w-4 text-primary-foreground" aria-hidden />
+                <Wallet
+                  className="h-4 w-4 text-primary-foreground"
+                  aria-hidden
+                />
               </div>
               <span className="font-semibold">Budgeto</span>
             </div>
