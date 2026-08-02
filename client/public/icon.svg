@@ -1,6 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <rect width="512" height="512" rx="96" fill="#1f8a4c" />
-  <text x="50%" y="54%" text-anchor="middle" dominant-baseline="middle"
-    font-family="Segoe UI, Arial, sans-serif" font-size="240" font-weight="700"
-    fill="#ffffff">B</text>
+  <rect width="512" height="512" rx="96" fill="#1f8a4c"/>
+  <circle cx="256" cy="256" r="172" fill="#ffffff"/>
+  <rect x="148" y="284" width="64" height="96" rx="12" fill="#1f8a4c"/>
+  <rect x="224" y="236" width="64" height="144" rx="12" fill="#1f8a4c"/>
+  <rect x="300" y="180" width="64" height="200" rx="12" fill="#1f8a4c"/>
 </svg>
