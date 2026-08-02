@@ -19,7 +19,8 @@ let cached: Config | null = null;
  * `.env` file in development; set it explicitly for test/Neon environments.
  */
 export function getConfig(): Config {
-  if (cached) {
+  const isTest = process.env.NODE_ENV === 'test';
+  if (cached && !isTest) {
     return cached;
   }
   const databaseUrl =
