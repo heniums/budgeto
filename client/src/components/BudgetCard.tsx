@@ -12,7 +12,10 @@ function catPercentage(cat: BudgetCategoryData): number {
 function budgetPercentage(budget: BudgetData): number {
   const total = Number(budget.totalAmount);
   if (!total) return 0;
-  return Math.min(100, Math.round((Number(budget.spent) / total) * 10000) / 100);
+  return Math.min(
+    100,
+    Math.round((Number(budget.spent) / total) * 10000) / 100,
+  );
 }
 
 interface BudgetCardProps {
@@ -20,11 +23,7 @@ interface BudgetCardProps {
   onClick: () => void;
 }
 
-export function BudgetCard({
-  budget,
-  onClick,
-}: BudgetCardProps): JSX.Element {
-
+export function BudgetCard({ budget, onClick }: BudgetCardProps): JSX.Element {
   return (
     <div
       key={budget.id}

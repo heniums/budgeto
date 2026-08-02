@@ -578,9 +578,12 @@ describe('TransactionForm — income/expense toggle', () => {
     // Submit
     await user.click(screen.getByRole('button', { name: /add transaction/i }));
 
-    expect(createTransaction).toHaveBeenCalledWith('w1', expect.objectContaining({
-      amount: '50',
-    }));
+    expect(createTransaction).toHaveBeenCalledWith(
+      'w1',
+      expect.objectContaining({
+        amount: '50',
+      }),
+    );
   });
 
   it('submits negative amount when Expense is selected (default)', async () => {
@@ -607,8 +610,11 @@ describe('TransactionForm — income/expense toggle', () => {
     // Expense is default — just submit
     await user.click(screen.getByRole('button', { name: /add transaction/i }));
 
-    expect(createTransaction).toHaveBeenCalledWith('w1', expect.objectContaining({
-      amount: '-30',
-    }));
+    expect(createTransaction).toHaveBeenCalledWith(
+      'w1',
+      expect.objectContaining({
+        amount: '-30',
+      }),
+    );
   });
 });

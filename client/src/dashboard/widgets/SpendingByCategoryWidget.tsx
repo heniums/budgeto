@@ -31,8 +31,8 @@ export function SpendingByCategoryWidget(): JSX.Element {
 
     const labels: string[] = top8.map((c) => c.name);
     const data: number[] = top8.map((c) => Number(c.amount) || 0);
-    const colors: string[] = top8.map((c, i) =>
-      c.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+    const colors: string[] = top8.map(
+      (c, i) => c.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
     );
 
     if (rest.length > 0) {

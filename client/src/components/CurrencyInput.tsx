@@ -3,7 +3,11 @@ import * as PopoverPrimitive from '@radix-ui/react-popover';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
-import { CURRENCIES, filterCurrencies, type CurrencyCode } from '@/lib/currencies';
+import {
+  CURRENCIES,
+  filterCurrencies,
+  type CurrencyCode,
+} from '@/lib/currencies';
 
 export interface CurrencyInputProps {
   value: string;
@@ -165,7 +169,8 @@ export function CurrencyInput({
                   className={cn(
                     'flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground',
                     c.code === value && 'bg-accent text-accent-foreground',
-                    index === highlightedIndex && 'bg-accent text-accent-foreground',
+                    index === highlightedIndex &&
+                      'bg-accent text-accent-foreground',
                   )}
                   onClick={() => handleSelect(c.code)}
                   onMouseEnter={() => setHighlightedIndex(index)}

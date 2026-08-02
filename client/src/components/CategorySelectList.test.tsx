@@ -213,9 +213,7 @@ describe('CategorySelectList — callbacks', () => {
       />,
     );
 
-    expect(
-      screen.queryByLabelText('Add category'),
-    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText('Add category')).not.toBeInTheDocument();
   });
 
   it('hides "View All" button when onViewAll is not provided', () => {
@@ -236,24 +234,46 @@ describe('CategorySelectList — callbacks', () => {
 
 describe('CategorySelectList — more popup and fuzzy search', () => {
   it('renders the More button when categories exist', () => {
-    render(<CategorySelectList categories={categories} selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+      />,
+    );
     expect(screen.getByLabelText('More categories')).toBeInTheDocument();
   });
 
   it('opens the popup with a search input when the More button is clicked', async () => {
     const user = userEvent.setup();
-    render(<CategorySelectList categories={categories} selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+      />,
+    );
     await user.click(screen.getByLabelText('More categories'));
-    expect(await screen.findByPlaceholderText('Search categories...')).toBeInTheDocument();
+    expect(
+      await screen.findByPlaceholderText('Search categories...'),
+    ).toBeInTheDocument();
   });
 
   it('filters items by fuzzy search as the user types', async () => {
     const user = userEvent.setup();
-    render(<CategorySelectList categories={categories} selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+      />,
+    );
     await user.click(screen.getByLabelText('More categories'));
     const input = await screen.findByPlaceholderText('Search categories...');
     await user.type(input, 'Sa');
-    const listbox = await screen.findByRole('listbox', { name: /all categories/i });
+    const listbox = await screen.findByRole('listbox', {
+      name: /all categories/i,
+    });
     expect(within(listbox).getByText('Salary')).toBeInTheDocument();
     expect(within(listbox).queryByText('Food')).not.toBeInTheDocument();
     expect(within(listbox).queryByText('Car')).not.toBeInTheDocument();
@@ -262,21 +282,39 @@ describe('CategorySelectList — more popup and fuzzy search', () => {
   it('calls onSelect and closes the popup when an item is clicked', async () => {
     const onSelect = vi.fn();
     const user = userEvent.setup();
-    render(<CategorySelectList categories={categories} selectedId={null} onSelect={onSelect} />);
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={onSelect}
+      />,
+    );
     await user.click(screen.getByLabelText('More categories'));
     await screen.findByPlaceholderText('Search categories...');
-    const listbox = await screen.findByRole('listbox', { name: /all categories/i });
+    const listbox = await screen.findByRole('listbox', {
+      name: /all categories/i,
+    });
     await user.click(within(listbox).getByText('Salary'));
     expect(onSelect).toHaveBeenCalledWith('c2');
-    expect(screen.queryByPlaceholderText('Search categories...')).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('Search categories...'),
+    ).not.toBeInTheDocument();
   });
 
   it('shows the empty message when the search matches nothing', async () => {
     const user = userEvent.setup();
-    render(<CategorySelectList categories={categories} selectedId={null} onSelect={vi.fn()} />);
+    render(
+      <CategorySelectList
+        categories={categories}
+        selectedId={null}
+        onSelect={vi.fn()}
+      />,
+    );
     await user.click(screen.getByLabelText('More categories'));
     const input = await screen.findByPlaceholderText('Search categories...');
     await user.type(input, 'zzzzz');
-    expect(await screen.findByText('No categories match your search')).toBeInTheDocument();
+    expect(
+      await screen.findByText('No categories match your search'),
+    ).toBeInTheDocument();
   });
 });

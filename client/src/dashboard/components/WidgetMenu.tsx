@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
-import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
+import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { WidgetConfigDialog } from './WidgetConfigDialog';
 import type { WidgetConfig } from '../types';
@@ -11,7 +15,11 @@ interface WidgetMenuProps {
   saveWidgets: (widgets: WidgetConfig[]) => Promise<void>;
 }
 
-export function WidgetMenu({ widget, widgets, saveWidgets }: WidgetMenuProps): JSX.Element {
+export function WidgetMenu({
+  widget,
+  widgets,
+  saveWidgets,
+}: WidgetMenuProps): JSX.Element {
   const [configOpen, setConfigOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -25,9 +33,7 @@ export function WidgetMenu({ widget, widgets, saveWidgets }: WidgetMenuProps): J
 
   return (
     <>
-      <div
-        className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity"
-      >
+      <div className="absolute top-2 right-2 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
             <Button
@@ -45,7 +51,10 @@ export function WidgetMenu({ widget, widgets, saveWidgets }: WidgetMenuProps): J
             <button
               type="button"
               className="flex w-full items-center rounded-sm px-2 py-1.5 text-sm hover:bg-accent hover:text-accent-foreground"
-              onClick={() => { setMenuOpen(false); setConfigOpen(true); }}
+              onClick={() => {
+                setMenuOpen(false);
+                setConfigOpen(true);
+              }}
             >
               Configure
             </button>

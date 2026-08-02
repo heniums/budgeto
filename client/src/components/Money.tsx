@@ -7,7 +7,11 @@ export interface MoneyProps {
   className?: string;
 }
 
-export function Money({ amount, currency, className }: MoneyProps): JSX.Element {
+export function Money({
+  amount,
+  currency,
+  className,
+}: MoneyProps): JSX.Element {
   const n = Number(amount);
   const negative = Number.isFinite(n) && n < 0;
   return (

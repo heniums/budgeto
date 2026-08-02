@@ -57,9 +57,7 @@ export function WalletAdjust({
             padding: '0.5rem 0',
           }}
         >
-          <span className="text-sm text-muted-foreground">
-            Adjust to:
-          </span>
+          <span className="text-sm text-muted-foreground">Adjust to:</span>
           <Input
             type="number"
             step="0.01"
@@ -92,9 +90,7 @@ export function WalletAdjust({
           </Button>
         </div>
         {adjustError && (
-          <p className="text-sm text-destructive">
-            {adjustError}
-          </p>
+          <p className="text-sm text-destructive">{adjustError}</p>
         )}
       </TableCell>
     </TableRow>

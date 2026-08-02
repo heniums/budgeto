@@ -17,7 +17,12 @@ vi.mock('../api/wallets', async (importOriginal) => {
   };
 });
 
-import { createWallet, getWallet, updateWallet, adjustBalance } from '../api/wallets';
+import {
+  createWallet,
+  getWallet,
+  updateWallet,
+  adjustBalance,
+} from '../api/wallets';
 
 describe('WalletModal — create mode (no walletId)', () => {
   beforeEach(() => {
@@ -173,9 +178,7 @@ describe('WalletModal — edit mode (walletId provided)', () => {
     );
 
     await screen.findByDisplayValue('Cash');
-    expect(screen.getByLabelText('Currency')).toHaveTextContent(
-      'EUR — Euro',
-    );
+    expect(screen.getByLabelText('Currency')).toHaveTextContent('EUR — Euro');
   });
 
   it('renders Save Changes button disabled when form is not dirty', async () => {

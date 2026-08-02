@@ -19,7 +19,10 @@ export function findTransferPair(
 
       const otherAmount = Number(other.amount);
       // Opposite signs: one positive, one negative
-      if (!(txAmount > 0 && otherAmount < 0) && !(txAmount < 0 && otherAmount > 0))
+      if (
+        !(txAmount > 0 && otherAmount < 0) &&
+        !(txAmount < 0 && otherAmount > 0)
+      )
         return false;
 
       // Within 2-second window

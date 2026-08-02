@@ -21,7 +21,10 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Settings, GripVertical } from 'lucide-react';
-import { DashboardDataProvider, useDashboardData } from '@/dashboard/DashboardDataProvider';
+import {
+  DashboardDataProvider,
+  useDashboardData,
+} from '@/dashboard/DashboardDataProvider';
 import { WIDGET_REGISTRY } from '@/dashboard/registry';
 import { WidgetSettingsDialog } from '@/dashboard/WidgetSettingsDialog';
 import { WidgetCard } from '@/dashboard/components/WidgetCard';
@@ -57,7 +60,9 @@ function HomeContent(): JSX.Element {
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    }),
   );
 
   function handleDragStart(event: DragStartEvent) {
@@ -73,7 +78,17 @@ function HomeContent(): JSX.Element {
         height: rect.height,
       });
     } else {
-      setActiveWidget(id && w ? { id, type: w.id, title: WIDGET_REGISTRY[w.id]?.title ?? w.id, width: 0, height: 0 } : null);
+      setActiveWidget(
+        id && w
+          ? {
+              id,
+              type: w.id,
+              title: WIDGET_REGISTRY[w.id]?.title ?? w.id,
+              width: 0,
+              height: 0,
+            }
+          : null,
+      );
     }
   }
 
@@ -104,7 +119,11 @@ function HomeContent(): JSX.Element {
           <h1 className="text-2xl font-semibold text-foreground">Home</h1>
           <Badge variant="secondary">Work in Progress</Badge>
         </div>
-        <Button variant="outline" size="sm" onClick={() => setSettingsOpen(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setSettingsOpen(true)}
+        >
           <Settings className="h-4 w-4 mr-2" /> Customize
         </Button>
       </div>
@@ -168,7 +187,10 @@ function HomeContent(): JSX.Element {
           </DragOverlay>
         </DndContext>
       )}
-      <WidgetSettingsDialog open={settingsOpen} onOpenChange={setSettingsOpen} />
+      <WidgetSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
+      />
     </main>
   );
 }
@@ -184,7 +206,14 @@ function SortableWidgetItem({
   cols: number;
   saveWidgets: (widgets: WidgetConfig[]) => Promise<void>;
 }): JSX.Element {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({
     id: widget.id,
   });
   const style: React.CSSProperties = {
@@ -196,11 +225,7 @@ function SortableWidgetItem({
     position: 'relative',
   };
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="group"
-    >
+    <div ref={setNodeRef} style={style} className="group">
       <div
         className="absolute top-2 left-2 z-10 opacity-0 group-hover:opacity-100 focus-within:opacity-100 cursor-grab active:cursor-grabbing transition-opacity"
         {...attributes}

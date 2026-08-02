@@ -4,9 +4,7 @@ import { categories, type Category, type NewCategory } from '../db/schema';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
-export async function createCategory(
-  input: NewCategory,
-): Promise<Category> {
+export async function createCategory(input: NewCategory): Promise<Category> {
   const [category] = await db.insert(categories).values(input).returning();
   return category;
 }

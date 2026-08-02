@@ -80,7 +80,9 @@ export async function walletHasTransactions(
 
 export async function updateWallet(
   id: string,
-  input: Partial<Pick<NewWallet, 'name' | 'description' | 'color' | 'currency'>>,
+  input: Partial<
+    Pick<NewWallet, 'name' | 'description' | 'color' | 'currency'>
+  >,
 ): Promise<Wallet | undefined> {
   const [wallet] = await db
     .update(wallets)
@@ -119,7 +121,9 @@ export async function createWalletInTx(
 export async function updateWalletInTx(
   tx: Tx,
   id: string,
-  input: Partial<Pick<NewWallet, 'name' | 'description' | 'color' | 'currency'>>,
+  input: Partial<
+    Pick<NewWallet, 'name' | 'description' | 'color' | 'currency'>
+  >,
 ): Promise<Wallet | undefined> {
   const [wallet] = await tx
     .update(wallets)

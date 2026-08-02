@@ -21,9 +21,7 @@ export function BiggestExpenseWidget(): JSX.Element {
             {biggest.description || 'Unnamed transaction'}
           </p>
           <p className="text-xs text-muted-foreground">
-            {biggest.categoryName
-              ? `${biggest.categoryName}`
-              : 'No category'}
+            {biggest.categoryName ? `${biggest.categoryName}` : 'No category'}
           </p>
         </div>
       ) : (

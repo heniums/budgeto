@@ -71,7 +71,10 @@ export function ColorInput({
           ))}
         </div>
         <div className="mt-3 flex items-center gap-2">
-          <label htmlFor={id ? `${id}-custom` : undefined} className="text-xs text-muted-foreground">
+          <label
+            htmlFor={id ? `${id}-custom` : undefined}
+            className="text-xs text-muted-foreground"
+          >
             Custom
           </label>
           <input

@@ -152,7 +152,9 @@ export function TransactionForm({
   useEffect(() => {
     if (editMode && initialValues) {
       setValue('walletId', initialValues.walletId);
-      const absAmount = initialValues.amount.startsWith('-') ? initialValues.amount.slice(1) : initialValues.amount;
+      const absAmount = initialValues.amount.startsWith('-')
+        ? initialValues.amount.slice(1)
+        : initialValues.amount;
       setValue('amount', absAmount);
       setValue('type', Number(initialValues.amount) < 0 ? 'expense' : 'income');
       setValue('description', initialValues.description);
@@ -164,7 +166,8 @@ export function TransactionForm({
   const onSubmit = async (values: TransactionValues): Promise<void> => {
     setFormError(null);
     const isoDate = dayjs(values.date).toISOString();
-    const signedAmount = values.type === 'expense' ? '-' + values.amount : values.amount;
+    const signedAmount =
+      values.type === 'expense' ? '-' + values.amount : values.amount;
     try {
       if (editMode && editTxId) {
         const updated: TransactionData = await updateTransaction(editTxId, {
@@ -176,7 +179,9 @@ export function TransactionForm({
         });
         reset({
           walletId: updated.walletId,
-          amount: String(updated.amount).startsWith('-') ? String(updated.amount).slice(1) : String(updated.amount),
+          amount: String(updated.amount).startsWith('-')
+            ? String(updated.amount).slice(1)
+            : String(updated.amount),
           type: Number(updated.amount) < 0 ? 'expense' : 'income',
           description: updated.description,
           categoryId: updated.categoryId ?? '',
@@ -321,7 +326,11 @@ export function TransactionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 min-w-0">
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      noValidate
+      className="space-y-4 min-w-0"
+    >
       {wallets.length === 0 && (
         <div
           role="alert"
@@ -408,7 +417,11 @@ export function TransactionForm({
           <Button
             type="button"
             variant={watch('type') === 'income' ? 'default' : 'outline'}
-            className={watch('type') === 'income' ? 'bg-green-600 hover:bg-green-700' : ''}
+            className={
+              watch('type') === 'income'
+                ? 'bg-green-600 hover:bg-green-700'
+                : ''
+            }
             onClick={() => setValue('type', 'income', { shouldDirty: true })}
           >
             Income
@@ -416,7 +429,9 @@ export function TransactionForm({
           <Button
             type="button"
             variant={watch('type') === 'expense' ? 'default' : 'outline'}
-            className={watch('type') === 'expense' ? 'bg-red-600 hover:bg-red-700' : ''}
+            className={
+              watch('type') === 'expense' ? 'bg-red-600 hover:bg-red-700' : ''
+            }
             onClick={() => setValue('type', 'expense', { shouldDirty: true })}
           >
             Expense

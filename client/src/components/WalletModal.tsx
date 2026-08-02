@@ -39,15 +39,10 @@ const walletSchema = z.object({
   description: z.string().max(MAX_DESCRIPTION_LENGTH),
   color: z.string(),
   currency: z.string(),
-  balance: z
-    .string()
-    .refine(
-      (val) => {
-        const trimmed = val.trim();
-        return trimmed === '' || Number.isFinite(Number(trimmed));
-      },
-      'Balance must be a valid number.',
-    ),
+  balance: z.string().refine((val) => {
+    const trimmed = val.trim();
+    return trimmed === '' || Number.isFinite(Number(trimmed));
+  }, 'Balance must be a valid number.'),
 });
 
 type WalletFormValues = z.infer<typeof walletSchema>;

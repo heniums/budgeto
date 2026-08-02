@@ -40,10 +40,8 @@ export const LABEL = {
 
 /** Error message templates. */
 export const ERR = {
-  FAILED_TO_LOAD: (resource: string): string =>
-    `Failed to load ${resource}.`,
-  FAILED_TO_SAVE: (resource: string): string =>
-    `Failed to save ${resource}.`,
+  FAILED_TO_LOAD: (resource: string): string => `Failed to load ${resource}.`,
+  FAILED_TO_SAVE: (resource: string): string => `Failed to save ${resource}.`,
   FAILED_TO_DELETE: (resource: string): string =>
     `Failed to delete ${resource}.`,
 } as const;

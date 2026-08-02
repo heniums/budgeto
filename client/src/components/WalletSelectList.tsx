@@ -89,9 +89,7 @@ function LongPressWalletChip({
     <ContextMenu>
       <ContextMenuTrigger asChild>{chip}</ContextMenuTrigger>
       <ContextMenuContent>
-        <ContextMenuItem onClick={() => onEdit(wallet)}>
-          Edit
-        </ContextMenuItem>
+        <ContextMenuItem onClick={() => onEdit(wallet)}>Edit</ContextMenuItem>
       </ContextMenuContent>
     </ContextMenu>
   );
@@ -154,7 +152,6 @@ export function WalletSelectList({
 
   const hasActions = onRefresh || onCreate || onViewAll;
 
-
   return (
     <div className="relative w-full min-w-0" data-testid="wallet-select-list">
       <div
@@ -173,7 +170,11 @@ export function WalletSelectList({
               <MoreHorizontal size={16} />
             </Button>
           </PopoverTrigger>
-          <PopoverPrimitive.Content align="start" className="z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none" sideOffset={4}>
+          <PopoverPrimitive.Content
+            align="start"
+            className="z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none"
+            sideOffset={4}
+          >
             <FuzzyItemPicker
               key={open ? 'open' : 'closed'}
               items={wallets}
@@ -242,7 +243,10 @@ export function WalletSelectList({
           </>
         )}
       </div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" aria-hidden />
+      <div
+        className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent"
+        aria-hidden
+      />
     </div>
   );
 }

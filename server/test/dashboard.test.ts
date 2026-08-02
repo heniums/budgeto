@@ -3,9 +3,7 @@ import request from 'supertest';
 import dayjs from 'dayjs';
 import { createApp } from '../src/app';
 import { register } from '../src/auth/service';
-import {
-  deleteAllUsers,
-} from '../src/auth/repository';
+import { deleteAllUsers } from '../src/auth/repository';
 import { signToken } from '../src/auth/token';
 import { deleteAllCategories } from '../src/categories/repository';
 import { deleteAllWallets } from '../src/wallets/repository';
@@ -97,9 +95,27 @@ describe('GET /dashboard/widgets', () => {
 
   it('returns saved widgets after POST', async () => {
     const widgets = [
-      { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 2 },
-      { widgetId: 'monthly-cash-flow', visible: false, order: 1, colSpan: 1, rowSpan: 2 },
-      { widgetId: 'budget-progress', visible: true, order: 2, colSpan: 1, rowSpan: 2 },
+      {
+        widgetId: 'net-worth',
+        visible: true,
+        order: 0,
+        colSpan: 1,
+        rowSpan: 2,
+      },
+      {
+        widgetId: 'monthly-cash-flow',
+        visible: false,
+        order: 1,
+        colSpan: 1,
+        rowSpan: 2,
+      },
+      {
+        widgetId: 'budget-progress',
+        visible: true,
+        order: 2,
+        colSpan: 1,
+        rowSpan: 2,
+      },
     ];
     const saveResponse = await request(app)
       .post('/dashboard/widgets')
@@ -136,8 +152,20 @@ describe('POST /dashboard/widgets', () => {
 
   it('persists widget config and returns it (200)', async () => {
     const widgets = [
-      { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 2 },
-      { widgetId: 'recent-transactions', visible: false, order: 1, colSpan: 1, rowSpan: 2 },
+      {
+        widgetId: 'net-worth',
+        visible: true,
+        order: 0,
+        colSpan: 1,
+        rowSpan: 2,
+      },
+      {
+        widgetId: 'recent-transactions',
+        visible: false,
+        order: 1,
+        colSpan: 1,
+        rowSpan: 2,
+      },
     ];
     const response = await request(app)
       .post('/dashboard/widgets')
@@ -152,9 +180,7 @@ describe('POST /dashboard/widgets', () => {
       .post('/dashboard/widgets')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        widgets: [
-          { widgetId: 'net-worth', visible: true, order: -1 },
-        ],
+        widgets: [{ widgetId: 'net-worth', visible: true, order: -1 }],
       });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
@@ -188,7 +214,13 @@ describe('POST /dashboard/widgets', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         widgets: [
-          { widgetId: 'net-worth', visible: true, order: 0, colSpan: 3, rowSpan: 1 },
+          {
+            widgetId: 'net-worth',
+            visible: true,
+            order: 0,
+            colSpan: 3,
+            rowSpan: 1,
+          },
         ],
       });
     expect(response.status).toBe(400);
@@ -201,7 +233,13 @@ describe('POST /dashboard/widgets', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         widgets: [
-          { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 0 },
+          {
+            widgetId: 'net-worth',
+            visible: true,
+            order: 0,
+            colSpan: 1,
+            rowSpan: 0,
+          },
         ],
       });
     expect(response.status).toBe(400);
@@ -214,7 +252,13 @@ describe('POST /dashboard/widgets', () => {
       .set('Authorization', `Bearer ${token}`)
       .send({
         widgets: [
-          { widgetId: 'net-worth', visible: true, order: 0, colSpan: 1.5, rowSpan: 1 },
+          {
+            widgetId: 'net-worth',
+            visible: true,
+            order: 0,
+            colSpan: 1.5,
+            rowSpan: 1,
+          },
         ],
       });
     expect(response.status).toBe(400);
@@ -265,12 +309,7 @@ describe('GET /dashboard/summary', () => {
     const category = await createCategory(token, 'Food');
 
     // Seed an income transaction
-    await createTransactionViaApi(
-      token,
-      wallet.id,
-      '1000.00',
-      'Salary',
-    );
+    await createTransactionViaApi(token, wallet.id, '1000.00', 'Salary');
     // Seed an expense transaction
     await createTransactionViaApi(
       token,
@@ -292,9 +331,7 @@ describe('GET /dashboard/summary', () => {
         type: 'spending',
         period: 'monthly',
         totalAmount: '500.00',
-        categories: [
-          { categoryId: category.id, limitAmount: '500.00' },
-        ],
+        categories: [{ categoryId: category.id, limitAmount: '500.00' }],
       });
     expect(budgetResponse.status).toBe(201);
 

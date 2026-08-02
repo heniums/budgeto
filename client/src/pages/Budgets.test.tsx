@@ -171,7 +171,9 @@ describe('Budgets page', () => {
     });
 
     await waitFor(() => {
-      expect(getBudgets).toHaveBeenCalledWith(expect.stringMatching(/^\d{4}-\d{2}$/));
+      expect(getBudgets).toHaveBeenCalledWith(
+        expect.stringMatching(/^\d{4}-\d{2}$/),
+      );
     });
     // Wait for the component to finish loading and show content again
     await screen.findByText('Monthly Spending');

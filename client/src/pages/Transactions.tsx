@@ -92,15 +92,28 @@ function matchesFilters(
     debouncedSearch: string;
   },
 ): boolean {
-  if (filters.walletFilter && tx.walletId !== filters.walletFilter) return false;
-  if (filters.categoryFilter && tx.categoryId !== filters.categoryFilter) return false;
+  if (filters.walletFilter && tx.walletId !== filters.walletFilter)
+    return false;
+  if (filters.categoryFilter && tx.categoryId !== filters.categoryFilter)
+    return false;
   if (filters.typeFilter === 'income' && Number(tx.amount) <= 0) return false;
   if (filters.typeFilter === 'expense' && Number(tx.amount) >= 0) return false;
   if (filters.datePreset === 'custom') {
-    if (filters.fromDate && dayjs(tx.date).isBefore(dayjs(filters.fromDate), 'day')) return false;
-    if (filters.toDate && dayjs(tx.date).isAfter(dayjs(filters.toDate), 'day')) return false;
+    if (
+      filters.fromDate &&
+      dayjs(tx.date).isBefore(dayjs(filters.fromDate), 'day')
+    )
+      return false;
+    if (filters.toDate && dayjs(tx.date).isAfter(dayjs(filters.toDate), 'day'))
+      return false;
   }
-  if (filters.debouncedSearch && !tx.description?.toLowerCase().includes(filters.debouncedSearch.toLowerCase())) return false;
+  if (
+    filters.debouncedSearch &&
+    !tx.description
+      ?.toLowerCase()
+      .includes(filters.debouncedSearch.toLowerCase())
+  )
+    return false;
   return true;
 }
 
@@ -323,7 +336,9 @@ export function Transactions(): JSX.Element {
       }
       groupMap.get(key)?.items.push(tx);
     }
-    return Array.from(groupMap.values()).sort((a, b) => b.key.localeCompare(a.key));
+    return Array.from(groupMap.values()).sort((a, b) =>
+      b.key.localeCompare(a.key),
+    );
   }, [transactions, datePreset]);
 
   const hasMore = transactions.length < total;
@@ -370,7 +385,18 @@ export function Transactions(): JSX.Element {
                     setTxOpen(false);
                     setPendingWalletId(null);
                     setPendingCategoryId(null);
-                    if (newTx && matchesFilters(newTx, { walletFilter, categoryFilter, typeFilter, datePreset, fromDate, toDate, debouncedSearch })) {
+                    if (
+                      newTx &&
+                      matchesFilters(newTx, {
+                        walletFilter,
+                        categoryFilter,
+                        typeFilter,
+                        datePreset,
+                        fromDate,
+                        toDate,
+                        debouncedSearch,
+                      })
+                    ) {
                       setTransactions((prev) => [newTx, ...prev]);
                       setTotal((t) => t + 1);
                     }
@@ -503,7 +529,9 @@ export function Transactions(): JSX.Element {
                   <TableHead>Date</TableHead>
                   <TableHead className="hidden md:table-cell">Wallet</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead className="hidden md:table-cell">Description</TableHead>
+                  <TableHead className="hidden md:table-cell">
+                    Description
+                  </TableHead>
                   <TableHead className="text-right">Amount</TableHead>
                 </TableRow>
               </TableHeader>
@@ -574,9 +602,13 @@ export function Transactions(): JSX.Element {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
-                        <TableHead className="hidden md:table-cell">Wallet</TableHead>
+                        <TableHead className="hidden md:table-cell">
+                          Wallet
+                        </TableHead>
                         <TableHead>Category</TableHead>
-                        <TableHead className="hidden md:table-cell">Description</TableHead>
+                        <TableHead className="hidden md:table-cell">
+                          Description
+                        </TableHead>
                         <TableHead className="text-right">Amount</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -642,7 +674,9 @@ export function Transactions(): JSX.Element {
                                 <span className="text-muted-foreground">—</span>
                               )}
                             </TableCell>
-                            <TableCell className="hidden md:table-cell">{tx.description || '—'}</TableCell>
+                            <TableCell className="hidden md:table-cell">
+                              {tx.description || '—'}
+                            </TableCell>
                             <TableCell className="text-right">
                               <Money
                                 amount={tx.amount}
@@ -698,10 +732,24 @@ export function Transactions(): JSX.Element {
               onSuccess={(updatedTx) => {
                 setEditTx(null);
                 if (updatedTx) {
-                  if (matchesFilters(updatedTx, { walletFilter, categoryFilter, typeFilter, datePreset, fromDate, toDate, debouncedSearch })) {
-                    setTransactions((prev) => prev.map((t) => t.id === updatedTx.id ? updatedTx : t));
+                  if (
+                    matchesFilters(updatedTx, {
+                      walletFilter,
+                      categoryFilter,
+                      typeFilter,
+                      datePreset,
+                      fromDate,
+                      toDate,
+                      debouncedSearch,
+                    })
+                  ) {
+                    setTransactions((prev) =>
+                      prev.map((t) => (t.id === updatedTx.id ? updatedTx : t)),
+                    );
                   } else {
-                    setTransactions((prev) => prev.filter((t) => t.id !== updatedTx.id));
+                    setTransactions((prev) =>
+                      prev.filter((t) => t.id !== updatedTx.id),
+                    );
                     setTotal((t) => t - 1);
                   }
                 }
@@ -771,7 +819,9 @@ export function Transactions(): JSX.Element {
                 if (deleteConfirm) {
                   try {
                     await deleteTransaction(deleteConfirm.id);
-                    setTransactions((prev) => prev.filter((t) => t.id !== deleteConfirm.id));
+                    setTransactions((prev) =>
+                      prev.filter((t) => t.id !== deleteConfirm.id),
+                    );
                     setTotal((t) => t - 1);
                     setDeleteConfirm(null);
                   } catch (err) {
@@ -815,7 +865,9 @@ export function Transactions(): JSX.Element {
                 if (cascadeTx.action === 'delete') {
                   try {
                     await deleteTransaction(cascadeTx.tx.id);
-                    setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id));
+                    setTransactions((prev) =>
+                      prev.filter((t) => t.id !== cascadeTx.tx.id),
+                    );
                     setTotal((t) => t - 1);
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
@@ -834,7 +886,13 @@ export function Transactions(): JSX.Element {
                   try {
                     await deleteTransaction(cascadeTx.tx.id);
                     await deleteTransaction(cascadeTx.pair.id);
-                    setTransactions((prev) => prev.filter((t) => t.id !== cascadeTx.tx.id && t.id !== cascadeTx.pair.id));
+                    setTransactions((prev) =>
+                      prev.filter(
+                        (t) =>
+                          t.id !== cascadeTx.tx.id &&
+                          t.id !== cascadeTx.pair.id,
+                      ),
+                    );
                     setTotal((t) => Math.max(0, t - 2));
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
@@ -849,7 +907,6 @@ export function Transactions(): JSX.Element {
           </div>
         </DialogContent>
       </Dialog>
-
 
       <WalletModal
         walletId={detailWalletId ?? undefined}

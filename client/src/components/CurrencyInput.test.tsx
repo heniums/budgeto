@@ -105,6 +105,8 @@ describe('CurrencyInput', () => {
     const searchInput = screen.getByPlaceholderText('Search currency…');
     expect(searchInput).toBeInTheDocument();
     await user.keyboard('{Escape}');
-    expect(screen.queryByPlaceholderText('Search currency…')).not.toBeInTheDocument();
+    expect(
+      screen.queryByPlaceholderText('Search currency…'),
+    ).not.toBeInTheDocument();
   });
 });

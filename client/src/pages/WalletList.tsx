@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  getWallets,
-  type WalletData,
-} from '../api/wallets';
+import { getWallets, type WalletData } from '../api/wallets';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -53,8 +50,6 @@ export function WalletList(): JSX.Element {
     );
   }, [wallets, search]);
 
-
-
   const formatDate = (iso: string): string => {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString(undefined, {
@@ -88,10 +83,14 @@ export function WalletList(): JSX.Element {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead className="hidden md:table-cell">Description</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Description
+                </TableHead>
                 <TableHead className="text-right">Balance</TableHead>
                 <TableHead className="text-right">Currency</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Created</TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Created
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -128,10 +127,14 @@ export function WalletList(): JSX.Element {
             <TableHeader>
               <TableRow>
                 <TableHead>Name</TableHead>
-                <TableHead className="hidden md:table-cell">Description</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  Description
+                </TableHead>
                 <TableHead className="text-right">Balance</TableHead>
                 <TableHead className="text-right">Currency</TableHead>
-                <TableHead className="hidden md:table-cell text-right">Created</TableHead>
+                <TableHead className="hidden md:table-cell text-right">
+                  Created
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -147,68 +150,68 @@ export function WalletList(): JSX.Element {
               ) : (
                 filtered.map((wallet) => (
                   <TableRow
-                      key={wallet.id}
-                      className="cursor-pointer hover:bg-muted/50"
-                      onClick={() => {
-                        setSelectedWalletId(wallet.id);
-                        setModalMode('edit');
-                      }}
-                    >
-                      <TableCell>
-                        <div
+                    key={wallet.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => {
+                      setSelectedWalletId(wallet.id);
+                      setModalMode('edit');
+                    }}
+                  >
+                    <TableCell>
+                      <div
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '0.5rem',
+                        }}
+                      >
+                        <span
                           style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '0.5rem',
+                            display: 'inline-block',
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            background: wallet.color,
+                            flexShrink: 0,
+                          }}
+                          aria-hidden
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setSelectedWalletId(wallet.id);
+                            setModalMode('edit');
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            color: 'inherit',
+                            textDecoration: 'underline',
+                            padding: 0,
+                            font: 'inherit',
                           }}
                         >
-                          <span
-                            style={{
-                              display: 'inline-block',
-                              width: 12,
-                              height: 12,
-                              borderRadius: '50%',
-                              background: wallet.color,
-                              flexShrink: 0,
-                            }}
-                            aria-hidden
-                          />
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setSelectedWalletId(wallet.id);
-                              setModalMode('edit');
-                            }}
-                            style={{
-                              background: 'none',
-                              border: 'none',
-                              cursor: 'pointer',
-                              color: 'inherit',
-                              textDecoration: 'underline',
-                              padding: 0,
-                              font: 'inherit',
-                            }}
-                          >
-                            {wallet.name}
-                          </button>
-                        </div>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-muted-foreground">
-                        {wallet.description || '—'}
-                      </TableCell>
-                      <TableCell className="text-right font-medium">
-                        <Money
-                          amount={wallet.balance}
-                          currency={wallet.currency}
-                        />
-                      </TableCell>
-                      <TableCell className="text-right text-muted-foreground">
-                        {wallet.currency}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell text-right text-muted-foreground text-sm">
-                        {formatDate(wallet.createdAt)}
-                      </TableCell>
-                    </TableRow>
+                          {wallet.name}
+                        </button>
+                      </div>
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-muted-foreground">
+                      {wallet.description || '—'}
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      <Money
+                        amount={wallet.balance}
+                        currency={wallet.currency}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground">
+                      {wallet.currency}
+                    </TableCell>
+                    <TableCell className="hidden md:table-cell text-right text-muted-foreground text-sm">
+                      {formatDate(wallet.createdAt)}
+                    </TableCell>
+                  </TableRow>
                 ))
               )}
             </TableBody>
