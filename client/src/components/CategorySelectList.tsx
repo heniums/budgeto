@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,7 +10,8 @@ import {
 import { cn } from '@/lib/utils';
 import { getIcon } from '../lib/icons';
 import { useLongPress } from '../hooks/use-long-press';
-import { Plus, Grid3X3 } from 'lucide-react';
+import { Plus, Grid3X3, MoreHorizontal } from 'lucide-react';
+import { FuzzyItemPicker } from './FuzzyItemPicker';
 
 export interface CategoryItem {
   id: string;
@@ -145,12 +147,55 @@ export function CategorySelectList({
 
   const hasActions = onRefresh || onCreate || onViewAll;
 
+  const [open, setOpen] = useState(false);
+
   return (
-    <ScrollArea className="w-full" role="listbox">
+    <div className="relative w-full min-w-0" data-testid="category-select-list">
       <div
-        className="flex items-center gap-2 px-0.5 py-1"
-        data-testid="category-select-list"
+        className="flex scrollbar-hide min-w-0 items-center gap-2 overflow-x-auto pr-2 py-1"
+        role="listbox"
       >
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label="More categories"
+              className="sticky left-0 z-10 shrink-0 h-7 w-7"
+            >
+              <MoreHorizontal size={16} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-3">
+            <FuzzyItemPicker
+              key={open ? 'open' : 'closed'}
+              items={categories}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                onSelect(id);
+                setOpen(false);
+              }}
+              getId={(c) => c.id}
+              getLabel={(c) => c.name}
+              renderItem={(category) => {
+                const Icon = getIcon(category.icon);
+                return (
+                  <div
+                    className="flex min-w-0 items-center gap-2"
+                    style={{ color: category.color }}
+                  >
+                    {Icon && <Icon size={18} className="shrink-0" />}
+                    <span className="truncate">{category.name}</span>
+                  </div>
+                );
+              }}
+              title="All categories"
+              searchPlaceholder="Search categories..."
+              emptyMessage="No categories match your search"
+            />
+          </PopoverContent>
+        </Popover>
         {categories.map((category, index) => {
           const isSelected = category.id === selectedId;
           return (
@@ -169,6 +214,7 @@ export function CategorySelectList({
           <>
             {onCreate && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-7 w-7"
@@ -180,6 +226,7 @@ export function CategorySelectList({
             )}
             {onViewAll && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-7 w-7"
@@ -192,6 +239,7 @@ export function CategorySelectList({
           </>
         )}
       </div>
-    </ScrollArea>
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" aria-hidden />
+    </div>
   );
 }

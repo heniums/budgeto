@@ -250,7 +250,7 @@ export function TransactionForm({
   // View mode: read-only display with interactive chip lists
   if (viewMode && viewValues) {
     return (
-      <div className="space-y-4">
+      <div className="space-y-4 min-w-0">
         <FormAlert message={formError} />
 
         {viewValues.date && (
@@ -321,7 +321,7 @@ export function TransactionForm({
   }
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 min-w-0">
       {wallets.length === 0 && (
         <div
           role="alert"

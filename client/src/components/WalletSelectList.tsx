@@ -1,6 +1,7 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { useState } from 'react';
+import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,7 +10,8 @@ import {
 } from '@/components/ui/context-menu';
 import { cn } from '@/lib/utils';
 import { useLongPress } from '../hooks/use-long-press';
-import { Plus, Grid3X3 } from 'lucide-react';
+import { Plus, Grid3X3, MoreHorizontal } from 'lucide-react';
+import { FuzzyItemPicker } from './FuzzyItemPicker';
 
 export interface WalletItem {
   id: string;
@@ -148,12 +150,52 @@ export function WalletSelectList({
 
   const hasActions = onRefresh || onCreate || onViewAll;
 
+  const [open, setOpen] = useState(false);
+
   return (
-    <ScrollArea className="w-full" role="listbox">
+    <div className="relative w-full min-w-0" data-testid="wallet-select-list">
       <div
-        className="flex items-center gap-2 px-0.5 py-1"
-        data-testid="wallet-select-list"
+        className="flex scrollbar-hide min-w-0 items-center gap-2 overflow-x-auto pr-2 py-1"
+        role="listbox"
       >
+        <Popover open={open} onOpenChange={setOpen}>
+          <PopoverTrigger asChild>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              aria-label="More wallets"
+              className="sticky left-0 z-10 shrink-0 h-7 w-7"
+            >
+              <MoreHorizontal size={16} />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent align="start" className="w-80 p-3">
+            <FuzzyItemPicker
+              key={open ? 'open' : 'closed'}
+              items={wallets}
+              selectedId={selectedId}
+              onSelect={(id) => {
+                onSelect(id);
+                setOpen(false);
+              }}
+              getId={(w) => w.id}
+              getLabel={(w) => w.name}
+              renderItem={(wallet) => (
+                <div className="flex min-w-0 items-center gap-2">
+                  <span
+                    className="h-2 w-2 shrink-0 rounded-full"
+                    style={{ backgroundColor: wallet.color }}
+                  />
+                  <span className="truncate">{wallet.name}</span>
+                </div>
+              )}
+              title="All wallets"
+              searchPlaceholder="Search wallets..."
+              emptyMessage="No wallets match your search"
+            />
+          </PopoverContent>
+        </Popover>
         {wallets.map((wallet, index) => {
           const isSelected = wallet.id === selectedId;
           return (
@@ -172,6 +214,7 @@ export function WalletSelectList({
           <>
             {onCreate && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-7 w-7"
@@ -183,6 +226,7 @@ export function WalletSelectList({
             )}
             {onViewAll && (
               <Button
+                type="button"
                 variant="ghost"
                 size="icon"
                 className="shrink-0 h-7 w-7"
@@ -195,6 +239,7 @@ export function WalletSelectList({
           </>
         )}
       </div>
-    </ScrollArea>
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-8 bg-gradient-to-l from-background to-transparent" aria-hidden />
+    </div>
   );
 }

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { WalletSelectList } from './WalletSelectList';
 
@@ -249,5 +249,52 @@ describe('WalletSelectList — callbacks', () => {
     expect(
       screen.queryByLabelText('View all wallets'),
     ).not.toBeInTheDocument();
+  });
+});
+
+describe('WalletSelectList — more popup and fuzzy search', () => {
+  it('renders the More button when wallets exist', () => {
+    render(<WalletSelectList wallets={wallets} selectedId={null} onSelect={vi.fn()} />);
+    expect(screen.getByLabelText('More wallets')).toBeInTheDocument();
+  });
+
+  it('opens the popup with a search input when the More button is clicked', async () => {
+    const user = userEvent.setup();
+    render(<WalletSelectList wallets={wallets} selectedId={null} onSelect={vi.fn()} />);
+    await user.click(screen.getByLabelText('More wallets'));
+    expect(await screen.findByPlaceholderText('Search wallets...')).toBeInTheDocument();
+  });
+
+  it('filters items by fuzzy search as the user types', async () => {
+    const user = userEvent.setup();
+    render(<WalletSelectList wallets={wallets} selectedId={null} onSelect={vi.fn()} />);
+    await user.click(screen.getByLabelText('More wallets'));
+    const input = await screen.findByPlaceholderText('Search wallets...');
+    await user.type(input, 'Ba');
+    const listbox = await screen.findByRole('listbox', { name: /all wallets/i });
+    expect(within(listbox).getByText('Bank')).toBeInTheDocument();
+    expect(within(listbox).queryByText('Cash')).not.toBeInTheDocument();
+    expect(within(listbox).queryByText('Savings')).not.toBeInTheDocument();
+  });
+
+  it('calls onSelect and closes the popup when an item is clicked', async () => {
+    const onSelect = vi.fn();
+    const user = userEvent.setup();
+    render(<WalletSelectList wallets={wallets} selectedId={null} onSelect={onSelect} />);
+    await user.click(screen.getByLabelText('More wallets'));
+    await screen.findByPlaceholderText('Search wallets...');
+    const listbox = await screen.findByRole('listbox', { name: /all wallets/i });
+    await user.click(within(listbox).getByText('Bank'));
+    expect(onSelect).toHaveBeenCalledWith('w2');
+    expect(screen.queryByPlaceholderText('Search wallets...')).not.toBeInTheDocument();
+  });
+
+  it('shows the empty message when the search matches nothing', async () => {
+    const user = userEvent.setup();
+    render(<WalletSelectList wallets={wallets} selectedId={null} onSelect={vi.fn()} />);
+    await user.click(screen.getByLabelText('More wallets'));
+    const input = await screen.findByPlaceholderText('Search wallets...');
+    await user.type(input, 'zzzzz');
+    expect(await screen.findByText('No wallets match your search')).toBeInTheDocument();
   });
 });
