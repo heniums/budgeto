@@ -124,8 +124,10 @@ describe('WalletSelectList — rendering', () => {
       />,
     );
 
-    const scrollArea = screen.getByRole('listbox');
-    expect(scrollArea).toBeInTheDocument();
+    const root = screen.getByTestId('wallet-select-list');
+    const scrollArea = root.firstElementChild;
+    expect(scrollArea).not.toBeNull();
+    expect(scrollArea).toHaveClass('overflow-x-auto');
   });
 
   it('supports keyboard navigation', async () => {

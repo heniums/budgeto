@@ -1,6 +1,6 @@
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Popover, PopoverTrigger, PopoverContent } from '@/components/ui/popover';
 import {
   ContextMenu,
@@ -105,6 +105,9 @@ export function WalletSelectList({
   onEdit,
   onViewAll,
 }: WalletSelectListProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
   if (wallets.length === 0) {
     return (
       <div
@@ -141,7 +144,7 @@ export function WalletSelectList({
     }
 
     if (nextIndex !== null) {
-      const nextEl = document.querySelector(
+      const nextEl = containerRef.current?.querySelector(
         `[data-wallet-index="${nextIndex}"]`,
       ) as HTMLElement | null;
       nextEl?.focus();
@@ -150,13 +153,12 @@ export function WalletSelectList({
 
   const hasActions = onRefresh || onCreate || onViewAll;
 
-  const [open, setOpen] = useState(false);
 
   return (
     <div className="relative w-full min-w-0" data-testid="wallet-select-list">
       <div
+        ref={containerRef}
         className="flex scrollbar-hide min-w-0 items-center gap-2 overflow-x-auto pr-2 py-1"
-        role="listbox"
       >
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
