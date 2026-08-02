@@ -11,6 +11,66 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.3.0] — 2026-08-02
+
+### Added
+
+**Authentication & Accounts**
+
+- Refresh token authentication with silent renewal via httpOnly cookies
+- Secure cookie-based sessions — tokens no longer stored in `localStorage`
+- Automatic session refresh — expired access tokens silently renewed via `POST /auth/refresh` with request retry
+- Refresh token rotation with revoke-on-password-change and idempotent logout
+- Access token lifetime shortened to 15 minutes; refresh tokens valid for 7 days
+- New `refresh_tokens` database table for server-side token storage
+
+**Dashboard & Analytics**
+
+- Interactive dashboard with 12 configurable widgets (income trends, expense breakdown, category spending, budget progress, recent transactions)
+- Drag-and-drop sortable grid layout with per-widget column/row spans
+- Widget visibility settings — show/hide individual widgets
+- Dashboard data provider with real-time summary statistics from server endpoints
+- Work in Progress badge on Home page indicating ongoing development
+
+**Transactions**
+
+- Time-of-day support in transaction dates (displayed as M/D/YYYY h:mm A)
+- Income/expense toggle buttons in transaction form (amount input always positive, sign applied at submit)
+- Incremental list updates after create/edit/delete (no full refetch needed)
+- Filter-aware insertion — new transactions only appear if they match active filters
+
+**Wallet & Category Selection**
+
+- Horizontal overflow scrolling for long wallet/category lists
+- Sticky "More" button that opens fuzzy-search popup for easier selection
+- FuzzyItemPicker reusable component for searchable item selection across the app
+- Right-edge gradient fade to indicate more content available
+
+**User Settings**
+
+- Extended auth context with `updateSettings()` for user profile management
+- User settings table in database for widget preferences and dashboard configuration
+
+**Database**
+
+- Foreign key indexes on wallets.user_id, categories.user_id, transactions.wallet_id, transactions.category_id
+- Resolved category.type drift issue (type now derived from transaction amount sign)
+- User settings and widgets tables for dashboard customization
+
+### Changed
+
+- Authentication profile update endpoint renamed from `updateUserName` to `updateUserProfile` for broader field support
+- Vercel deployment domain updated to budgeto.heniums.vercel.app
+
+### Fixed
+
+- Popover dismissal race condition in searchable picker (use onMouseDown with preventDefault)
+- Dashboard grid drag overlay using pixel dimensions instead of CSS grid spans
+- Migration journal timestamp corrections
+- Code review issues across multiple PRs (#37, #39, #41, #42)
+
+---
+
 ## [1.0.0] — 2026-07-26
 
 ### Added
@@ -87,5 +147,6 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-[Unreleased]: https://github.com/heniums/budgeto/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/heniums/budgeto/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/heniums/budgeto/releases/tag/v1.3.0
 [1.0.0]: https://github.com/heniums/budgeto/releases/tag/v1.0.0
