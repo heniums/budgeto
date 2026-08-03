@@ -112,7 +112,7 @@ export function Layout(): JSX.Element {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="sticky top-0 h-screen w-60 shrink-0 flex-col overflow-hidden border-r bg-card p-4 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-hidden border-r bg-card p-4 md:flex">
         <SidebarContent>
           {userBlock}
           {logoutButton}
