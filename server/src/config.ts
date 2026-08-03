@@ -6,6 +6,7 @@ export interface Config {
   jwtExpiresIn: number;
   refreshTokenExpiresIn: number;
   cookieSecure: boolean;
+  cookieSameSite: 'lax' | 'strict' | 'none';
   corsOrigins: string[];
   port: number;
   nodeEnv: string;
@@ -36,6 +37,12 @@ export function getConfig(): Config {
   const nodeEnv = process.env.NODE_ENV ?? 'development';
   const cookieSecure =
     process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
+  const cookieSameSite: 'lax' | 'strict' | 'none' =
+    process.env.COOKIE_SAMESITE === 'strict' ||
+    process.env.COOKIE_SAMESITE === 'none' ||
+    process.env.COOKIE_SAMESITE === 'lax'
+      ? process.env.COOKIE_SAMESITE
+      : 'lax';
   const corsOrigins = (process.env.CORS_ORIGINS ?? '')
     .split(',')
     .map((s) => s.trim())
@@ -46,6 +53,7 @@ export function getConfig(): Config {
     jwtExpiresIn,
     refreshTokenExpiresIn,
     cookieSecure,
+    cookieSameSite,
     corsOrigins,
     port,
     nodeEnv,
