@@ -177,6 +177,69 @@ export async function countTransactionsByUserId(
   return Number(row?.value ?? 0);
 }
 
+export async function sumTransactionsByUserId(
+  userId: string,
+  filters: TransactionListFilters = {},
+  preset: 'day' | 'week' | 'month' | 'year' | 'custom',
+  timezoneOffset: number,
+): Promise<{ key: string; net: { currency: string; amount: string }[] }[]> {
+  const where = buildTransactionConditions(userId, filters);
+
+  const localDate = sql`(
+    (${transactions.date} AT TIME ZONE 'UTC') +
+    (${timezoneOffset} * interval '1 minute')
+  )`;
+
+  let keySql: ReturnType<typeof sql<string>>;
+  switch (preset) {
+    case 'day':
+    case 'custom':
+      keySql = sql<string>`to_char(${localDate}, 'YYYY-MM-DD')`;
+      break;
+    case 'week':
+      keySql = sql<string>`to_char(
+        ${localDate} - ((extract(dow from ${localDate}) + 6) % 7) * interval '1 day',
+        'YYYY-MM-DD'
+      )`;
+      break;
+    case 'month':
+      keySql = sql<string>`to_char(${localDate}, 'YYYY-MM')`;
+      break;
+    case 'year':
+      keySql = sql<string>`to_char(${localDate}, 'YYYY')`;
+      break;
+  }
+
+  const keyed = db
+    .select({
+      key: keySql.as('key'),
+      currency: wallets.currency,
+      amount: transactions.amount,
+    })
+    .from(transactions)
+    .innerJoin(wallets, eq(transactions.walletId, wallets.id))
+    .where(where)
+    .as('keyed');
+
+  const rawRows = await db
+    .select({
+      key: keyed.key,
+      currency: keyed.currency,
+      amount: sql<string>`COALESCE(SUM(${keyed.amount}), '0')`,
+    })
+    .from(keyed)
+    .groupBy(keyed.key, keyed.currency)
+    .orderBy(desc(keyed.key));
+
+  const map = new Map<string, { currency: string; amount: string }[]>();
+  for (const row of rawRows) {
+    const group = map.get(row.key) ?? [];
+    group.push({ currency: row.currency, amount: row.amount });
+    map.set(row.key, group);
+  }
+  return Array.from(map.entries()).map(([key, net]) => ({ key, net }));
+}
+
 export async function sumTransactionsByUserAndCategoryAndMonth(
   userId: string,
   categoryId: string,

@@ -84,3 +84,35 @@ export function formatPeriodLabel(
       return d.format('ddd, MMM D');
   }
 }
+
+/**
+ * Returns the { from, to } Date bounds for a given non-custom preset,
+ * anchored to the supplied `now` (defaults to the current time).
+ */
+export function getIntervalBounds(
+  preset: Exclude<DatePreset, 'custom'>,
+  now: Date = new Date(),
+): { from: Date; to: Date } {
+  const d = dayjs(now);
+  switch (preset) {
+    case 'day':
+      return { from: d.startOf('day').toDate(), to: d.endOf('day').toDate() };
+    case 'week': {
+      const from = dayjs(startOfWeek(now)).startOf('day');
+      return {
+        from: from.toDate(),
+        to: from.add(6, 'day').endOf('day').toDate(),
+      };
+    }
+    case 'month':
+      return {
+        from: d.startOf('month').toDate(),
+        to: d.endOf('month').toDate(),
+      };
+    case 'year':
+      return {
+        from: d.startOf('year').toDate(),
+        to: d.endOf('year').toDate(),
+      };
+  }
+}

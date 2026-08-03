@@ -52,6 +52,47 @@ function buildQuery(params: TransactionQuery): Record<string, string | number> {
   return query;
 }
 
+export interface TransactionSummaryQuery {
+  from?: string;
+  to?: string;
+  walletId?: string;
+  categoryId?: string;
+  type?: 'income' | 'expense' | 'all';
+  search?: string;
+  preset?: 'day' | 'week' | 'month' | 'year' | 'custom';
+  timezoneOffset?: number;
+}
+
+export interface TransactionSummary {
+  groups: { key: string; net: { currency: string; amount: string }[] }[];
+}
+
+export function buildSummaryQuery(
+  params?: TransactionSummaryQuery,
+): Record<string, string | number> {
+  const query: Record<string, string | number> = {};
+  if (!params) return query;
+  if (params.from) query.from = params.from;
+  if (params.to) query.to = params.to;
+  if (params.walletId) query.walletId = params.walletId;
+  if (params.categoryId) query.categoryId = params.categoryId;
+  if (params.type && params.type !== 'all') query.type = params.type;
+  if (params.search) query.search = params.search;
+  if (params.preset) query.preset = params.preset;
+  query.timezoneOffset = -(new Date().getTimezoneOffset());
+  return query;
+}
+
+export async function getTransactionsSummary(
+  params?: TransactionSummaryQuery,
+): Promise<TransactionSummary> {
+  const response = await apiClient.get<{ summary: TransactionSummary }>(
+    '/transactions/summary',
+    { params: buildSummaryQuery(params) },
+  );
+  return response.data.summary;
+}
+
 export async function getTransaction(id: string): Promise<TransactionData> {
   const response = await apiClient.get<TransactionData>(`/transactions/${id}`);
   return response.data;

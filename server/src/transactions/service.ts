@@ -5,8 +5,10 @@ import {
   findTransactionsByWalletId,
   findTransactionsByUserId,
   countTransactionsByUserId,
+  sumTransactionsByUserId,
   updateTransaction,
   deleteTransaction,
+  type TransactionListFilters,
 } from './repository';
 import { findWalletById } from '../wallets/repository';
 import { findCategoryById } from '../categories/repository';
@@ -64,6 +66,56 @@ export type TransactionListQuery = z.infer<typeof listQuerySchema>;
 export type CreateTransactionInput = z.infer<typeof createTransactionSchema>;
 export type UpdateTransactionInput = z.infer<typeof updateTransactionSchema>;
 export type TransferInput = z.infer<typeof transferSchema>;
+export const summaryQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  walletId: z.string().uuid().optional(),
+  categoryId: z.string().uuid().optional(),
+  type: z.enum(['income', 'expense']).optional(),
+  search: z.string().max(512).optional(),
+  preset: z.enum(['day', 'week', 'month', 'year', 'custom']),
+  timezoneOffset: z.coerce.number().int().default(0),
+});
+export type SummaryQuery = z.infer<typeof summaryQuerySchema>;
+
+export interface TransactionSummaryResult {
+  groups: { key: string; net: { currency: string; amount: string }[] }[];
+}
+
+export async function getSummaryByUser(
+  userId: string,
+  query: SummaryQuery,
+): Promise<TransactionSummaryResult> {
+  if (query.walletId) {
+    const wallet = await findWalletById(query.walletId);
+    if (!wallet || wallet.userId !== userId) {
+      throw notFoundError('Wallet not found');
+    }
+  }
+  if (query.categoryId) {
+    const category = await findCategoryById(query.categoryId);
+    if (!category || category.userId !== userId) {
+      throw notFoundError('Category not found');
+    }
+  }
+
+  const filters: TransactionListFilters = {
+    from: query.from,
+    to: query.to,
+    walletId: query.walletId,
+    categoryId: query.categoryId,
+    type: query.type,
+    search: query.search?.trim() || undefined,
+  };
+
+  const rows = await sumTransactionsByUserId(
+    userId,
+    filters,
+    query.preset,
+    query.timezoneOffset,
+  );
+  return { groups: rows };
+}
 
 export async function create(
   userId: string,

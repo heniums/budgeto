@@ -2,8 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
 import {
   getTransactions,
+  getTransactionsSummary,
   type TransactionData,
   type TransactionQuery,
+  type TransactionSummary,
+  type TransactionSummaryQuery,
   deleteTransaction,
 } from '../api/transactions';
 import { getWallets, type WalletData } from '../api/wallets';
@@ -127,6 +130,16 @@ export function Transactions(): JSX.Element {
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingMoreRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<TransactionSummary | null>(null);
+
+  const summaryMap = useMemo(() => {
+    const map = new Map<string, { currency: string; amount: string }[]>();
+    if (!summary) return map;
+    for (const group of summary.groups) {
+      map.set(group.key, group.net);
+    }
+    return map;
+  }, [summary]);
 
   const [datePreset, setDatePreset] = useState<DatePreset>('day');
   const [fromDate, setFromDate] = useState('');
@@ -193,6 +206,26 @@ export function Transactions(): JSX.Element {
       debouncedSearch,
     ],
   );
+
+  const buildSummaryQuery = useCallback((): TransactionSummaryQuery => {
+    const query: TransactionSummaryQuery = {};
+    if (datePreset === 'custom') {
+      if (fromDate) query.from = dayjs(`${fromDate}T00:00:00`).toISOString();
+      if (toDate) query.to = dayjs(`${toDate}T23:59:59.999`).toISOString();
+    }
+    if (walletFilter) query.walletId = walletFilter;
+    if (categoryFilter) query.categoryId = categoryFilter;
+    if (typeFilter !== 'all') query.type = typeFilter;
+    if (debouncedSearch) query.search = debouncedSearch;
+    query.preset = datePreset;
+    return query;
+  }, [datePreset, fromDate, toDate, walletFilter, categoryFilter, typeFilter, debouncedSearch]);
+
+  const loadSummary = useCallback(() => {
+    getTransactionsSummary(buildSummaryQuery())
+      .then(setSummary)
+      .catch(() => setSummary(null));
+  }, [buildSummaryQuery]);
 
   const loadInitial = useCallback(() => {
     setInitialLoading(true);
@@ -286,6 +319,10 @@ export function Transactions(): JSX.Element {
   useEffect(() => {
     loadInitial();
   }, [loadInitial]);
+
+  useEffect(() => {
+    loadSummary();
+  }, [loadSummary]);
 
   const loadMoreRef = useRef(loadMore);
   useEffect(() => {
@@ -592,13 +629,31 @@ export function Transactions(): JSX.Element {
         <>
           <div className="space-y-6">
             {groups.map((group) => (
-              <div key={group.key}>
+            <div key={group.key} className="mb-4">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <h2
                   data-testid="period-header"
-                  className="mb-2 text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+                  className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
                 >
                   {group.label}
                 </h2>
+                {summaryMap.get(group.key) && (
+                  <div className="flex flex-wrap items-baseline gap-3">
+                    {summaryMap.get(group.key)?.map((item) => (
+                      <div key={item.currency} className="flex items-baseline gap-1">
+                        <Money
+                          amount={item.amount}
+                          currency={item.currency}
+                          className="font-semibold"
+                        />
+                        <span className="text-xs text-muted-foreground uppercase">
+                          {item.currency}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
                 <div className="rounded-md border px-2 py-1">
                   <Table>
                     <TableHeader>

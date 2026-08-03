@@ -55,6 +55,7 @@ vi.mock('../api/transactions', async (importOriginal) => {
   return {
     ...actual,
     getTransactions: vi.fn(),
+    getTransactionsSummary: vi.fn(),
   };
 });
 vi.mock('../api/wallets', async (importOriginal) => {
@@ -71,7 +72,8 @@ vi.mock('../api/categories', async (importOriginal) => {
   return { ...actual, getCategories: vi.fn() };
 });
 
-import { getTransactions, type TransactionData } from '../api/transactions';
+import { getTransactions, getTransactionsSummary, type TransactionData } from '../api/transactions';
+import { formatMoney } from '../lib/currencies';
 import { getWallets, getWallet, createWallet } from '../api/wallets';
 import { getCategories } from '../api/categories';
 
@@ -104,6 +106,8 @@ vi.mocked(getTransactions).mockImplementation(async (params) => {
     total: items.length,
   };
 });
+
+vi.mocked(getTransactionsSummary).mockResolvedValue({ groups: [] });
 
 const mockCategories = [
   {
@@ -553,5 +557,101 @@ describe('Home responsive layout', () => {
     await screen.findByText('Salary');
     const table = screen.getByText('Salary').closest('table');
     expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
+  });
+});
+
+describe('Home transaction summary', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    (
+      global.IntersectionObserver as unknown as {
+        instances: { trigger: (v?: boolean) => void }[];
+      }
+    ).instances.length = 0;
+    transactionsFixture = [
+      {
+        id: 't1',
+        walletId: 'w1',
+        amount: '50.00',
+        description: 'Salary',
+        categoryId: 'c1',
+        categoryName: 'Food',
+        createdAt: '2026-01-15T10:00:00Z',
+        date: '2026-01-15T10:00:00.000Z',
+      },
+    ];
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
+    vi.mocked(getTransactionsSummary).mockResolvedValue({
+      groups: [{ key: '2026-01-15', net: [{ currency: 'USD', amount: '50.00' }] }],
+    });
+    cleanup();
+  });
+
+  it('renders per-group net amounts next to period headers', async () => {
+    renderHome();
+    const periodHeaders = await screen.findAllByTestId('period-header');
+    expect(periodHeaders).toHaveLength(1);
+    // The net amount should appear near the period header
+    expect(periodHeaders[0].parentElement).toHaveTextContent('50.00');
+    expect(periodHeaders[0].parentElement).toHaveTextContent('USD');
+  });
+
+  it('renders different net values for different day groups', async () => {
+    transactionsFixture = [
+      {
+        id: 't1',
+        walletId: 'w1',
+        amount: '50.00',
+        description: 'Salary',
+        categoryId: 'c1',
+        categoryName: 'Food',
+        createdAt: '2026-01-15T10:00:00Z',
+        date: '2026-01-15T10:00:00.000Z',
+      },
+      {
+        id: 't2',
+        walletId: 'w1',
+        amount: '-20.00',
+        description: 'Lunch',
+        categoryId: 'c1',
+        categoryName: 'Food',
+        createdAt: '2026-01-14T12:00:00Z',
+        date: '2026-01-14T12:00:00.000Z',
+      },
+    ];
+    vi.mocked(getTransactionsSummary).mockResolvedValue({
+      groups: [
+        { key: '2026-01-15', net: [{ currency: 'USD', amount: '50.00' }] },
+        { key: '2026-01-14', net: [{ currency: 'USD', amount: '-20.00' }] },
+      ],
+    });
+    renderHome();
+    const periodHeaders = await screen.findAllByTestId('period-header');
+    expect(periodHeaders).toHaveLength(2);
+    // Groups render newest first, so header[0] is 2026-01-15 and header[1] is
+    // 2026-01-14. Each period header row should contain its corresponding net
+    // amount as formatted by the app (locale-dependent symbol placement).
+    const headerTexts = periodHeaders.map(
+      (el) => el.parentElement?.textContent ?? '',
+    );
+    expect(headerTexts[0]).toContain(formatMoney('50.00', 'USD'));
+    expect(headerTexts[1]).toContain(formatMoney('-20.00', 'USD'));
+  });
+
+  it('re-fetches the summary when the date preset changes', async () => {
+    const user = userEvent.setup();
+    renderHome();
+    await screen.findAllByTestId('period-header');
+
+    // Open the date range menu and click the "Month" preset.
+    const dateButton = screen.getByRole('button', { name: /date:/i });
+    await user.click(dateButton);
+    const monthOption = await screen.findByRole('menuitem', { name: /month/i });
+    await user.click(monthOption);
+
+    await waitFor(() => {
+      expect(getTransactionsSummary).toHaveBeenCalledTimes(2);
+    });
   });
 });

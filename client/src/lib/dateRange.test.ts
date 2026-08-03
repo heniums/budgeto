@@ -3,6 +3,7 @@ import {
   periodKey,
   formatPeriodLabel,
   startOfWeek,
+  getIntervalBounds,
   type DatePreset,
 } from './dateRange';
 
@@ -77,5 +78,62 @@ describe('startOfWeek', () => {
     expect(startOfWeek(new Date('2026-01-15T12:00:00')).getDay()).toBe(1);
     // Sunday 2026-01-18 -> Monday 2026-01-12.
     expect(startOfWeek(new Date('2026-01-18T12:00:00')).getDate()).toBe(12);
+  });
+});
+
+describe('getIntervalBounds', () => {
+  const NOW = new Date('2026-01-15T12:00:00'); // Thursday
+
+  it('returns the full day for "day"', () => {
+    const { from, to } = getIntervalBounds('day', NOW);
+    expect(from.toISOString()).toBe('2026-01-15T00:00:00.000Z');
+    // endOf('day') is 23:59:59.999
+    expect(to.getFullYear()).toBe(2026);
+    expect(to.getMonth()).toBe(0);
+    expect(to.getDate()).toBe(15);
+    expect(to.getHours()).toBe(23);
+    expect(to.getMinutes()).toBe(59);
+    expect(to.getSeconds()).toBe(59);
+  });
+
+  it('returns Monday-anchored week for "week"', () => {
+    const { from, to } = getIntervalBounds('week', NOW);
+    // 2026-01-15 is Thursday; week starts Monday 2026-01-12
+    expect(from.getFullYear()).toBe(2026);
+    expect(from.getMonth()).toBe(0);
+    expect(from.getDate()).toBe(12);
+    expect(from.getHours()).toBe(0);
+    // Monday + 6 days = Sunday 2026-01-18
+    expect(to.getFullYear()).toBe(2026);
+    expect(to.getMonth()).toBe(0);
+    expect(to.getDate()).toBe(18);
+    expect(to.getHours()).toBe(23);
+    expect(to.getMinutes()).toBe(59);
+    // matches startOfWeek
+    expect(from.getTime()).toBe(startOfWeek(NOW).getTime());
+  });
+
+  it('returns the full month for "month"', () => {
+    const { from, to } = getIntervalBounds('month', NOW);
+    expect(from.getFullYear()).toBe(2026);
+    expect(from.getMonth()).toBe(0);
+    expect(from.getDate()).toBe(1);
+    expect(from.getHours()).toBe(0);
+    expect(to.getFullYear()).toBe(2026);
+    expect(to.getMonth()).toBe(0);
+    expect(to.getDate()).toBe(31);
+    expect(to.getHours()).toBe(23);
+  });
+
+  it('returns the full year for "year"', () => {
+    const { from, to } = getIntervalBounds('year', NOW);
+    expect(from.getFullYear()).toBe(2026);
+    expect(from.getMonth()).toBe(0);
+    expect(from.getDate()).toBe(1);
+    expect(from.getHours()).toBe(0);
+    expect(to.getFullYear()).toBe(2026);
+    expect(to.getMonth()).toBe(11);
+    expect(to.getDate()).toBe(31);
+    expect(to.getHours()).toBe(23);
   });
 });
