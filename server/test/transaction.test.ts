@@ -998,3 +998,326 @@ describe('GET /transactions — filtering & pagination', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 });
+
+describe('GET /transactions/summary', () => {
+  let token: string;
+  let walletId: string;
+  let eurWalletId: string;
+  let categoryId: string;
+  let otherCategoryId: string;
+
+  async function createWalletWithCurrency(
+    token: string,
+    name: string,
+    currency: string,
+  ): Promise<string> {
+    const response = await request(app)
+      .post('/wallets')
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
+      .send({ name, currency });
+    return response.body.id;
+  }
+
+  async function seedTx(
+    overrides: {
+      amount?: string;
+      description?: string;
+      walletId?: string;
+      categoryId?: string | null;
+      createdAt?: string;
+    } = {},
+  ): Promise<void> {
+    await createTransaction({
+      walletId: overrides.walletId ?? walletId,
+      amount: overrides.amount ?? '10.00',
+      description: overrides.description ?? 'Tx',
+      categoryId:
+        overrides.categoryId === undefined ? categoryId : overrides.categoryId,
+      createdAt: overrides.createdAt
+        ? new Date(overrides.createdAt)
+        : undefined,
+      date: overrides.createdAt || undefined,
+    });
+  }
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+    walletId = await createWalletWithCurrency(token, 'Main USD', 'USD');
+    eurWalletId = await createWalletWithCurrency(token, 'Main EUR', 'EUR');
+    categoryId = await createCategory(token, 'Food');
+    otherCategoryId = await createCategory(token, 'Transport');
+  });
+
+  it('returns per-group net for day preset', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Income USD',
+      createdAt: '2026-01-15T10:00:00.000Z',
+    });
+    await seedTx({
+      amount: '-30.00',
+      description: 'Expense USD',
+      createdAt: '2026-01-15T12:00:00.000Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'Income EUR',
+      walletId: eurWalletId,
+      categoryId: null,
+      createdAt: '2026-01-14T10:00:00.000Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(2);
+
+    const jan15 = response.body.summary.groups.find(
+      (g: { key: string }) => g.key === '2026-01-15',
+    );
+    expect(jan15).toBeDefined();
+    expect(jan15.net).toEqual([
+      { currency: 'USD', amount: '70.00' },
+    ]);
+
+    const jan14 = response.body.summary.groups.find(
+      (g: { key: string }) => g.key === '2026-01-14',
+    );
+    expect(jan14).toBeDefined();
+    expect(jan14.net).toEqual([
+      { currency: 'EUR', amount: '50.00' },
+    ]);
+  });
+
+  it('groups same-day multi-currency transactions into one group', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Income USD',
+      createdAt: '2026-01-15T10:00:00.000Z',
+    });
+    await seedTx({
+      amount: '-30.00',
+      description: 'Expense USD',
+      createdAt: '2026-01-15T12:00:00.000Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'Income EUR',
+      walletId: eurWalletId,
+      categoryId: null,
+      createdAt: '2026-01-15T14:00:00.000Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(1);
+    expect(response.body.summary.groups[0].key).toBe('2026-01-15');
+    expect(response.body.summary.groups[0].net).toHaveLength(2);
+
+    const usd = response.body.summary.groups[0].net.find(
+      (item: { currency: string }) => item.currency === 'USD',
+    );
+    const eur = response.body.summary.groups[0].net.find(
+      (item: { currency: string }) => item.currency === 'EUR',
+    );
+    expect(usd).toBeDefined();
+    expect(usd.amount).toBe('70.00');
+    expect(eur).toBeDefined();
+    expect(eur.amount).toBe('50.00');
+  });
+
+  it('filters by from/to date range (200)', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Old',
+      createdAt: '2024-06-01T10:00:00Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'Recent',
+      createdAt: '2026-01-15T10:00:00Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({
+        from: '2024-01-01T00:00:00.000Z',
+        to: '2024-12-31T23:59:59.999Z',
+        preset: 'day',
+        timezoneOffset: 0,
+      })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(1);
+    expect(response.body.summary.groups[0].key).toBe('2024-06-01');
+    expect(response.body.summary.groups[0].net).toEqual([
+      { currency: 'USD', amount: '100.00' },
+    ]);
+  });
+
+  it('filters by walletId (200)', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'USD tx',
+      createdAt: '2026-01-15T10:00:00.000Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'EUR tx',
+      walletId: eurWalletId,
+      categoryId: null,
+      createdAt: '2026-01-15T12:00:00.000Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ walletId, preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(1);
+    expect(response.body.summary.groups[0].net).toEqual([
+      { currency: 'USD', amount: '100.00' },
+    ]);
+  });
+
+  it('filters by categoryId (200)', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Food',
+      categoryId,
+      createdAt: '2026-01-15T10:00:00.000Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'Transport',
+      categoryId: otherCategoryId,
+      createdAt: '2026-01-15T12:00:00.000Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ categoryId, preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(1);
+    expect(response.body.summary.groups[0].net).toEqual([
+      { currency: 'USD', amount: '100.00' },
+    ]);
+  });
+
+  it('filters by type income/expense (200)', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Income',
+      createdAt: '2026-01-15T10:00:00.000Z',
+    });
+    await seedTx({
+      amount: '-30.00',
+      description: 'Expense',
+      createdAt: '2026-01-15T12:00:00.000Z',
+    });
+
+    const incomeResponse = await request(app)
+      .get('/transactions/summary')
+      .query({ type: 'income', preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(incomeResponse.status).toBe(200);
+    expect(incomeResponse.body.summary.groups).toHaveLength(1);
+    expect(incomeResponse.body.summary.groups[0].net).toEqual([
+      { currency: 'USD', amount: '100.00' },
+    ]);
+
+    const expenseResponse = await request(app)
+      .get('/transactions/summary')
+      .query({ type: 'expense', preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(expenseResponse.status).toBe(200);
+    expect(expenseResponse.body.summary.groups).toHaveLength(1);
+    expect(expenseResponse.body.summary.groups[0].net).toEqual([
+      { currency: 'USD', amount: '-30.00' },
+    ]);
+  });
+
+  it('filters by search (200)', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Groceries run',
+      createdAt: '2026-01-15T10:00:00.000Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'Salary deposit',
+      createdAt: '2026-01-15T12:00:00.000Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ search: 'groceries', preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(1);
+    expect(response.body.summary.groups[0].net).toEqual([
+      { currency: 'USD', amount: '100.00' },
+    ]);
+  });
+
+  it('defaults to all time when no from/to is provided (200)', async () => {
+    await seedTx({
+      amount: '100.00',
+      description: 'Old',
+      createdAt: '2020-01-01T10:00:00Z',
+    });
+    await seedTx({
+      amount: '50.00',
+      description: 'Recent',
+      createdAt: '2026-01-15T10:00:00Z',
+    });
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(200);
+    expect(response.body.summary.groups).toHaveLength(2);
+    // Both transactions should appear, each in their own day group
+    const totalNet = response.body.summary.groups.reduce(
+      (sum: number, g: { net: { amount: string }[] }) =>
+        sum + Number(g.net[0].amount),
+      0,
+    );
+    expect(totalNet).toBe(150.00);
+  });
+
+  it('rejects a walletId owned by another user (404)', async () => {
+    const { user: otherUser } = await register({
+      name: 'Other',
+      email: 'other-summary@example.com',
+      password: 'password123',
+    });
+    const otherToken = signToken({
+      sub: otherUser.id,
+      email: otherUser.email,
+      name: otherUser.name,
+    });
+    const strangersWallet = await createWallet(otherToken, 'Stranger');
+
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ walletId: strangersWallet, preset: 'day', timezoneOffset: 0 })
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`]);
+    expect(response.status).toBe(404);
+  });
+
+  it('rejects unauthenticated request (401)', async () => {
+    const response = await request(app)
+      .get('/transactions/summary')
+      .query({ preset: 'day', timezoneOffset: 0 });
+    expect(response.status).toBe(401);
+  });
+});

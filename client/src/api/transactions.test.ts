@@ -30,6 +30,7 @@ import {
   getTransaction,
   updateTransaction,
   deleteTransaction,
+  getTransactionsSummary,
 } from './transactions';
 import { ApiError } from './client';
 
@@ -167,5 +168,48 @@ describe('transactions API client', () => {
     const result = await deleteTransaction('t1');
     expect(mockDelete).toHaveBeenCalledWith('/transactions/t1');
     expect(result.id).toBe('t1');
+  });
+
+  it('getTransactionsSummary sends GET /transactions/summary with serialized params', async () => {
+    mockGet.mockResolvedValue({
+      data: {
+        summary: {
+          groups: [
+            {
+              key: '2026-01-15',
+              net: [{ currency: 'USD', amount: '30.00' }],
+            },
+          ],
+        },
+      },
+    });
+    const result = await getTransactionsSummary({
+      from: '2024-01-01T00:00:00.000Z',
+      to: '2024-12-31T23:59:59.999Z',
+      walletId: 'w1',
+      categoryId: 'c1',
+      type: 'expense',
+      search: 'foo',
+      preset: 'day',
+      timezoneOffset: 0,
+    });
+    expect(mockGet).toHaveBeenCalledWith(
+      '/transactions/summary',
+      expect.objectContaining({
+        params: expect.objectContaining({
+          from: '2024-01-01T00:00:00.000Z',
+          to: '2024-12-31T23:59:59.999Z',
+          walletId: 'w1',
+          categoryId: 'c1',
+          type: 'expense',
+          search: 'foo',
+          preset: 'day',
+          timezoneOffset: expect.any(Number),
+        }),
+      }),
+    );
+    expect(result.groups).toEqual([
+      { key: '2026-01-15', net: [{ currency: 'USD', amount: '30.00' }] },
+    ]);
   });
 });

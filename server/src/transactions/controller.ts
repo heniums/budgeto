@@ -4,12 +4,14 @@ import {
   createTransactionSchema,
   updateTransactionSchema,
   transferSchema,
+  summaryQuerySchema,
   create,
   getById,
   update,
   remove,
   list,
   listByUser,
+  getSummaryByUser,
   listQuerySchema,
   transfer,
 } from './service';
@@ -53,6 +55,21 @@ export async function listAllTransactionsHandler(
     const query = listQuerySchema.parse(req.query);
     const result = await listByUser(user.sub, query);
     res.status(200).json(result);
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function getTransactionsSummaryHandler(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+): Promise<void> {
+  try {
+    const user = getUser(req);
+    const query = summaryQuerySchema.parse(req.query);
+    const result = await getSummaryByUser(user.sub, query);
+    res.status(200).json({ summary: result });
   } catch (error) {
     next(error);
   }

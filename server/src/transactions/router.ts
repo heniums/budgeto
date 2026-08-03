@@ -3,6 +3,7 @@ import {
   createTransactionHandler,
   listTransactionsHandler,
   listAllTransactionsHandler,
+  getTransactionsSummaryHandler,
   getTransactionHandler,
   updateTransactionHandler,
   deleteTransactionHandler,
@@ -21,6 +22,7 @@ export default router;
 export const listRouter = Router();
 listRouter.use(authenticate);
 listRouter.get('/', listAllTransactionsHandler);
+listRouter.get('/summary', getTransactionsSummaryHandler);
 listRouter.get('/:id', getTransactionHandler);
 listRouter.put('/:id', updateTransactionHandler);
 listRouter.delete('/:id', deleteTransactionHandler);
