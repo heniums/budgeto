@@ -9,7 +9,27 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
----
+
+## [1.5.0] — 2026-08-03
+
+### Added
+
+**Transactions**
+
+- Per-group net values on transactions screen — each day/week/month/year header shows its net total
+- Server endpoint `GET /transactions/summary` now returns per-group nets grouped by local timezone
+- Timezone-aware grouping — client sends local timezone offset for accurate per-group aggregation
+- Multi-currency support — groups with transactions in different currencies show all nets inline
+
+### Changed
+
+- `startOfWeek` simplified to use dayjs `startOf('week')` with Monday-anchored locale configuration
+- `getIntervalBounds` week case refactored to use `d.startOf('week')` directly
+
+### Fixed
+
+- Summary now returns nets for all days in the selected interval (previously only today showed net values)
+
 
 ## [1.3.0] — 2026-08-02
 
