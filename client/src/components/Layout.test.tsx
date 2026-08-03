@@ -69,4 +69,9 @@ describe('Layout', () => {
       await screen.findByRole('button', { name: /log out/i }),
     ).toBeInTheDocument();
   });
+
+  it('hides the desktop sidebar on mobile', async () => {
+    renderLayout();
+    expect(await screen.findByRole('complementary')).toHaveClass('hidden');
+  });
 });
