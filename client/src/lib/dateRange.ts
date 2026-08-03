@@ -1,4 +1,10 @@
 import dayjs from 'dayjs';
+import updateLocale from 'dayjs/plugin/updateLocale';
+
+// Configure dayjs to treat Monday as the first day of the week so that
+// built-in startOf('week') matches the finance-app convention.
+dayjs.extend(updateLocale);
+dayjs.updateLocale('en', { weekStart: 1 });
 
 export type DatePreset = 'day' | 'week' | 'month' | 'year' | 'custom';
 
@@ -12,8 +18,7 @@ export const DATE_PRESETS: { value: DatePreset; label: string }[] = [
 
 // Week is anchored on Monday (common convention for finance apps).
 export function startOfWeek(date: Date): Date {
-  const diff = (dayjs(date).day() + 6) % 7; // days since Monday (day(): 0=Sun..6=Sat)
-  return dayjs(date).subtract(diff, 'day').startOf('day').toDate();
+  return dayjs(date).startOf('week').toDate();
 }
 
 export function startOfDay(date: Date): Date {
@@ -98,7 +103,7 @@ export function getIntervalBounds(
     case 'day':
       return { from: d.startOf('day').toDate(), to: d.endOf('day').toDate() };
     case 'week': {
-      const from = dayjs(startOfWeek(now)).startOf('day');
+      const from = d.startOf('week');
       return {
         from: from.toDate(),
         to: from.add(6, 'day').endOf('day').toDate(),
