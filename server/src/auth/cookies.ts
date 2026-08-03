@@ -22,7 +22,7 @@ export function setAuthCookies(
   res.cookie(ACCESS_COOKIE_NAME, accessToken, {
     httpOnly: true,
     secure: config.cookieSecure,
-    sameSite: 'lax',
+    sameSite: config.cookieSameSite,
     path: '/',
     maxAge: config.jwtExpiresIn * 1000,
   });
@@ -30,7 +30,7 @@ export function setAuthCookies(
   res.cookie(REFRESH_COOKIE_NAME, refreshToken, {
     httpOnly: true,
     secure: config.cookieSecure,
-    sameSite: 'lax',
+    sameSite: config.cookieSameSite,
     path: '/',
     maxAge: refreshMaxAge,
   });
