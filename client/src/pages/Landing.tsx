@@ -19,7 +19,7 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
   return (
-    <div className="flex flex-col items-center text-center p-6 rounded-xl bg-card border shadow-sm">
+    <div className="flex flex-col items-center text-center p-6 rounded-2xl glass">
       <div className="mb-4 p-3 rounded-full bg-primary/10">
         <Icon className="h-6 w-6 text-primary" aria-hidden />
       </div>
@@ -38,7 +38,7 @@ export function Landing(): JSX.Element {
     navigate('/', { replace: true });
   };
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background gradient-mesh">
       {/* Navigation */}
       <header className="border-b bg-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">

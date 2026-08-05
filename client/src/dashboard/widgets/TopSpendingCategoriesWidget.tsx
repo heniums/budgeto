@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useDashboardData } from '../DashboardDataProvider';
 import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
+import { CHART_COLORS } from '@/lib/chartTheme';
 
 export function TopSpendingCategoriesWidget(): JSX.Element {
   const { summary, loading, error } = useDashboardData();
@@ -34,7 +35,9 @@ export function TopSpendingCategoriesWidget(): JSX.Element {
               <div className="flex items-center gap-2">
                 <span
                   className="h-3 w-3 rounded-full flex-shrink-0"
-                  style={{ backgroundColor: c.color ?? '#6366f1' }}
+                  style={{
+                    backgroundColor: c.color ?? CHART_COLORS.fallback[0],
+                  }}
                 />
                 <span className="text-sm">{c.name}</span>
               </div>

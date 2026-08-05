@@ -19,7 +19,7 @@ export function WidgetCard({
   className,
 }: WidgetCardProps): JSX.Element {
   return (
-    <Card className={cn('h-full flex flex-col', className)}>
+    <Card className={cn('h-full flex flex-col glass', className)}>
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
       </CardHeader>

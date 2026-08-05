@@ -1,6 +1,7 @@
 import './lib/charts';
 import { createRoot } from 'react-dom/client';
 import './styles.css';
+import { ThemeProvider } from './theme/ThemeProvider';
 import { AuthProvider } from './auth/AuthContext';
 import { App } from './App';
 
@@ -10,7 +11,9 @@ if (!container) {
 }
 
 createRoot(container).render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>,
+  <ThemeProvider>
+    <AuthProvider>
+      <App />
+    </AuthProvider>
+  </ThemeProvider>,
 );
