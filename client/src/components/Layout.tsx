@@ -104,9 +104,15 @@ export function Layout(): JSX.Element {
   ) : null;
 
   const themeToggle = (
-    <div className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1">
+    <div
+      role="radiogroup"
+      aria-label="Theme mode"
+      className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1"
+    >
       <button
         type="button"
+        role="radio"
+        aria-checked={mode === 'light'}
         aria-label="Light theme"
         onClick={() => setMode('light')}
         className={`rounded-md p-1.5 transition-colors ${mode === 'light' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
@@ -115,6 +121,8 @@ export function Layout(): JSX.Element {
       </button>
       <button
         type="button"
+        role="radio"
+        aria-checked={mode === 'system'}
         aria-label="System theme"
         onClick={() => setMode('system')}
         className={`rounded-md p-1.5 transition-colors ${mode === 'system' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
@@ -123,6 +131,8 @@ export function Layout(): JSX.Element {
       </button>
       <button
         type="button"
+        role="radio"
+        aria-checked={mode === 'dark'}
         aria-label="Dark theme"
         onClick={() => setMode('dark')}
         className={`rounded-md p-1.5 transition-colors ${mode === 'dark' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}

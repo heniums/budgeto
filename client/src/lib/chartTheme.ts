@@ -1,3 +1,5 @@
+export const OTHER_COLOR = '#9ca3af';
+
 export const CHART_COLORS = {
   income: '#10b981',
   expense: '#f43f5e',

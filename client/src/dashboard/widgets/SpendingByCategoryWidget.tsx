@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { useDashboardData } from '../DashboardDataProvider';
 import { WidgetCard } from '../components/WidgetCard';
-import { CHART_COLORS } from '@/lib/chartTheme';
+import { CHART_COLORS, OTHER_COLOR } from '@/lib/chartTheme';
 
 export function SpendingByCategoryWidget(): JSX.Element {
   const { summary, loading, error } = useDashboardData();
@@ -31,7 +31,7 @@ export function SpendingByCategoryWidget(): JSX.Element {
       );
       labels.push('Other');
       data.push(otherTotal);
-      colors.push(CHART_COLORS.fallback[4]);
+      colors.push(OTHER_COLOR);
     }
 
     return {

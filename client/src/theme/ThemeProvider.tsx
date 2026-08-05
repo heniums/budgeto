@@ -30,8 +30,8 @@ function resolveSystemTheme(): ResolvedTheme {
     : 'light';
 }
 
-function resolveTheme(mode: ThemeMode): ResolvedTheme {
-  if (mode === 'system') return resolveSystemTheme();
+function resolveTheme(mode: ThemeMode, systemPref: ResolvedTheme): ResolvedTheme {
+  if (mode === 'system') return systemPref;
   return mode;
 }
 
@@ -57,19 +57,17 @@ function readStoredMode(): ThemeMode {
 
 interface ThemeProviderProps {
   children: ReactNode;
-  defaultMode?: ThemeMode;
 }
 
 export function ThemeProvider({
   children,
-  defaultMode = 'system',
 }: ThemeProviderProps): JSX.Element {
-  const [mode, setModeState] = useState<ThemeMode>(() => {
-    const stored = readStoredMode();
-    return stored === 'system' && defaultMode !== 'system' ? defaultMode : stored;
-  });
+  const [systemPref, setSystemPref] = useState<ResolvedTheme>(() =>
+    resolveSystemTheme(),
+  );
+  const [mode, setModeState] = useState<ThemeMode>(() => readStoredMode());
 
-  const resolved = resolveTheme(mode);
+  const resolved = resolveTheme(mode, systemPref);
 
   const setMode = useCallback((next: ThemeMode) => {
     setModeState(next);
@@ -79,16 +77,17 @@ export function ThemeProvider({
       // ignore storage errors
     }
   }, []);
+
   useLayoutEffect(() => {
     applyThemeClass(resolved);
   }, [resolved]);
 
-  // Listen for system theme changes when in 'system' mode
+  // Listen for OS theme changes while in 'system' mode
   useEffect(() => {
     if (mode !== 'system' || typeof window === 'undefined') return;
     const mql = window.matchMedia('(prefers-color-scheme: dark)');
-    const handler = (): void => {
-      applyThemeClass(resolveSystemTheme());
+    const handler = (e: MediaQueryListEvent): void => {
+      setSystemPref(e.matches ? 'dark' : 'light');
     };
     mql.addEventListener('change', handler);
     return () => mql.removeEventListener('change', handler);
