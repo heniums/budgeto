@@ -556,7 +556,7 @@ describe('Home responsive layout', () => {
     renderHome();
     await screen.findByText('Salary');
     const table = screen.getByText('Salary').closest('table');
-    expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
+    expect(table?.parentElement).toHaveClass('rounded-lg');
   });
 });
 

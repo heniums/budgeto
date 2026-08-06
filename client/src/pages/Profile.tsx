@@ -113,16 +113,20 @@ export function Profile(): JSX.Element {
   };
 
   return (
-    <main className="profile-page">
-      <h1>Your profile</h1>
+    <main className="space-y-6 min-w-0 pb-24">
+      <h1 className="text-2xl font-semibold text-foreground">Your profile</h1>
 
-      <section className="profile-card" aria-labelledby="name-heading">
-        <h2 id="name-heading">Name</h2>
+      <section className="glass rounded-lg p-6" aria-labelledby="name-heading">
+        <h2 id="name-heading" className="mb-4 text-lg font-semibold text-foreground">
+          Name
+        </h2>
 
         {nameEditing ? (
-          <form onSubmit={handleNameSubmit(submitName)} noValidate>
-            <div className="field">
-              <label htmlFor={nameId}>Name</label>
+          <form onSubmit={handleNameSubmit(submitName)} noValidate className="space-y-4">
+            <div className="space-y-2">
+              <label htmlFor={nameId} className="text-sm font-medium text-foreground">
+                Name
+              </label>
               <input
                 id={nameId}
                 type="text"
@@ -134,6 +138,7 @@ export function Profile(): JSX.Element {
                 aria-describedby={
                   nameErrors.name ? `${nameId}-error` : undefined
                 }
+                className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <FormError
                 id={`${nameId}-error`}
@@ -155,9 +160,11 @@ export function Profile(): JSX.Element {
             </div>
           </form>
         ) : (
-          <div className="name-display">
-            <p data-testid="profile-name">{user?.name ?? 'Unnamed'}</p>
-            <p className="profile-email">{user?.email}</p>
+          <div className="space-y-2">
+            <p data-testid="profile-name" className="text-foreground">
+              {user?.name ?? 'Unnamed'}
+            </p>
+            <p className="text-sm text-muted-foreground">{user?.email}</p>
             <Button type="button" variant="outline" onClick={startNameEdit}>
               Edit name
             </Button>
@@ -165,11 +172,15 @@ export function Profile(): JSX.Element {
         )}
       </section>
 
-      <section className="profile-card" aria-labelledby="pw-heading">
-        <h2 id="pw-heading">Change password</h2>
-        <form onSubmit={handlePwSubmit(submitPassword)} noValidate>
-          <div className="field">
-            <label htmlFor={pwIds.currentPassword}>Current password</label>
+      <section className="glass rounded-lg p-6" aria-labelledby="pw-heading">
+        <h2 id="pw-heading" className="mb-4 text-lg font-semibold text-foreground">
+          Change password
+        </h2>
+        <form onSubmit={handlePwSubmit(submitPassword)} noValidate className="space-y-4">
+          <div className="space-y-2">
+            <label htmlFor={pwIds.currentPassword} className="text-sm font-medium text-foreground">
+              Current password
+            </label>
             <input
               id={pwIds.currentPassword}
               type="password"
@@ -182,14 +193,17 @@ export function Profile(): JSX.Element {
                   ? `${pwIds.currentPassword}-error`
                   : undefined
               }
+              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${pwIds.currentPassword}-error`}
               message={pwErrors.currentPassword?.message}
             />
           </div>
-          <div className="field">
-            <label htmlFor={pwIds.newPassword}>New password</label>
+          <div className="space-y-2">
+            <label htmlFor={pwIds.newPassword} className="text-sm font-medium text-foreground">
+              New password
+            </label>
             <input
               id={pwIds.newPassword}
               type="password"
@@ -200,14 +214,17 @@ export function Profile(): JSX.Element {
               aria-describedby={
                 pwErrors.newPassword ? `${pwIds.newPassword}-error` : undefined
               }
+              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${pwIds.newPassword}-error`}
               message={pwErrors.newPassword?.message}
             />
           </div>
-          <div className="field">
-            <label htmlFor={pwIds.confirmPassword}>Confirm new password</label>
+          <div className="space-y-2">
+            <label htmlFor={pwIds.confirmPassword} className="text-sm font-medium text-foreground">
+              Confirm new password
+            </label>
             <input
               id={pwIds.confirmPassword}
               type="password"
@@ -220,6 +237,7 @@ export function Profile(): JSX.Element {
                   ? `${pwIds.confirmPassword}-error`
                   : undefined
               }
+              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${pwIds.confirmPassword}-error`}
@@ -228,7 +246,7 @@ export function Profile(): JSX.Element {
           </div>
           <FormAlert message={pwFormError} />
           {pwSuccess && (
-            <div role="status" className="form-success">
+            <div role="status" className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
               {pwSuccess}
             </div>
           )}

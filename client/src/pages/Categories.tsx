@@ -78,7 +78,7 @@ export function Categories(): JSX.Element {
       </div>
 
       {loading ? (
-        <div className="rounded-md border px-2 py-1">
+        <div className="glass rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>
@@ -115,7 +115,7 @@ export function Categories(): JSX.Element {
       ) : categories.length === 0 ? (
         <p>No categories yet.</p>
       ) : (
-        <div className="rounded-md border px-2 py-1">
+        <div className="glass rounded-lg">
           <Table>
             <TableHeader>
               <TableRow>

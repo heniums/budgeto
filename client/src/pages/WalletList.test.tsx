@@ -165,7 +165,7 @@ describe('WalletList page', () => {
     renderList();
     await screen.findByText('Cash');
     const table = screen.getByText('Cash').closest('table');
-    expect(table?.parentElement?.parentElement).toHaveClass('rounded-md');
+    expect(table?.parentElement).toHaveClass('rounded-lg');
   });
 
   it('opens WalletModal in create mode when clicking the FAB', async () => {

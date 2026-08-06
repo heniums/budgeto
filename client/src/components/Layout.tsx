@@ -107,7 +107,7 @@ export function Layout(): JSX.Element {
     <div
       role="radiogroup"
       aria-label="Theme mode"
-      className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1"
+      className="flex items-center gap-1 rounded-lg border border-white/10 bg-background/80 p-1"
     >
       <button
         type="button"
@@ -115,7 +115,7 @@ export function Layout(): JSX.Element {
         aria-checked={mode === 'light'}
         aria-label="Light theme"
         onClick={() => setMode('light')}
-        className={`rounded-md p-1.5 transition-colors ${mode === 'light' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+        className={`rounded-md p-1.5 transition-colors ${mode === 'light' ? 'bg-primary/20 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
       >
         <Sun className="h-3.5 w-3.5" aria-hidden />
       </button>
@@ -125,7 +125,7 @@ export function Layout(): JSX.Element {
         aria-checked={mode === 'system'}
         aria-label="System theme"
         onClick={() => setMode('system')}
-        className={`rounded-md p-1.5 transition-colors ${mode === 'system' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+        className={`rounded-md p-1.5 transition-colors ${mode === 'system' ? 'bg-primary/20 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
       >
         <Monitor className="h-3.5 w-3.5" aria-hidden />
       </button>
@@ -135,7 +135,7 @@ export function Layout(): JSX.Element {
         aria-checked={mode === 'dark'}
         aria-label="Dark theme"
         onClick={() => setMode('dark')}
-        className={`rounded-md p-1.5 transition-colors ${mode === 'dark' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+        className={`rounded-md p-1.5 transition-colors ${mode === 'dark' ? 'bg-primary/20 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
       >
         <Moon className="h-3.5 w-3.5" aria-hidden />
       </button>

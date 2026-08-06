@@ -17,7 +17,7 @@ export function QuickShortcutsWidget(): JSX.Element {
         className="h-auto flex-col gap-2 py-4"
         onClick={() => navigate('/transactions', { state: { mode: 'income' } })}
       >
-        <ArrowDownLeft className="h-5 w-5 text-green-600" />
+        <ArrowDownLeft className="h-5 w-5 text-emerald-500" />
         <span>Add Income</span>
       </Button>
       <Button
@@ -27,7 +27,7 @@ export function QuickShortcutsWidget(): JSX.Element {
           navigate('/transactions', { state: { mode: 'expense' } })
         }
       >
-        <ArrowUpRight className="h-5 w-5 text-red-500" />
+        <ArrowUpRight className="h-5 w-5 text-rose-500" />
         <span>Add Expense</span>
       </Button>
       <Button
@@ -37,7 +37,7 @@ export function QuickShortcutsWidget(): JSX.Element {
           navigate('/transactions', { state: { mode: 'transfer' } })
         }
       >
-        <ArrowLeftRight className="h-5 w-5 text-blue-500" />
+        <ArrowLeftRight className="h-5 w-5 text-sky-500" />
         <span>Transfer</span>
       </Button>
       <Button
