@@ -3,6 +3,7 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '../auth/AuthContext';
+import { useTheme } from '../theme/useTheme';
 import {
   Home,
   List,
@@ -12,6 +13,9 @@ import {
   User,
   LogOut,
   Menu,
+  Sun,
+  Moon,
+  Monitor,
   type LucideIcon,
 } from 'lucide-react';
 
@@ -85,6 +89,7 @@ export function Layout(): JSX.Element {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [open, setOpen] = useState(false);
+  const { mode, setMode } = useTheme();
 
   const handleLogout = async (): Promise<void> => {
     await logout();
@@ -97,6 +102,45 @@ export function Layout(): JSX.Element {
       <div className="text-muted-foreground">{user.email}</div>
     </div>
   ) : null;
+
+  const themeToggle = (
+    <div
+      role="radiogroup"
+      aria-label="Theme mode"
+      className="flex items-center gap-1 rounded-lg border border-white/10 bg-white/5 p-1"
+    >
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === 'light'}
+        aria-label="Light theme"
+        onClick={() => setMode('light')}
+        className={`rounded-md p-1.5 transition-colors ${mode === 'light' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+      >
+        <Sun className="h-3.5 w-3.5" aria-hidden />
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === 'system'}
+        aria-label="System theme"
+        onClick={() => setMode('system')}
+        className={`rounded-md p-1.5 transition-colors ${mode === 'system' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+      >
+        <Monitor className="h-3.5 w-3.5" aria-hidden />
+      </button>
+      <button
+        type="button"
+        role="radio"
+        aria-checked={mode === 'dark'}
+        aria-label="Dark theme"
+        onClick={() => setMode('dark')}
+        className={`rounded-md p-1.5 transition-colors ${mode === 'dark' ? 'bg-white/10 text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+      >
+        <Moon className="h-3.5 w-3.5" aria-hidden />
+      </button>
+    </div>
+  );
 
   const logoutButton = (
     <Button
@@ -112,15 +156,16 @@ export function Layout(): JSX.Element {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-hidden border-r bg-card p-4 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-hidden glass-strong p-4 md:flex">
         <SidebarContent>
           {userBlock}
+          {themeToggle}
           {logoutButton}
         </SidebarContent>
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b bg-card px-4 py-3 md:hidden">
+        <header className="flex items-center justify-between border-b glass-strong px-4 py-3 md:hidden">
           <span className="font-semibold text-foreground">Budgeto</span>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
@@ -132,6 +177,7 @@ export function Layout(): JSX.Element {
               <div className="flex h-full flex-col overflow-hidden">
                 <SidebarContent onNavigate={() => setOpen(false)}>
                   {userBlock}
+                  {themeToggle}
                   {logoutButton}
                 </SidebarContent>
               </div>
@@ -139,7 +185,7 @@ export function Layout(): JSX.Element {
           </Sheet>
         </header>
 
-        <main className="min-w-0 flex-1 p-4 md:p-8">
+        <main className="min-w-0 flex-1 p-4 md:p-8 gradient-mesh">
           <Outlet />
         </main>
       </div>

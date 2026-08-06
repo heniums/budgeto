@@ -37,12 +37,18 @@ export function getConfig(): Config {
   const nodeEnv = process.env.NODE_ENV ?? 'development';
   const cookieSecure =
     process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
-  const cookieSameSite: 'lax' | 'strict' | 'none' =
+  // Browsers REQUIRE the Secure flag when SameSite=None. If the caller
+  // requested SameSite=None (e.g. for cross-site deployment) but Secure is
+  // off (typical in local HTTP dev), fall back to Lax so cookies aren't
+  // silently rejected by the browser.
+  const rawSameSite: 'lax' | 'strict' | 'none' =
     process.env.COOKIE_SAMESITE === 'strict' ||
     process.env.COOKIE_SAMESITE === 'none' ||
     process.env.COOKIE_SAMESITE === 'lax'
       ? process.env.COOKIE_SAMESITE
       : 'lax';
+  const cookieSameSite: 'lax' | 'strict' | 'none' =
+    rawSameSite === 'none' && !cookieSecure ? 'lax' : rawSameSite;
   const corsOrigins = (process.env.CORS_ORIGINS ?? '')
     .split(',')
     .map((s) => s.trim())

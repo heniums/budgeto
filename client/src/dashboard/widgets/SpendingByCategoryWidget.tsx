@@ -2,19 +2,7 @@ import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { useDashboardData } from '../DashboardDataProvider';
 import { WidgetCard } from '../components/WidgetCard';
-
-const FALLBACK_COLORS = [
-  '#6366f1',
-  '#f59e0b',
-  '#10b981',
-  '#ef4444',
-  '#8b5cf6',
-  '#ec4899',
-  '#14b8a6',
-  '#f97316',
-];
-
-const OTHER_COLOR = '#9ca3af';
+import { CHART_COLORS, OTHER_COLOR } from '@/lib/chartTheme';
 
 export function SpendingByCategoryWidget(): JSX.Element {
   const { summary, loading, error } = useDashboardData();
@@ -32,7 +20,8 @@ export function SpendingByCategoryWidget(): JSX.Element {
     const labels: string[] = top8.map((c) => c.name);
     const data: number[] = top8.map((c) => Number(c.amount) || 0);
     const colors: string[] = top8.map(
-      (c, i) => c.color || FALLBACK_COLORS[i % FALLBACK_COLORS.length],
+      (c, i) =>
+        c.color || CHART_COLORS.fallback[i % CHART_COLORS.fallback.length],
     );
 
     if (rest.length > 0) {

@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useDashboardData } from '../DashboardDataProvider';
 import { WidgetCard } from '../components/WidgetCard';
+import { CHART_COLORS } from '@/lib/chartTheme';
 
 export function BalanceByWalletWidget(): JSX.Element {
   const { summary, loading, error } = useDashboardData();
@@ -13,7 +14,9 @@ export function BalanceByWalletWidget(): JSX.Element {
       datasets: [
         {
           data: summary.wallets.map((w) => Number(w.balance) || 0),
-          backgroundColor: summary.wallets.map((w) => w.color || '#6366f1'),
+          backgroundColor: summary.wallets.map(
+            (w) => w.color || CHART_COLORS.fallback[0],
+          ),
           borderRadius: 4,
         },
       ],

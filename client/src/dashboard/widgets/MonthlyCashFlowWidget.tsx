@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import { Line } from 'react-chartjs-2';
 import { useDashboardData } from '../DashboardDataProvider';
 import { WidgetCard } from '../components/WidgetCard';
+import { CHART_COLORS } from '@/lib/chartTheme';
 
 export function MonthlyCashFlowWidget(): JSX.Element {
   const { summary, loading, error } = useDashboardData();
@@ -16,24 +17,24 @@ export function MonthlyCashFlowWidget(): JSX.Element {
         {
           label: 'Income',
           data: months.map((m) => Number(m.income) || 0),
-          borderColor: '#1f8a4c',
-          backgroundColor: 'rgba(31, 138, 76, 0.1)',
+          borderColor: CHART_COLORS.income,
+          backgroundColor: 'rgba(16, 185, 129, 0.1)',
           tension: 0.3,
           fill: false,
         },
         {
           label: 'Expense',
           data: months.map((m) => Number(m.expense) || 0),
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.1)',
+          borderColor: CHART_COLORS.expense,
+          backgroundColor: 'rgba(244, 63, 94, 0.1)',
           tension: 0.3,
           fill: false,
         },
         {
           label: 'Net',
           data: months.map((m) => Number(m.net) || 0),
-          borderColor: '#2f6fed',
-          backgroundColor: 'rgba(47, 111, 237, 0.1)',
+          borderColor: CHART_COLORS.net,
+          backgroundColor: 'rgba(56, 189, 248, 0.1)',
           tension: 0.3,
           fill: false,
         },
@@ -50,12 +51,21 @@ export function MonthlyCashFlowWidget(): JSX.Element {
             options={{
               responsive: true,
               maintainAspectRatio: false,
-              plugins: {
-                legend: { position: 'bottom' },
-              },
               scales: {
+                x: {
+                  grid: { color: CHART_COLORS.grid },
+                  ticks: { color: CHART_COLORS.text },
+                },
                 y: {
                   beginAtZero: true,
+                  grid: { color: CHART_COLORS.grid },
+                  ticks: { color: CHART_COLORS.text },
+                },
+              },
+              plugins: {
+                legend: {
+                  position: 'bottom' as const,
+                  labels: { color: CHART_COLORS.text },
                 },
               },
             }}

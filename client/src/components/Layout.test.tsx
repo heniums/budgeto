@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
+import { ThemeProvider } from '../theme/ThemeProvider';
 import { Layout } from '../components/Layout';
 
 import type * as AuthModule from '../api/auth';
@@ -15,9 +16,11 @@ import { getMe } from '../api/auth';
 function renderLayout(): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/']}>
-        <Layout />
-      </MemoryRouter>
+      <ThemeProvider>
+        <MemoryRouter initialEntries={['/']}>
+          <Layout />
+        </MemoryRouter>
+      </ThemeProvider>
     </AuthProvider>,
   );
 }
