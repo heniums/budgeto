@@ -120,7 +120,7 @@ export function Budgets(): JSX.Element {
           <Skeleton className="h-48 w-full rounded-md" />
         </div>
       ) : budgets.length === 0 ? (
-        <div className="rounded-md border p-6 text-center">
+        <div className="glass rounded-lg p-6 text-center">
           <p className="text-muted-foreground">No budgets yet.</p>
           <p className="text-sm text-muted-foreground">
             Add a budget to start tracking your spending limits.

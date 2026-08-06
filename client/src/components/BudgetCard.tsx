@@ -27,7 +27,7 @@ export function BudgetCard({ budget, onClick }: BudgetCardProps): JSX.Element {
   return (
     <div
       key={budget.id}
-      className="cursor-pointer rounded-md border p-4 space-y-3 hover:bg-muted/50"
+      className="glass cursor-pointer rounded-md p-4 space-y-3 hover:brightness-110"
       data-testid="budget-card"
       onClick={onClick}
     >

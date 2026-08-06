@@ -561,7 +561,7 @@ export function Transactions(): JSX.Element {
 
       {initialLoading ? (
         <div className="space-y-6">
-          <div className="rounded-md border px-2 py-1">
+          <div className="glass rounded-lg">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -599,7 +599,7 @@ export function Transactions(): JSX.Element {
           </div>
         </div>
       ) : !loadingMore && wallets.length === 0 ? (
-        <div className="rounded-md border p-8 text-center">
+        <div className="glass rounded-lg p-8 text-center">
           <p className="text-lg font-medium">You have no wallets yet.</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Create your first wallet to start tracking transactions.
@@ -609,7 +609,7 @@ export function Transactions(): JSX.Element {
           </Button>
         </div>
       ) : !loadingMore && categories.length === 0 ? (
-        <div className="rounded-md border p-8 text-center">
+        <div className="glass rounded-lg p-8 text-center">
           <p className="text-lg font-medium">You have no categories yet.</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Create your first category to organize spending.
@@ -619,7 +619,7 @@ export function Transactions(): JSX.Element {
           </Button>
         </div>
       ) : transactions.length === 0 ? (
-        <div className="rounded-md border p-8 text-center">
+        <div className="glass rounded-lg p-8 text-center">
           <p className="text-muted-foreground">No transactions found.</p>
           <Button className="mt-4" onClick={() => setTxOpen(true)}>
             Add your first transaction
@@ -654,7 +654,7 @@ export function Transactions(): JSX.Element {
                   </div>
                 )}
               </div>
-                <div className="rounded-md border px-2 py-1">
+                <div className="glass rounded-lg">
                   <Table>
                     <TableHeader>
                       <TableRow>
