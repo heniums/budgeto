@@ -1,21 +1,22 @@
 import { useMemo } from 'react';
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
 import { CHART_COLORS } from '@/lib/chartTheme';
 
 export function TopSpendingCategoriesWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
+  const { data, loading, error } = useWidgetData('top-spending-categories');
 
-  const currency = summary?.wallets?.[0]?.currency ?? 'USD';
+  const currency = data?.currency ?? 'USD';
 
   const top5 = useMemo(() => {
-    if (!summary?.spendingByCategory) return [];
-    const total = summary.spendingByCategory.reduce(
+    const categories = data?.categories ?? [];
+    if (categories.length === 0) return [];
+    const total = categories.reduce(
       (sum, c) => sum + (Number(c.amount) || 0),
       0,
     );
-    const sorted = [...summary.spendingByCategory]
+    const sorted = [...categories]
       .sort((a, b) => Number(b.amount) - Number(a.amount))
       .slice(0, 5);
     return sorted.map((c) => ({
@@ -24,7 +25,7 @@ export function TopSpendingCategoriesWidget(): JSX.Element {
       color: c.color,
       pct: total > 0 ? ((Number(c.amount) || 0) / total) * 100 : 0,
     }));
-  }, [summary?.spendingByCategory]);
+  }, [data?.categories, data?.currency]);
 
   return (
     <WidgetCard loading={loading} error={error} title="Top Categories">

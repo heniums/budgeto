@@ -164,6 +164,7 @@ export const userWidgets = pgTable(
     order: integer('order').notNull().default(0),
     colSpan: integer('col_span').notNull().default(1),
     rowSpan: integer('row_span').notNull().default(1),
+    config: jsonb('config').notNull().default(sql`'{}'::jsonb`),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

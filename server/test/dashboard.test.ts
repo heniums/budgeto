@@ -103,6 +103,7 @@ describe('GET /dashboard/widgets', () => {
         order: 0,
         colSpan: 1,
         rowSpan: 2,
+        config: {},
       },
       {
         widgetId: 'monthly-cash-flow',
@@ -110,6 +111,7 @@ describe('GET /dashboard/widgets', () => {
         order: 1,
         colSpan: 1,
         rowSpan: 2,
+        config: {},
       },
       {
         widgetId: 'budget-progress',
@@ -117,6 +119,7 @@ describe('GET /dashboard/widgets', () => {
         order: 2,
         colSpan: 1,
         rowSpan: 2,
+        config: {},
       },
     ];
     const saveResponse = await request(app)
@@ -160,6 +163,7 @@ describe('POST /dashboard/widgets', () => {
         order: 0,
         colSpan: 1,
         rowSpan: 2,
+        config: {},
       },
       {
         widgetId: 'recent-transactions',
@@ -167,6 +171,7 @@ describe('POST /dashboard/widgets', () => {
         order: 1,
         colSpan: 1,
         rowSpan: 2,
+        config: {},
       },
     ];
     const response = await request(app)
@@ -369,6 +374,100 @@ describe('GET /dashboard/summary', () => {
 
   it('rejects unauthenticated requests (401)', async () => {
     const response = await request(app).get('/dashboard/summary');
+    expect(response.status).toBe(401);
+  });
+});
+describe('POST /dashboard/widgets/:widgetId/data', () => {
+  let token: string;
+
+  beforeEach(async () => {
+    await db.delete(userWidgets);
+    await deleteAllTransactions();
+    await deleteAllBudgets();
+    await deleteAllWallets();
+    await deleteAllCategories();
+    await deleteAllUsers();
+    ({ token } = await createTestUser());
+  });
+
+  it('returns filtered income-vs-expense totals', async () => {
+    const wallet1 = await createWallet(token, 'Checking');
+    const wallet2 = await createWallet(token, 'Savings');
+    const cat1 = await createCategory(token, 'Food');
+    const cat2 = await createCategory(token, 'Transport');
+
+    // Seed income on wallet1
+    await createTransactionViaApi(token, wallet1.id, '2000.00', 'Salary');
+    // Seed expenses
+    await createTransactionViaApi(
+      token,
+      wallet1.id,
+      '-100.00',
+      'Groceries',
+      cat1.id,
+    );
+    await createTransactionViaApi(
+      token,
+      wallet2.id,
+      '-50.00',
+      'Bus',
+      cat2.id,
+    );
+
+    // Filter to wallet1 only (income transaction has no category, so skip category filter)
+    const response = await request(app)
+      .post('/dashboard/widgets/income-vs-expense/data')
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
+      .send({
+        config: {
+          wallets: [wallet1.id],
+          interval: 'month',
+        },
+      });
+    expect(response.status).toBe(200);
+    const { data } = response.body;
+    expect(Number(data.income)).toBe(2000);
+    expect(Number(data.expense)).toBe(100);
+    expect(Number(data.net)).toBe(1900);
+    expect(data.currency).toBe('USD');
+  });
+
+  it('returns grouped monthly-cash-flow data', async () => {
+    const wallet = await createWallet(token, 'Checking');
+    await createTransactionViaApi(token, wallet.id, '1000.00', 'Salary');
+    await createTransactionViaApi(token, wallet.id, '-200.00', 'Rent');
+
+    const response = await request(app)
+      .post('/dashboard/widgets/monthly-cash-flow/data')
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
+      .send({
+        config: {
+          interval: 'month',
+        },
+      });
+    expect(response.status).toBe(200);
+    const { data } = response.body;
+    expect(data.interval).toBe('month');
+    expect(Array.isArray(data.rows)).toBe(true);
+    expect(data.rows.length).toBeGreaterThanOrEqual(1);
+    const row = data.rows[data.rows.length - 1];
+    expect(Number(row.income)).toBe(1000);
+    expect(Number(row.expense)).toBe(200);
+    expect(Number(row.net)).toBe(800);
+  });
+
+  it('rejects invalid widget id (400)', async () => {
+    const response = await request(app)
+      .post('/dashboard/widgets/nonexistent/data')
+      .set('Cookie', [`${ACCESS_COOKIE_NAME}=${token}`])
+      .send({ config: {} });
+    expect(response.status).toBe(400);
+  });
+
+  it('rejects unauthenticated requests (401)', async () => {
+    const response = await request(app)
+      .post('/dashboard/widgets/income-vs-expense/data')
+      .send({ config: {} });
     expect(response.status).toBe(401);
   });
 });

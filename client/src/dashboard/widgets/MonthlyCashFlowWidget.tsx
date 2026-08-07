@@ -1,22 +1,23 @@
 import { useMemo } from 'react';
-import dayjs from 'dayjs';
 import { Line } from 'react-chartjs-2';
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { CHART_COLORS } from '@/lib/chartTheme';
+import { formatPeriodLabel } from '@/lib/dateRange';
+import type { DateInterval } from '../types';
 
 export function MonthlyCashFlowWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
+  const { data, loading, error } = useWidgetData('monthly-cash-flow');
 
   const chartData = useMemo(() => {
-    if (!summary?.monthlyCashFlow) return null;
-    const months = summary.monthlyCashFlow.slice(-6);
+    if (!data?.rows?.length) return null;
+    const interval = data.interval as DateInterval;
     return {
-      labels: months.map((m) => dayjs(m.month).format('MMM YYYY')),
+      labels: data.rows.map((r) => formatPeriodLabel(r.period, interval)),
       datasets: [
         {
           label: 'Income',
-          data: months.map((m) => Number(m.income) || 0),
+          data: data.rows.map((r) => Number(r.income) || 0),
           borderColor: CHART_COLORS.income,
           backgroundColor: 'rgba(16, 185, 129, 0.1)',
           tension: 0.3,
@@ -24,7 +25,7 @@ export function MonthlyCashFlowWidget(): JSX.Element {
         },
         {
           label: 'Expense',
-          data: months.map((m) => Number(m.expense) || 0),
+          data: data.rows.map((r) => Number(r.expense) || 0),
           borderColor: CHART_COLORS.expense,
           backgroundColor: 'rgba(244, 63, 94, 0.1)',
           tension: 0.3,
@@ -32,7 +33,7 @@ export function MonthlyCashFlowWidget(): JSX.Element {
         },
         {
           label: 'Net',
-          data: months.map((m) => Number(m.net) || 0),
+          data: data.rows.map((r) => Number(r.net) || 0),
           borderColor: CHART_COLORS.net,
           backgroundColor: 'rgba(56, 189, 248, 0.1)',
           tension: 0.3,
@@ -40,7 +41,7 @@ export function MonthlyCashFlowWidget(): JSX.Element {
         },
       ],
     };
-  }, [summary?.monthlyCashFlow]);
+  }, [data]);
 
   return (
     <WidgetCard loading={loading} error={error} title="Cash Flow">

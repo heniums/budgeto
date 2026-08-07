@@ -1,12 +1,12 @@
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
 
 export function BiggestExpenseWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
+  const { data, loading, error } = useWidgetData('biggest-expense');
 
-  const biggest = summary?.thisMonth?.biggestExpense;
-  const currency = summary?.wallets?.[0]?.currency ?? 'USD';
+  const biggest = data?.biggest;
+  const currency = data?.currency ?? 'USD';
 
   return (
     <WidgetCard loading={loading} error={error} title="Biggest Expense">

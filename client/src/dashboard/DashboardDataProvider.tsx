@@ -14,13 +14,16 @@ import {
   type DashboardSummary,
   type WidgetConfigInput,
 } from '@/api/dashboard';
+import { getCategories, type CategoryData } from '@/api/categories';
 import type { ApiError } from '@/api/client';
 import type { WidgetConfig } from './types';
 import { DEFAULT_WIDGETS } from './defaults';
+import { DEFAULT_WIDGET_FILTERS } from './widgetFilters';
 
 interface DashboardData {
   summary: DashboardSummary | null;
   widgets: WidgetConfig[];
+  categories: CategoryData[];
   loading: boolean;
   error: ApiError | null;
   refresh: () => void;
@@ -33,6 +36,7 @@ function mergeWithDefaults(serverWidgets: WidgetConfigInput[]): WidgetConfig[] {
   const byId = new Map(
     serverWidgets.map((w) => {
       const defaultW = DEFAULT_WIDGETS.find((d) => d.id === w.widgetId);
+      const defaultConfig = DEFAULT_WIDGET_FILTERS[w.widgetId as WidgetConfig['id']] ?? {};
       return [
         w.widgetId,
         {
@@ -41,6 +45,7 @@ function mergeWithDefaults(serverWidgets: WidgetConfigInput[]): WidgetConfig[] {
           order: w.order,
           colSpan: w.colSpan ?? defaultW?.colSpan ?? 1,
           rowSpan: w.rowSpan ?? defaultW?.rowSpan ?? 1,
+          config: { ...defaultConfig, ...(w.config ?? {}) },
         },
       ];
     }),
@@ -53,6 +58,7 @@ function mergeWithDefaults(serverWidgets: WidgetConfigInput[]): WidgetConfig[] {
         order: defaultW.order,
         colSpan: defaultW.colSpan,
         rowSpan: defaultW.rowSpan,
+        config: defaultW.config,
       },
   );
   const extra = serverWidgets
@@ -63,6 +69,7 @@ function mergeWithDefaults(serverWidgets: WidgetConfigInput[]): WidgetConfig[] {
       order: w.order,
       colSpan: w.colSpan ?? 1,
       rowSpan: w.rowSpan ?? 1,
+      config: w.config ?? {},
     }));
   return [...merged, ...extra].sort((a, b) => a.order - b.order);
 }
@@ -76,6 +83,7 @@ export function DashboardDataProvider({
   const [widgets, setWidgets] = useState<WidgetConfig[]>(
     DEFAULT_WIDGETS.map((w, i) => ({ ...w, order: i })),
   );
+  const [categories, setCategories] = useState<CategoryData[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<ApiError | null>(null);
 
@@ -83,12 +91,14 @@ export function DashboardDataProvider({
     setLoading(true);
     setError(null);
     try {
-      const [summaryData, serverWidgets] = await Promise.all([
+      const [summaryData, serverWidgets, categoriesData] = await Promise.all([
         getDashboardSummary(),
         getWidgets(),
+        getCategories(),
       ]);
       setSummary(summaryData);
       setWidgets(mergeWithDefaults(serverWidgets));
+      setCategories(categoriesData.categories);
     } catch (err) {
       setError(err as ApiError);
     } finally {
@@ -107,14 +117,15 @@ export function DashboardDataProvider({
       order: w.order,
       colSpan: w.colSpan,
       rowSpan: w.rowSpan,
+      config: w.config,
     }));
     const saved = await saveWidgetsApi(input);
     setWidgets(mergeWithDefaults(saved));
   }, []);
 
   const value = useMemo<DashboardData>(
-    () => ({ summary, widgets, loading, error, refresh: fetch, saveWidgets }),
-    [summary, widgets, loading, error, fetch, saveWidgets],
+    () => ({ summary, widgets, categories, loading, error, refresh: fetch, saveWidgets }),
+    [summary, widgets, categories, loading, error, fetch, saveWidgets],
   );
 
   return (

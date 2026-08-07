@@ -1,13 +1,9 @@
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
 
 export function IncomeVsExpenseWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
-  const thisMonth = summary?.thisMonth;
-
-  // Use the first wallet's currency as default
-  const currency = summary?.wallets?.[0]?.currency ?? 'USD';
+  const { data, loading, error } = useWidgetData('income-vs-expense');
 
   return (
     <WidgetCard loading={loading} error={error} title="Income vs Expense">
@@ -15,16 +11,16 @@ export function IncomeVsExpenseWidget(): JSX.Element {
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">Income</p>
           <Money
-            amount={thisMonth?.income ?? '0'}
-            currency={currency}
+            amount={data?.income ?? '0'}
+            currency={data?.currency ?? 'USD'}
             className="text-2xl font-bold text-green-600"
           />
         </div>
         <div className="space-y-1">
           <p className="text-sm text-muted-foreground">Expense</p>
           <Money
-            amount={thisMonth?.expense ?? '0'}
-            currency={currency}
+            amount={data?.expense ?? '0'}
+            currency={data?.currency ?? 'USD'}
             className="text-2xl font-bold text-red-500"
           />
         </div>

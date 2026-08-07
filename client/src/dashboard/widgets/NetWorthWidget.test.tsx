@@ -2,9 +2,10 @@ import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NetWorthWidget } from './NetWorthWidget';
 
-vi.mock('../DashboardDataProvider', () => ({
-  useDashboardData: () => ({
-    summary: {
+vi.mock('../hooks/useWidgetData', () => ({
+  useWidgetData: () => ({
+    config: {},
+    data: {
       wallets: [
         {
           id: 'w1',
@@ -30,8 +31,6 @@ vi.mock('../DashboardDataProvider', () => ({
 describe('NetWorthWidget', () => {
   it('renders both currency totals', () => {
     render(<NetWorthWidget />);
-    // The widget shows per-currency totals via the Money component.
-    // USD total = 1250.50, EUR total = 800.00
     expect(screen.getByText('Net Worth')).toBeInTheDocument();
     expect(screen.getByText('USD')).toBeInTheDocument();
     expect(screen.getByText('EUR')).toBeInTheDocument();

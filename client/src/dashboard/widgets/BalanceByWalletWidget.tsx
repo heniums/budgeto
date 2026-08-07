@@ -1,27 +1,28 @@
 import { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { CHART_COLORS } from '@/lib/chartTheme';
 
 export function BalanceByWalletWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
+  const { data, loading, error } = useWidgetData('balance-by-wallet');
 
   const chartData = useMemo(() => {
-    if (!summary?.wallets || summary.wallets.length === 0) return null;
+    const wallets = data?.wallets ?? [];
+    if (wallets.length === 0) return null;
     return {
-      labels: summary.wallets.map((w) => w.name),
+      labels: wallets.map((w) => w.name),
       datasets: [
         {
-          data: summary.wallets.map((w) => Number(w.balance) || 0),
-          backgroundColor: summary.wallets.map(
+          data: wallets.map((w) => Number(w.balance) || 0),
+          backgroundColor: wallets.map(
             (w) => w.color || CHART_COLORS.fallback[0],
           ),
           borderRadius: 4,
         },
       ],
     };
-  }, [summary?.wallets]);
+  }, [data?.wallets]);
 
   return (
     <WidgetCard loading={loading} error={error} title="Balance by Wallet">
