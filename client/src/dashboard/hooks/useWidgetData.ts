@@ -14,7 +14,7 @@ interface UseWidgetDataResult<T extends WidgetType> {
 export function useWidgetData<T extends WidgetType>(
   id: T,
 ): UseWidgetDataResult<T> {
-  const { summary, widgets } = useDashboardData();
+  const { summary, widgets, error: providerError } = useDashboardData();
   const widget = widgets.find((w) => w.id === id);
   const config = widget?.config ?? {};
   const configKey = useMemo(() => JSON.stringify(config), [config]);
@@ -26,7 +26,12 @@ export function useWidgetData<T extends WidgetType>(
   useEffect(() => {
     if (!summary) {
       setData(null);
-      setLoading(true);
+      if (providerError) {
+        setError(providerError);
+        setLoading(false);
+      } else {
+        setLoading(true);
+      }
       return;
     }
 
@@ -59,7 +64,7 @@ export function useWidgetData<T extends WidgetType>(
     return () => {
       cancelled = true;
     };
-  }, [id, summary, configKey]);
+  }, [id, summary, configKey, providerError]);
 
   return { config, data, loading, error };
 }

@@ -13,6 +13,7 @@ import {
   findWidgetsByUserId,
   upsertUserWidgets,
   getWalletsByUserIdWithBalance,
+  getWalletCurrencies,
   getCashFlowByInterval,
   getIncomeVsExpense,
   getSpendingByCategoryFiltered,
@@ -164,12 +165,34 @@ export const widgetFilterConfigSchema = z
     wallets: z.array(z.string()).default([]),
     categories: z.array(z.string()).default([]),
     interval: dateIntervalSchema.default('month'),
-    startDate: z.string().optional(),
-    endDate: z.string().optional(),
+    startDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
+    endDate: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/)
+      .optional(),
     limit: z.number().int().min(1).max(100).default(5),
     budgetIds: z.array(z.string()).default([]),
   })
-  .default({});
+  .default({})
+  .superRefine((config, ctx) => {
+    if (config.interval !== 'custom') return;
+    if (!config.startDate || !config.endDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'Custom interval requires startDate and endDate',
+      });
+      return;
+    }
+    if (config.startDate > config.endDate) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'startDate must be before or equal to endDate',
+      });
+    }
+  });
 
 const PERIOD_WIDGETS = new Set([
   'income-vs-expense',
@@ -186,8 +209,11 @@ function resolvePeriodRange(
   startDate?: string,
   endDate?: string,
 ): { startDate: string; endDate: string } {
-  if (interval === 'custom' && startDate && endDate) {
-    return { startDate, endDate };
+  if (interval === 'custom') {
+    return {
+      startDate: dayjs.utc(startDate).startOf('day').toISOString(),
+      endDate: dayjs.utc(endDate).endOf('day').toISOString(),
+    };
   }
   const now = dayjs().utc();
   switch (interval) {
@@ -224,8 +250,11 @@ function resolveRollingRange(
   startDate?: string,
   endDate?: string,
 ): { startDate: string; endDate: string } {
-  if (interval === 'custom' && startDate && endDate) {
-    return { startDate, endDate };
+  if (interval === 'custom') {
+    return {
+      startDate: dayjs.utc(startDate).startOf('day').toISOString(),
+      endDate: dayjs.utc(endDate).endOf('day').toISOString(),
+    };
   }
   const now = dayjs().utc();
   switch (interval) {
@@ -261,11 +290,11 @@ async function resolveCurrency(
   userId: string,
   walletIds: string[],
 ): Promise<string> {
-  const filteredWallets = await getWalletsByUserIdWithBalance(
+  const rows = await getWalletCurrencies(
     userId,
     walletIds.length > 0 ? walletIds : undefined,
   );
-  return filteredWallets[0]?.currency ?? 'USD';
+  return rows[0]?.currency ?? 'USD';
 }
 
 export async function getWidgetData(
@@ -274,6 +303,11 @@ export async function getWidgetData(
   rawConfig: Record<string, unknown>,
 ): Promise<Record<string, unknown>> {
   const config = widgetFilterConfigSchema.parse(rawConfig);
+
+  // quick-shortcuts is a valid type with no data payload
+  if (widgetId === 'quick-shortcuts') {
+    return {};
+  }
 
   // Wallet-only widgets
   if (

@@ -31,6 +31,8 @@ export function WidgetConfigDialog({
   const [colSpan, setColSpan] = useState(widget.colSpan);
   const [rowSpan, setRowSpan] = useState(widget.rowSpan);
   const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [intervalMenuOpen, setIntervalMenuOpen] = useState(false);
   const [config, setConfig] = useState<WidgetFilterConfig>(
     widget.config ?? DEFAULT_WIDGET_FILTERS[widget.id] ?? {},
   );
@@ -40,6 +42,8 @@ export function WidgetConfigDialog({
       setColSpan(widget.colSpan);
       setRowSpan(widget.rowSpan);
       setConfig(widget.config ?? DEFAULT_WIDGET_FILTERS[widget.id] ?? {});
+      setIntervalMenuOpen(false);
+      setSaveError(null);
     }
   }, [open, widget.colSpan, widget.rowSpan, widget.config, widget.id]);
 
@@ -48,6 +52,7 @@ export function WidgetConfigDialog({
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
+    setSaveError(null);
     try {
       const updated = widgets.map((w) =>
         w.id === widget.id
@@ -61,6 +66,10 @@ export function WidgetConfigDialog({
       );
       await saveWidgets(updated);
       onOpenChange(false);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : 'Failed to save changes',
+      );
     } finally {
       setSaving(false);
     }
@@ -68,7 +77,12 @@ export function WidgetConfigDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
-      <DialogContent className="max-w-lg h-[80vh] flex flex-col">
+      <DialogContent
+        className="max-w-lg h-[80vh] flex flex-col"
+        onEscapeKeyDown={(e) => {
+          if (intervalMenuOpen) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Configure Widget</DialogTitle>
         </DialogHeader>
@@ -113,10 +127,16 @@ export function WidgetConfigDialog({
                 widgetId={widget.id}
                 config={config}
                 onChange={setConfig}
+                onIntervalMenuOpenChange={setIntervalMenuOpen}
               />
             </div>
           </form>
         </div>
+        {saveError && (
+          <p className="px-6 pb-2 text-sm text-destructive" role="alert">
+            {saveError}
+          </p>
+        )}
         <DialogFooter>
           <Button type="submit" form="widget-config-form" loading={saving}>
             {saving ? 'Saving...' : 'Save'}

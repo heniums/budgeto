@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { z } from 'zod';
 import { getUser } from '../auth/middleware';
+import { notFoundError } from '../errors';
 import {
   getSummary,
   getWidgetsByUser,
@@ -92,8 +93,7 @@ export async function widgetDataHandler(
     const user = getUser(req);
     const { widgetId } = req.params;
     if (!widgetId || !VALID_WIDGET_IDS.has(widgetId)) {
-      res.status(400).json({ code: 'VALIDATION_ERROR', message: 'Invalid widget id' });
-      return;
+      return next(notFoundError());
     }
     const { config } = widgetDataBodySchema.parse(req.body ?? {});
     const data = await getWidgetData(user.sub, widgetId, config);

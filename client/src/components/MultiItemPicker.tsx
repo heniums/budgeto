@@ -72,6 +72,7 @@ export function MultiItemPicker({
               {item.name}
               <button
                 type="button"
+                aria-label={`Remove ${item.name}`}
                 onClick={() => remove(item.id)}
                 className="ml-1 rounded-full hover:bg-muted"
               >
@@ -92,7 +93,6 @@ export function MultiItemPicker({
         <PopoverContent
           className="w-[250px] p-0 pointer-events-auto"
           align="start"
-          onOpenAutoFocus={(e) => e.preventDefault()}
         >
           <div className="p-2">
             <Input

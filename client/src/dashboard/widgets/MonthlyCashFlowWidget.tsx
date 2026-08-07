@@ -4,14 +4,13 @@ import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { CHART_COLORS } from '@/lib/chartTheme';
 import { formatPeriodLabel } from '@/lib/dateRange';
-import type { DateInterval } from '../types';
 
 export function MonthlyCashFlowWidget(): JSX.Element {
   const { data, loading, error } = useWidgetData('monthly-cash-flow');
 
   const chartData = useMemo(() => {
     if (!data?.rows?.length) return null;
-    const interval = data.interval as DateInterval;
+    const interval = data.interval;
     return {
       labels: data.rows.map((r) => formatPeriodLabel(r.period, interval)),
       datasets: [

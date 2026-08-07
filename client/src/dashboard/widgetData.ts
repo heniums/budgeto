@@ -5,7 +5,7 @@ import type {
   WidgetFilterConfig,
   WidgetType,
 } from './types';
-import { DEFAULT_WIDGET_FILTERS } from './widgetFilters';
+import { DEFAULT_WIDGET_FILTERS, normalizeFilterConfig } from './widgetFilters';
 
 type WalletSummary = {
   id: string;
@@ -75,7 +75,10 @@ function isDefaultConfig(
   config: WidgetFilterConfig,
 ): boolean {
   const defaults = DEFAULT_WIDGET_FILTERS[widgetId];
-  return JSON.stringify(config) === JSON.stringify(defaults);
+  return (
+    JSON.stringify(normalizeFilterConfig(config)) ===
+    JSON.stringify(normalizeFilterConfig(defaults))
+  );
 }
 
 export function defaultDataForWidget<T extends WidgetType>(

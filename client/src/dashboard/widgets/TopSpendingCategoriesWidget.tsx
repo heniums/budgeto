@@ -25,7 +25,7 @@ export function TopSpendingCategoriesWidget(): JSX.Element {
       color: c.color,
       pct: total > 0 ? ((Number(c.amount) || 0) / total) * 100 : 0,
     }));
-  }, [data?.categories, data?.currency]);
+  }, [data?.categories]);
 
   return (
     <WidgetCard loading={loading} error={error} title="Top Categories">

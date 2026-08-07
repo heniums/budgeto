@@ -318,6 +318,18 @@ export async function getWalletsByUserIdWithBalance(
   return rows;
 }
 
+export async function getWalletCurrencies(
+  userId: string,
+  walletIds?: string[],
+): Promise<{ id: string; currency: string }[]> {
+  const rows = await db
+    .select({ id: wallets.id, currency: wallets.currency })
+    .from(wallets)
+    .where(and(eq(wallets.userId, userId), buildWalletFilter(walletIds)))
+    .orderBy(wallets.createdAt);
+  return rows;
+}
+
 export async function getCashFlowByInterval(
   userId: string,
   interval: 'day' | 'week' | 'month' | 'year',
@@ -328,8 +340,12 @@ export async function getCashFlowByInterval(
 ): Promise<
   { period: string; income: string; expense: string; net: string }[]
 > {
-  const truncUnit = interval;
-  const truncExpr = sql.raw(`date_trunc('${truncUnit}', "transaction"."date")`);
+  const truncExpr = {
+    day: sql`date_trunc('day', ${transactions.date})`,
+    week: sql`date_trunc('week', ${transactions.date})`,
+    month: sql`date_trunc('month', ${transactions.date})`,
+    year: sql`date_trunc('year', ${transactions.date})`,
+  }[interval];
   const catFilter = buildCategoryFilter(categoryIds);
   const conditions = [
     eq(wallets.userId, userId),

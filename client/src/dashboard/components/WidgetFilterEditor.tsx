@@ -11,12 +11,14 @@ interface WidgetFilterEditorProps {
   widgetId: WidgetType;
   config: WidgetFilterConfig;
   onChange: (config: WidgetFilterConfig) => void;
+  onIntervalMenuOpenChange?: (open: boolean) => void;
 }
 
 export function WidgetFilterEditor({
   widgetId,
   config,
   onChange,
+  onIntervalMenuOpenChange,
 }: WidgetFilterEditorProps): JSX.Element {
   const { summary, categories } = useDashboardData();
   const fields = WIDGET_FILTER_FIELDS[widgetId];
@@ -95,6 +97,7 @@ export function WidgetFilterEditor({
             <DateRangeButton
               value={(config.interval ?? 'month') as DatePreset}
               onChange={(preset) => update({ interval: preset as DateInterval })}
+              onOpenChange={onIntervalMenuOpenChange}
             />
           </div>
         );
@@ -133,7 +136,14 @@ export function WidgetFilterEditor({
               min={1}
               max={100}
               value={config.limit ?? 5}
-              onChange={(e) => update({ limit: Number(e.target.value) })}
+              onChange={(e) =>
+                update({
+                  limit: Math.min(
+                    100,
+                    Math.max(1, Math.trunc(Number(e.target.value)) || 5),
+                  ),
+                })
+              }
             />
           </div>
         );

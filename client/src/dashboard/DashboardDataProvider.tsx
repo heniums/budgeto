@@ -18,7 +18,10 @@ import { getCategories, type CategoryData } from '@/api/categories';
 import type { ApiError } from '@/api/client';
 import type { WidgetConfig } from './types';
 import { DEFAULT_WIDGETS } from './defaults';
-import { DEFAULT_WIDGET_FILTERS } from './widgetFilters';
+import {
+  DEFAULT_WIDGET_FILTERS,
+  normalizeFilterConfig,
+} from './widgetFilters';
 
 interface DashboardData {
   summary: DashboardSummary | null;
@@ -91,14 +94,18 @@ export function DashboardDataProvider({
     setLoading(true);
     setError(null);
     try {
-      const [summaryData, serverWidgets, categoriesData] = await Promise.all([
+      const [summaryData, serverWidgets] = await Promise.all([
         getDashboardSummary(),
         getWidgets(),
-        getCategories(),
       ]);
       setSummary(summaryData);
       setWidgets(mergeWithDefaults(serverWidgets));
-      setCategories(categoriesData.categories);
+      try {
+        const { categories } = await getCategories();
+        setCategories(categories);
+      } catch {
+        setCategories([]);
+      }
     } catch (err) {
       setError(err as ApiError);
     } finally {
@@ -117,7 +124,7 @@ export function DashboardDataProvider({
       order: w.order,
       colSpan: w.colSpan,
       rowSpan: w.rowSpan,
-      config: w.config,
+      config: normalizeFilterConfig(w.config),
     }));
     const saved = await saveWidgetsApi(input);
     setWidgets(mergeWithDefaults(saved));
