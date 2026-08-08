@@ -15,16 +15,18 @@ vi.mock('react-chartjs-2', () => ({
   Doughnut: () => null,
 }));
 
-vi.mock('../DashboardDataProvider', () => ({
-  useDashboardData: () => ({
-    summary: {
-      monthlyCashFlow: [
-        { month: '2026-02', income: '1000', expense: '500', net: '500' },
-        { month: '2026-03', income: '1200', expense: '600', net: '600' },
-        { month: '2026-04', income: '800', expense: '400', net: '400' },
-        { month: '2026-05', income: '1500', expense: '700', net: '800' },
-        { month: '2026-06', income: '1100', expense: '550', net: '550' },
-        { month: '2026-07', income: '1300', expense: '650', net: '650' },
+vi.mock('../hooks/useWidgetData', () => ({
+  useWidgetData: () => ({
+    config: { interval: 'month' },
+    data: {
+      interval: 'month',
+      rows: [
+        { period: '2026-02-01', income: '1000', expense: '500', net: '500' },
+        { period: '2026-03-01', income: '1200', expense: '600', net: '600' },
+        { period: '2026-04-01', income: '800', expense: '400', net: '400' },
+        { period: '2026-05-01', income: '1500', expense: '700', net: '800' },
+        { period: '2026-06-01', income: '1100', expense: '550', net: '550' },
+        { period: '2026-07-01', income: '1300', expense: '650', net: '650' },
       ],
     },
     loading: false,

@@ -1,5 +1,7 @@
 import { apiClient } from './client';
 import type { BudgetData } from './budgets';
+import type { WidgetFilterConfig, WidgetType } from '@/dashboard/types';
+import type { WidgetDataMap } from '@/dashboard/widgetData';
 
 export interface WidgetConfigInput {
   widgetId: string;
@@ -7,6 +9,7 @@ export interface WidgetConfigInput {
   order: number;
   colSpan: number;
   rowSpan: number;
+  config: WidgetFilterConfig;
 }
 
 export interface DashboardSummary {
@@ -77,4 +80,15 @@ export async function saveWidgets(
     { widgets },
   );
   return response.data.widgets;
+}
+
+export async function getWidgetData<T extends WidgetType>(
+  widgetId: T,
+  config: WidgetFilterConfig,
+): Promise<WidgetDataMap[T]> {
+  const response = await apiClient.post<{ data: WidgetDataMap[T] }>(
+    `/dashboard/widgets/${widgetId}/data`,
+    { config },
+  );
+  return response.data.data;
 }

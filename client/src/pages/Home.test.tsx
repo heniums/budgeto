@@ -5,15 +5,16 @@ import { Home } from './Home';
 import type { WidgetConfig } from '@/dashboard/types';
 
 const sampleWidgets: WidgetConfig[] = [
-  { id: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 1 },
-  { id: 'monthly-cash-flow', visible: false, order: 1, colSpan: 1, rowSpan: 2 },
-  { id: 'income-vs-expense', visible: true, order: 2, colSpan: 1, rowSpan: 2 },
+  { id: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 1, config: {} },
+  { id: 'monthly-cash-flow', visible: false, order: 1, colSpan: 1, rowSpan: 2, config: {} },
+  { id: 'income-vs-expense', visible: true, order: 2, colSpan: 1, rowSpan: 2, config: {} },
   {
     id: 'recent-transactions',
     visible: false,
     order: 3,
     colSpan: 1,
     rowSpan: 2,
+    config: {},
   },
 ];
 
@@ -24,6 +25,7 @@ vi.mock('@/dashboard/DashboardDataProvider', () => ({
   useDashboardData: () => ({
     summary: null,
     widgets: sampleWidgets,
+    categories: [],
     loading: false,
     error: null,
     refresh: vi.fn(),

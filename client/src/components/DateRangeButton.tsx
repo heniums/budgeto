@@ -6,14 +6,24 @@ import { DATE_PRESETS, type DatePreset } from '@/lib/dateRange';
 interface DateRangeButtonProps {
   value: DatePreset;
   onChange: (preset: DatePreset) => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export function DateRangeButton({
   value,
   onChange,
+  open: openProp,
+  onOpenChange,
 }: DateRangeButtonProps): JSX.Element {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = openProp ?? internalOpen;
   const containerRef = useRef<HTMLDivElement>(null);
+
+  function updateOpen(next: boolean): void {
+    setInternalOpen(next);
+    onOpenChange?.(next);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -22,11 +32,11 @@ export function DateRangeButton({
         containerRef.current &&
         !containerRef.current.contains(event.target as Node)
       ) {
-        setOpen(false);
+        updateOpen(false);
       }
     }
     function onKeyDown(event: KeyboardEvent): void {
-      if (event.key === 'Escape') setOpen(false);
+      if (event.key === 'Escape') updateOpen(false);
     }
     document.addEventListener('mousedown', onClickOutside);
     document.addEventListener('keydown', onKeyDown);
@@ -45,7 +55,7 @@ export function DateRangeButton({
         variant="outline"
         aria-haspopup="menu"
         aria-expanded={open}
-        onClick={() => setOpen((isOpen) => !isOpen)}
+        onClick={() => updateOpen(!open)}
       >
         Date: {current?.label ?? 'Day'}
       </Button>
@@ -63,7 +73,7 @@ export function DateRangeButton({
               aria-current={preset.value === value}
               onClick={() => {
                 onChange(preset.value);
-                setOpen(false);
+                updateOpen(false);
               }}
               className={cn(
                 'block w-full rounded-sm px-3 py-1.5 text-left text-sm hover:bg-muted',

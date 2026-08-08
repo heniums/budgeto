@@ -1,0 +1,1 @@
+ALTER TABLE "user_widget" ADD COLUMN "config" jsonb DEFAULT '{}'::jsonb NOT NULL;

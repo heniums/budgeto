@@ -9,7 +9,9 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { WIDGET_REGISTRY } from '../registry';
-import type { WidgetConfig } from '../types';
+import type { WidgetConfig, WidgetFilterConfig } from '../types';
+import { DEFAULT_WIDGET_FILTERS } from '../widgetFilters';
+import { WidgetFilterEditor } from './WidgetFilterEditor';
 
 interface WidgetConfigDialogProps {
   open: boolean;
@@ -28,78 +30,118 @@ export function WidgetConfigDialog({
 }: WidgetConfigDialogProps): JSX.Element {
   const [colSpan, setColSpan] = useState(widget.colSpan);
   const [rowSpan, setRowSpan] = useState(widget.rowSpan);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [intervalMenuOpen, setIntervalMenuOpen] = useState(false);
+  const [config, setConfig] = useState<WidgetFilterConfig>(
+    widget.config ?? DEFAULT_WIDGET_FILTERS[widget.id] ?? {},
+  );
 
   useEffect(() => {
     if (open) {
       setColSpan(widget.colSpan);
       setRowSpan(widget.rowSpan);
+      setConfig(widget.config ?? DEFAULT_WIDGET_FILTERS[widget.id] ?? {});
+      setIntervalMenuOpen(false);
+      setSaveError(null);
     }
-  }, [open, widget.colSpan, widget.rowSpan]);
+  }, [open, widget.colSpan, widget.rowSpan, widget.config, widget.id]);
 
   const meta = WIDGET_REGISTRY[widget.id];
 
   async function handleSave(e: React.FormEvent) {
     e.preventDefault();
-    const updated = widgets.map((w) =>
-      w.id === widget.id
-        ? {
-            ...w,
-            colSpan: Math.min(2, Math.max(1, colSpan)),
-            rowSpan: Math.min(4, Math.max(1, rowSpan)),
-          }
-        : w,
-    );
-    await saveWidgets(updated);
-    onOpenChange(false);
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const updated = widgets.map((w) =>
+        w.id === widget.id
+          ? {
+              ...w,
+              colSpan: Math.min(2, Math.max(1, colSpan)),
+              rowSpan: Math.min(4, Math.max(1, rowSpan)),
+              config,
+            }
+          : w,
+      );
+      await saveWidgets(updated);
+      onOpenChange(false);
+    } catch (err) {
+      setSaveError(
+        err instanceof Error ? err.message : 'Failed to save changes',
+      );
+    } finally {
+      setSaving(false);
+    }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+      <DialogContent
+        className="max-w-lg h-[80vh] flex flex-col"
+        onEscapeKeyDown={(e) => {
+          if (intervalMenuOpen) e.preventDefault();
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Configure Widget</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSave}>
-          <div className="space-y-4 py-2">
-            <div>
-              <label className="text-sm font-medium">Widget</label>
-              <p className="text-sm text-muted-foreground">
-                {meta?.title ?? widget.id}
-              </p>
-            </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="colSpan">
-                Column span (1–2)
-              </label>
-              <Input
-                id="colSpan"
-                type="number"
-                min={1}
-                max={2}
-                value={colSpan}
-                onChange={(e) => setColSpan(Number(e.target.value))}
-                className="mt-1"
+        <div className="flex-1 overflow-y-auto py-2">
+          <form onSubmit={handleSave} id="widget-config-form">
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium">Widget</label>
+                <p className="text-sm text-muted-foreground">
+                  {meta?.title ?? widget.id}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm font-medium" htmlFor="colSpan">
+                  Column span (1–2)
+                </label>
+                <Input
+                  id="colSpan"
+                  type="number"
+                  min={1}
+                  max={2}
+                  value={colSpan}
+                  onChange={(e) => setColSpan(Number(e.target.value))}
+                  className="mt-1"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium" htmlFor="rowSpan">
+                  Row span (1–4)
+                </label>
+                <Input
+                  id="rowSpan"
+                  type="number"
+                  min={1}
+                  max={4}
+                  value={rowSpan}
+                  onChange={(e) => setRowSpan(Number(e.target.value))}
+                  className="mt-1"
+                />
+              </div>
+              <WidgetFilterEditor
+                widgetId={widget.id}
+                config={config}
+                onChange={setConfig}
+                onIntervalMenuOpenChange={setIntervalMenuOpen}
               />
             </div>
-            <div>
-              <label className="text-sm font-medium" htmlFor="rowSpan">
-                Row span (1–4)
-              </label>
-              <Input
-                id="rowSpan"
-                type="number"
-                min={1}
-                max={4}
-                value={rowSpan}
-                onChange={(e) => setRowSpan(Number(e.target.value))}
-                className="mt-1"
-              />
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit">Save</Button>
-          </DialogFooter>
-        </form>
+          </form>
+        </div>
+        {saveError && (
+          <p className="px-6 pb-2 text-sm text-destructive" role="alert">
+            {saveError}
+          </p>
+        )}
+        <DialogFooter>
+          <Button type="submit" form="widget-config-form" loading={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

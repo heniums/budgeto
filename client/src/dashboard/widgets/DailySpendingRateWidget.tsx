@@ -1,12 +1,12 @@
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
 
 export function DailySpendingRateWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
+  const { data, loading, error } = useWidgetData('daily-spending-rate');
 
-  const rate = summary?.thisMonth?.dailySpendingRate;
-  const currency = summary?.wallets?.[0]?.currency ?? 'USD';
+  const rate = data?.rate;
+  const currency = data?.currency ?? 'USD';
 
   return (
     <WidgetCard loading={loading} error={error} title="Daily Spending">

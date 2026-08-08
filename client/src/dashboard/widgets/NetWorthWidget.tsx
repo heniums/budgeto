@@ -1,20 +1,20 @@
 import { useMemo } from 'react';
-import { useDashboardData } from '../DashboardDataProvider';
+import { useWidgetData } from '../hooks/useWidgetData';
 import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
 
 export function NetWorthWidget(): JSX.Element {
-  const { summary, loading, error } = useDashboardData();
+  const { data, loading, error } = useWidgetData('net-worth');
 
   const byCurrency = useMemo(() => {
-    if (!summary?.wallets) return new Map<string, number>();
+    const wallets = data?.wallets ?? [];
     const map = new Map<string, number>();
-    for (const w of summary.wallets) {
+    for (const w of wallets) {
       const balance = Number(w.balance) || 0;
       map.set(w.currency, (map.get(w.currency) || 0) + balance);
     }
     return map;
-  }, [summary?.wallets]);
+  }, [data?.wallets]);
 
   return (
     <WidgetCard loading={loading} error={error} title="Net Worth">
