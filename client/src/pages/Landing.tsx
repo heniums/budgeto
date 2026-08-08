@@ -40,7 +40,7 @@ export function Landing(): JSX.Element {
   return (
     <div className="min-h-screen bg-background gradient-mesh">
       {/* Navigation */}
-      <header className="border-b bg-card">
+      <header className="sticky top-0 z-50 border-b glass-strong">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
@@ -120,7 +120,7 @@ export function Landing(): JSX.Element {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Everything you need</h2>
@@ -182,7 +182,7 @@ export function Landing(): JSX.Element {
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-card py-8">
+      <footer className="border-t glass-strong py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">

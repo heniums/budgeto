@@ -11,6 +11,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { getIcon } from '../lib/icons';
+import { cn } from '@/lib/utils';
 import { CategoryModal } from '../components/CategoryModal';
 import { FormAlert } from '../components/FormAlert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -139,16 +140,24 @@ export function Categories(): JSX.Element {
               ) : (
                 filtered.map((category) => {
                   const Icon = getIcon(category.icon);
+                  const isSelected = selectedCategoryId === category.id;
                   return (
                     <TableRow
                       key={category.id}
-                      className="cursor-pointer hover:bg-muted/50"
+                      style={isSelected ? { backgroundColor: category.color } : undefined}
+                      className={cn(
+                        'cursor-pointer glass',
+                        !isSelected && 'hover:bg-muted/50'
+                      )}
                       onClick={() => {
                         setSelectedCategoryId(category.id);
                         setModalMode('edit');
                       }}
                     >
-                      <TableCell>
+                      <TableCell
+                        className={cn(isSelected && 'font-semibold')}
+                        style={isSelected ? { color: '#ffffff' } : undefined}
+                      >
                         <div
                           style={{
                             display: 'flex',

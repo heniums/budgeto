@@ -107,7 +107,7 @@ export function Layout(): JSX.Element {
     <div
       role="radiogroup"
       aria-label="Theme mode"
-      className="flex items-center gap-1 rounded-lg border border-white/10 bg-background/80 p-1"
+      className="glass rounded-lg p-1"
     >
       <button
         type="button"
@@ -156,7 +156,7 @@ export function Layout(): JSX.Element {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-hidden glass-strong p-4 md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col overflow-hidden glass-strong border-r p-4 md:flex">
         <SidebarContent>
           {userBlock}
           {themeToggle}
@@ -165,7 +165,7 @@ export function Layout(): JSX.Element {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="flex items-center justify-between border-b glass-strong px-4 py-3 md:hidden">
+        <header className="sticky top-0 z-50 flex items-center justify-between border-b glass-strong px-4 py-3 shadow-sm transition-shadow duration-200 md:hidden">
           <span className="font-semibold text-foreground">Budgeto</span>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>

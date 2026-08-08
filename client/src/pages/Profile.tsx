@@ -3,6 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useAuth } from '../auth/AuthContext';
 import { changePassword, updateName } from '../api/auth';
 import { ApiError } from '../api/client';
@@ -116,7 +119,7 @@ export function Profile(): JSX.Element {
     <main className="space-y-6 min-w-0 pb-24">
       <h1 className="text-2xl font-semibold text-foreground">Your profile</h1>
 
-      <section className="glass rounded-lg p-6" aria-labelledby="name-heading">
+      <Card className="p-6" aria-labelledby="name-heading">
         <h2 id="name-heading" className="mb-4 text-lg font-semibold text-foreground">
           Name
         </h2>
@@ -124,10 +127,10 @@ export function Profile(): JSX.Element {
         {nameEditing ? (
           <form onSubmit={handleNameSubmit(submitName)} noValidate className="space-y-4">
             <div className="space-y-2">
-              <label htmlFor={nameId} className="text-sm font-medium text-foreground">
+              <Label htmlFor={nameId} className="text-sm font-medium text-foreground">
                 Name
-              </label>
-              <input
+              </Label>
+              <Input
                 id={nameId}
                 type="text"
                 autoComplete="name"
@@ -138,7 +141,6 @@ export function Profile(): JSX.Element {
                 aria-describedby={
                   nameErrors.name ? `${nameId}-error` : undefined
                 }
-                className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
               />
               <FormError
                 id={`${nameId}-error`}
@@ -170,18 +172,18 @@ export function Profile(): JSX.Element {
             </Button>
           </div>
         )}
-      </section>
+      </Card>
 
-      <section className="glass rounded-lg p-6" aria-labelledby="pw-heading">
+      <Card className="p-6" aria-labelledby="pw-heading">
         <h2 id="pw-heading" className="mb-4 text-lg font-semibold text-foreground">
           Change password
         </h2>
         <form onSubmit={handlePwSubmit(submitPassword)} noValidate className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor={pwIds.currentPassword} className="text-sm font-medium text-foreground">
+            <Label htmlFor={pwIds.currentPassword} className="text-sm font-medium text-foreground">
               Current password
-            </label>
-            <input
+            </Label>
+            <Input
               id={pwIds.currentPassword}
               type="password"
               autoComplete="current-password"
@@ -193,7 +195,6 @@ export function Profile(): JSX.Element {
                   ? `${pwIds.currentPassword}-error`
                   : undefined
               }
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${pwIds.currentPassword}-error`}
@@ -201,10 +202,10 @@ export function Profile(): JSX.Element {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor={pwIds.newPassword} className="text-sm font-medium text-foreground">
+            <Label htmlFor={pwIds.newPassword} className="text-sm font-medium text-foreground">
               New password
-            </label>
-            <input
+            </Label>
+            <Input
               id={pwIds.newPassword}
               type="password"
               autoComplete="new-password"
@@ -214,7 +215,6 @@ export function Profile(): JSX.Element {
               aria-describedby={
                 pwErrors.newPassword ? `${pwIds.newPassword}-error` : undefined
               }
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${pwIds.newPassword}-error`}
@@ -222,10 +222,10 @@ export function Profile(): JSX.Element {
             />
           </div>
           <div className="space-y-2">
-            <label htmlFor={pwIds.confirmPassword} className="text-sm font-medium text-foreground">
+            <Label htmlFor={pwIds.confirmPassword} className="text-sm font-medium text-foreground">
               Confirm new password
-            </label>
-            <input
+            </Label>
+            <Input
               id={pwIds.confirmPassword}
               type="password"
               autoComplete="new-password"
@@ -237,7 +237,6 @@ export function Profile(): JSX.Element {
                   ? `${pwIds.confirmPassword}-error`
                   : undefined
               }
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${pwIds.confirmPassword}-error`}
@@ -246,7 +245,7 @@ export function Profile(): JSX.Element {
           </div>
           <FormAlert message={pwFormError} />
           {pwSuccess && (
-            <div role="status" className="rounded-lg bg-emerald-500/10 px-3 py-2 text-sm text-emerald-500">
+            <div role="status" className="rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-sm text-primary">
               {pwSuccess}
             </div>
           )}
@@ -254,7 +253,7 @@ export function Profile(): JSX.Element {
             {pwSubmitting ? 'Updating…' : 'Update password'}
           </Button>
         </form>
-      </section>
+      </Card>
     </main>
   );
 }

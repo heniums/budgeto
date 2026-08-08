@@ -65,15 +65,12 @@ function LongPressWalletChip({
       tabIndex={0}
       style={
         isSelected
-          ? {
-              backgroundColor: wallet.color,
-              borderColor: wallet.color,
-            }
-          : { borderColor: wallet.color, color: wallet.color }
+          ? { backgroundColor: wallet.color, borderColor: wallet.color }
+          : { borderColor: wallet.color + '40', color: wallet.color, backgroundColor: wallet.color + '15' }
       }
       className={cn(
         'cursor-pointer whitespace-nowrap shrink-0 select-none',
-        isSelected && 'text-white',
+        isSelected ? 'text-white' : 'font-medium',
       )}
       onClick={() => onSelect(wallet.id)}
       onKeyDown={(e) => onKeyDown(e, index, wallet)}
