@@ -630,7 +630,7 @@ export function Transactions(): JSX.Element {
           <div className="space-y-6">
             {groups.map((group) => (
             <div key={group.key} className="mb-4">
-              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 glass rounded-lg px-3 py-2 md:top-0">
+              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 glass rounded-lg px-3 py-2 md:top-8">
                 <h2
                   data-testid="period-header"
                   className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
