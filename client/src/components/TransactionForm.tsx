@@ -417,6 +417,7 @@ export function TransactionForm({
           <Button
             type="button"
             variant={watch('type') === 'income' ? 'default' : 'outline'}
+            size="sm"
             className={
               watch('type') === 'income'
                 ? 'bg-green-600 hover:bg-green-700'
@@ -429,6 +430,7 @@ export function TransactionForm({
           <Button
             type="button"
             variant={watch('type') === 'expense' ? 'default' : 'outline'}
+            size="sm"
             className={
               watch('type') === 'expense' ? 'bg-red-600 hover:bg-red-700' : ''
             }
