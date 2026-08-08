@@ -165,7 +165,7 @@ export function Layout(): JSX.Element {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-50 flex items-center justify-between border-b glass-strong px-4 py-3 shadow-sm transition-shadow duration-200 md:hidden">
+        <header className="sticky top-0 z-50 flex items-center justify-between border-b glass-strong px-4 py-3 shadow-sm md:hidden">
           <span className="font-semibold text-foreground">Budgeto</span>
           <Sheet open={open} onOpenChange={setOpen}>
             <SheetTrigger asChild>
