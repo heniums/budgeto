@@ -37,7 +37,6 @@ import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletModal } from '../components/WalletModal';
 import { CategoryModal } from '../components/CategoryModal';
 import { DateRangeButton } from '../components/DateRangeButton';
-import { cn } from '@/lib/utils';
 import { Money } from '../components/Money';
 import { formatPeriodLabel, periodKey, type DatePreset } from '@/lib/dateRange';
 import {
@@ -130,8 +129,6 @@ export function Transactions(): JSX.Element {
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingMoreRef = useRef(false);
-  const [stuckGroup, setStuckGroup] = useState<string | null>(null);
-  const sentinelRefs = useRef<Map<string, HTMLDivElement>>(new Map());
   const [error, setError] = useState<string | null>(null);
   const [summary, setSummary] = useState<TransactionSummary | null>(null);
 
@@ -351,39 +348,6 @@ export function Transactions(): JSX.Element {
   }, []);
 
 
-  // Detect which group header is currently stuck (scrolled past) so we can
-  // apply extra visual prominence.  When a group's sentinel exits the viewport
-  // the header has just stuck; when a sentinel re-enters the header has unstuck.
-  const stuckObserverRef = useRef<IntersectionObserver | null>(null);
-  const registerSentinel = useCallback((key: string, el: HTMLDivElement | null) => {
-    if (el) {
-      sentinelRefs.current.set(key, el);
-    } else {
-      sentinelRefs.current.delete(key);
-    }
-  }, []);
-  useEffect(() => {
-    if (typeof IntersectionObserver === 'undefined') return;
-    stuckObserverRef.current?.disconnect();
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          const key = entry.target.getAttribute('data-sentinel-key') ?? '';
-          if (!entry.isIntersecting) {
-            setStuckGroup(key);
-          } else {
-            setStuckGroup((prev) => (prev === key ? null : prev));
-          }
-        }
-      },
-      { threshold: 0 },
-    );
-    for (const el of sentinelRefs.current.values()) {
-      observer.observe(el);
-    }
-    stuckObserverRef.current = observer;
-    return () => observer.disconnect();
-  }, []);
 
   const walletName = (walletId: string): string =>
     wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
@@ -668,8 +632,7 @@ export function Transactions(): JSX.Element {
           <div className="space-y-6">
             {groups.map((group) => (
             <div key={group.key} className="mb-4">
-              <div ref={(el) => registerSentinel(group.key, el)} data-sentinel-key={group.key} className="h-px" aria-hidden />
-              <div className={cn('sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 glass rounded-lg px-3 py-2 md:top-8 transition-shadow duration-200 hover:shadow-lg hover:brightness-110', stuckGroup === group.key ? 'shadow-xl border border-primary/30 scale-[1.01]' : '')}>
+              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 border border-primary/40 bg-card/95 backdrop-blur-sm rounded-lg px-3 py-2 md:top-8 shadow-md transition-shadow duration-200 hover:shadow-lg">
                 <h2
                   data-testid="period-header"
                   className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
