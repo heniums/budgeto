@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/table';
 import { WalletModal } from '../components/WalletModal';
 import { Money } from '../components/Money';
+import { cn } from '@/lib/utils';
 import { FormAlert } from '../components/FormAlert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
@@ -152,13 +153,19 @@ export function WalletList(): JSX.Element {
                 filtered.map((wallet) => (
                   <TableRow
                     key={wallet.id}
-                    className="cursor-pointer hover:bg-muted/50"
+                    style={selectedWalletId === wallet.id ? { backgroundColor: wallet.color } : undefined}
+                    className={cn(
+                      'cursor-pointer',
+                      selectedWalletId === wallet.id ? '' : 'hover:bg-muted/50',
+                    )}
                     onClick={() => {
                       setSelectedWalletId(wallet.id);
                       setModalMode('edit');
                     }}
                   >
-                    <TableCell>
+                    <TableCell
+                      style={selectedWalletId === wallet.id ? { color: '#ffffff' } : undefined}
+                    >
                       <div
                         style={{
                           display: 'flex',
