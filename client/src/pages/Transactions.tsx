@@ -347,6 +347,8 @@ export function Transactions(): JSX.Element {
     }
   }, []);
 
+
+
   const walletName = (walletId: string): string =>
     wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
 
@@ -630,7 +632,7 @@ export function Transactions(): JSX.Element {
           <div className="space-y-6">
             {groups.map((group) => (
             <div key={group.key} className="mb-4">
-              <div className="mb-2 flex items-center justify-between gap-3">
+              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 border border-primary/40 bg-card/95 backdrop-blur-sm rounded-lg px-3 py-2 md:top-8 shadow-md transition-shadow duration-200 hover:shadow-lg">
                 <h2
                   data-testid="period-header"
                   className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
