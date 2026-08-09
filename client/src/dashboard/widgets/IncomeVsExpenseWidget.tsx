@@ -13,7 +13,7 @@ export function IncomeVsExpenseWidget(): JSX.Element {
           <Money
             amount={data?.income ?? '0'}
             currency={data?.currency ?? 'USD'}
-            className="text-2xl font-bold text-green-600"
+            className="text-2xl font-bold text-primary"
           />
         </div>
         <div className="space-y-1">
@@ -21,7 +21,7 @@ export function IncomeVsExpenseWidget(): JSX.Element {
           <Money
             amount={data?.expense ?? '0'}
             currency={data?.currency ?? 'USD'}
-            className="text-2xl font-bold text-red-500"
+            className="text-2xl font-bold text-destructive"
           />
         </div>
       </div>

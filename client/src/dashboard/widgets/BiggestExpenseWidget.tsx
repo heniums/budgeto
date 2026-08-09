@@ -15,7 +15,7 @@ export function BiggestExpenseWidget(): JSX.Element {
           <Money
             amount={biggest.amount}
             currency={currency}
-            className="text-3xl font-bold text-red-500"
+            className="text-3xl font-bold text-destructive"
           />
           <p className="text-sm">
             {biggest.description || 'Unnamed transaction'}

@@ -18,8 +18,8 @@ import {
   sortableKeyboardCoordinates,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/memphis/button';
+import { Badge } from '@/components/memphis/badge';
 import { Settings, GripVertical } from 'lucide-react';
 import {
   DashboardDataProvider,
