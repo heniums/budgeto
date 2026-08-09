@@ -3,18 +3,18 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#1f8a4c" />
+    <meta name="theme-color" content="#22a55a" />
     <script>
       (function() {
         try {
-          var theme = localStorage.getItem('budgeto:theme') || 'system';
+          var theme = localStorage.getItem('budgeto:theme') || 'light';
           var resolved = theme;
           if (theme === 'system') {
             resolved = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
           }
           document.documentElement.classList.add(resolved);
         } catch (e) {
-          document.documentElement.classList.add('dark');
+          document.documentElement.classList.add('light');
         }
       })();
     </script>
@@ -24,7 +24,7 @@
     <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
     <title>Budgeto</title>
   </head>
   <body>

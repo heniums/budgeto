@@ -4,6 +4,7 @@ import './styles.css';
 import { ThemeProvider } from './theme/ThemeProvider';
 import { AuthProvider } from './auth/AuthContext';
 import { App } from './App';
+import { MemphisBackground } from './components/decor/MemphisBackground';
 
 const container = document.getElementById('root');
 if (!container) {
@@ -12,6 +13,7 @@ if (!container) {
 
 createRoot(container).render(
   <ThemeProvider>
+    <MemphisBackground />
     <AuthProvider>
       <App />
     </AuthProvider>
