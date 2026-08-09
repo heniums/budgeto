@@ -51,19 +51,53 @@
   --input: 150 12% 82%;
   --ring: 218 80% 58%;
   --glass-bg: 0 0% 100%;
-  --glass-opacity: 1;
+  --glass-opacity: 0.75;
   --glass-border: 150 12% 82%;
-  --glass-border-opacity: 1;
-  --glass-blur: 0px;
+  --glass-border-opacity: 0.5;
+  --glass-blur: 24px;
 }
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 }
 
 @layer utilities {
+  .glass-card {
+    position: relative;
+    background: hsla(var(--glass-bg) / var(--glass-opacity));
+    backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+    border: 1px solid hsla(var(--glass-border) / var(--glass-border-opacity));
+    border-radius: 1rem;
+    box-shadow:
+      0 0 0 1px hsla(160 84% 39% / 0.08) inset,
+      0 8px 32px hsla(222 47% 4% / 0.4),
+      0 2px 8px hsla(222 47% 4% / 0.3);
+  }
+
+  .glass-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: linear-gradient(
+      135deg,
+      hsla(160 84% 39% / 0.12) 0%,
+      transparent 50%,
+      hsla(210 100% 60% / 0.06) 100%
+    );
+    pointer-events: none;
+  }
+
+  .light .glass-card {
+    box-shadow:
+      0 0 0 1px rgba(16, 183, 127, 0.10) inset,
+      0 8px 32px rgba(16, 183, 127, 0.08),
+      0 2px 8px rgba(0, 0, 0, 0.04);
+  }
+
   .glass {
     background-color: hsla(var(--glass-bg) / var(--glass-opacity));
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -72,10 +106,12 @@
     border-style: solid;
     border-color: hsla(var(--glass-border) / var(--glass-border-opacity));
   }
+
   .glass-strong {
     --glass-opacity: 0.85;
     --glass-blur: 24px;
   }
+
   .glass-dark {
     background-color: hsla(var(--glass-bg) / var(--glass-opacity));
     backdrop-filter: blur(var(--glass-blur)) saturate(180%);
@@ -138,6 +174,7 @@
     --glass-border: 0 0% 100%;
     --glass-border-opacity: 0.15;
   }
+
   .gradient-mesh {
     background:
       radial-gradient(at 0% 0%, hsla(160 84% 39% / 0.35) 0px, transparent 50%),
@@ -344,7 +381,7 @@ a:focus-visible {
 }
 
 .sign-out:hover:not(:disabled) {
-  background: #fdecea;
+  background: hsl(var(--destructive) / 0.12);
 }
 
 .wallet-list {
@@ -400,7 +437,7 @@ a:focus-visible {
 }
 
 .wallet-delete:hover:not(:disabled) {
-  background: #fdecea;
+  background: hsl(var(--destructive) / 0.12);
 }
 
 .app-layout {
@@ -435,10 +472,7 @@ a:focus-visible {
 
 .sidebar-item {
   display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.5rem 0.5rem;
-  border-radius: 6px;
+  border-radius: var(--radius);
   text-decoration: none;
   color: var(--color-text);
   font-weight: 500;
@@ -570,7 +604,7 @@ a:focus-visible {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
-

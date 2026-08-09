@@ -19,12 +19,12 @@ interface FeatureCardProps {
 
 function FeatureCard({ icon: Icon, title, description }: FeatureCardProps) {
   return (
-    <div className="flex flex-col items-center text-center p-6 rounded-2xl glass">
-      <div className="mb-4 p-3 rounded-full bg-primary/10">
-        <Icon className="h-6 w-6 text-primary" aria-hidden />
+    <div className="glass-card flex flex-col items-center text-center p-8 rounded-2xl">
+      <div className="mb-5 p-4 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 border border-primary/20 shadow-[0_0_20px_hsl(160_84%_39%_/_0.15)]">
+        <Icon className="h-7 w-7 text-primary" aria-hidden />
       </div>
-      <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <h3 className="text-lg font-semibold mb-2 tracking-tight">{title}</h3>
+      <p className="text-sm text-muted-foreground leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -40,7 +40,7 @@ export function Landing(): JSX.Element {
   return (
     <div className="min-h-screen bg-background gradient-mesh">
       {/* Navigation */}
-      <header className="border-b bg-card">
+      <header className="border-b glass">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
@@ -89,18 +89,50 @@ export function Landing(): JSX.Element {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden py-20 sm:py-32">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative overflow-hidden py-24 sm:py-36">
+        {/* Ambient glow blobs */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden>
+          <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
+          <div className="absolute top-1/3 left-1/4 w-64 h-64 rounded-full bg-primary/5 blur-2xl" />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center max-w-3xl mx-auto">
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6">
-              Your Money, <span className="text-primary">Under Control</span>
+            <p
+              className="text-xs font-semibold tracking-[0.2em] uppercase text-primary mb-6"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Personal Finance, Elevated
+            </p>
+            <h1
+              className="text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Your Money.{' '}
+              <span
+                className="text-transparent"
+                style={{
+                  backgroundImage: 'linear-gradient(135deg, hsl(160 84% 39%), hsl(168 80% 55%))',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  backgroundClip: 'text',
+                }}
+              >
+                Under Control.
+              </span>
             </h1>
-            <p className="text-lg sm:text-xl text-muted-foreground mb-8 leading-relaxed">
-              Track expenses, manage multiple wallets, and understand your
-              spending habits. Simple personal finance management for everyone.
+            <p
+              className="text-base sm:text-lg text-muted-foreground mb-10 leading-relaxed max-w-xl mx-auto"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              One app for every wallet, every currency, every budget. Track, transfer, and
+              thrive — without the spreadsheets.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <Button asChild size="lg" className="w-full sm:w-auto">
+              <Button
+                asChild
+                size="lg"
+                className="w-full sm:w-auto font-semibold shadow-[0_0_24px_hsl(160_84%_39%_/_0.35)]"
+              >
                 <Link to="/signup">
                   Get started free
                   <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
@@ -110,7 +142,7 @@ export function Landing(): JSX.Element {
                 asChild
                 variant="outline"
                 size="lg"
-                className="w-full sm:w-auto"
+                className="w-full sm:w-auto font-semibold"
               >
                 <Link to="/login">Sign in</Link>
               </Button>
@@ -120,13 +152,20 @@ export function Landing(): JSX.Element {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-muted/50">
+      <section className="py-20">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold mb-4">Everything you need</h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              Simple yet powerful tools to help you take control of your
-              finances
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Everything you need
+            </h2>
+            <p
+              className="text-muted-foreground max-w-2xl mx-auto"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Simple yet powerful tools to help you take control of your finances
             </p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -166,23 +205,84 @@ export function Landing(): JSX.Element {
 
       {/* CTA Section */}
       <section className="py-20">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to take control?</h2>
-          <p className="text-muted-foreground mb-8 max-w-xl mx-auto">
-            Join thousands of users who have simplified their personal finance
-            management with Budgeto.
-          </p>
-          <Button asChild size="lg">
-            <Link to="/signup">
-              Create free account
-              <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-            </Link>
-          </Button>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div data-impeccable-variants="9437241d" data-impeccable-variant-count="3" style={{ display: "contents" }}>
+            {/* impeccable-variants-start 9437241d */}
+            {/* Original */}
+            <div data-impeccable-variant="original">
+              <div className="glass-card text-center py-16 px-8 rounded-2xl">
+                <h2
+                  className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight"
+                  style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+                >
+                  Ready to take control?
+                </h2>
+                <p
+                  className="text-muted-foreground mb-8 max-w-xl mx-auto"
+                  style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+                >
+                  Join users who have simplified their personal finance management with Budgeto.
+                </p>
+                <Button asChild size="lg" className="font-semibold shadow-[0_0_24px_hsl(160_84%_39%_/_0.3)]">
+                  <Link to="/signup">
+                    Create free account
+                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+            {/* Variants: insert below this line */}
+            <style data-impeccable-css="9437241d">{`
+              @scope ([data-impeccable-variant="1"]) { :scope > .v1 {
+                background: rgba(255,255,255,0.72);
+                backdrop-filter: blur(28px) saturate(200%);
+                -webkit-backdrop-filter: blur(28px) saturate(200%);
+                border: 1px solid rgba(255,255,255,0.55);
+                box-shadow: 0 0 0 1px rgba(16,183,127,0.10) inset, 0 12px 40px rgba(16,183,127,0.08), 0 4px 16px rgba(0,0,0,0.06);
+              } }
+              @scope ([data-impeccable-variant="2"]) { :scope > .v2 {
+                background: rgba(255,255,255,0.60);
+                backdrop-filter: blur(20px) saturate(180%);
+                -webkit-backdrop-filter: blur(20px) saturate(180%);
+                border: 1px solid rgba(16,183,127,0.30);
+                box-shadow: 0 0 40px rgba(16,183,127,0.15) inset, 0 8px 32px rgba(16,183,127,0.10), 0 2px 8px rgba(0,0,0,0.05);
+              } }
+              @scope ([data-impeccable-variant="3"]) { :scope > .v3 {
+                background: rgba(245,250,248,0.80);
+                backdrop-filter: blur(24px) saturate(190%);
+                -webkit-backdrop-filter: blur(24px) saturate(190%);
+                border: 1px solid rgba(150,200,180,0.40);
+                box-shadow: 0 8px 48px rgba(16,183,127,0.12), 0 2px 12px rgba(0,0,0,0.04);
+              } }
+            `}</style>
+            <div data-impeccable-variant="1" className="v1 text-center py-16 px-8 rounded-2xl">
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 20% 12%)" }}>Ready to take control?</h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 8% 38%)" }}>Join users who have simplified their personal finance management with Budgeto.</p>
+              <Button asChild size="lg" className="font-semibold shadow-[0_0_28px_rgba(16,183,127,0.40)]" style={{ background: "hsl(150 69% 32%)", color: "#fff" }}>
+                <Link to="/signup">Create free account<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
+              </Button>
+            </div>
+            <div data-impeccable-variant="2" className="v2 text-center py-16 px-8 rounded-2xl" style={{ display: "none" }}>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 20% 12%)" }}>Ready to take control?</h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 8% 38%)" }}>Join users who have simplified their personal finance management with Budgeto.</p>
+              <Button asChild size="lg" className="font-semibold shadow-[0_0_32px_rgba(16,183,127,0.50)]" style={{ background: "hsl(150 69% 32%)", color: "#fff" }}>
+                <Link to="/signup">Create free account<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
+              </Button>
+            </div>
+            <div data-impeccable-variant="3" className="v3 text-center py-16 px-8 rounded-2xl" style={{ display: "none" }}>
+              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 20% 12%)" }}>Ready to take control?</h2>
+              <p className="text-muted-foreground mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 8% 38%)" }}>Join users who have simplified their personal finance management with Budgeto.</p>
+              <Button asChild size="lg" className="font-semibold shadow-[0_0_24px_rgba(16,183,127,0.35)]" style={{ background: "hsl(150 69% 32%)", color: "#fff" }}>
+                <Link to="/signup">Create free account<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
+              </Button>
+            </div>
+            {/* impeccable-variants-end 9437241d */}
+          </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t bg-card py-8">
+      <footer className="border-t glass py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">

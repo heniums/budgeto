@@ -107,7 +107,7 @@ export function Layout(): JSX.Element {
     <div
       role="radiogroup"
       aria-label="Theme mode"
-      className="flex items-center gap-1 rounded-lg border border-white/10 bg-background/80 p-1"
+      className="flex items-center gap-1 rounded-lg glass p-1"
     >
       <button
         type="button"
