@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getWallets, type WalletData } from '../api/wallets';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/memphis/button';
+import { Input } from '@/components/memphis/input';
 import {
   Table,
   TableBody,
@@ -80,7 +80,7 @@ export function WalletList(): JSX.Element {
       </div>
 
       {loading ? (
-        <div className="glass rounded-lg">
+        <div className="memphis-card rounded-2xl">
           <Table>
             <TableHeader>
               <TableRow>
@@ -124,7 +124,7 @@ export function WalletList(): JSX.Element {
       ) : wallets.length === 0 ? (
         <p>No wallets yet.</p>
       ) : (
-        <div className="glass rounded-lg">
+        <div className="memphis-card rounded-2xl overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>

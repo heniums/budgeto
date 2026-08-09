@@ -7,10 +7,10 @@ import { useAuth } from '../auth/AuthContext';
 import { register as apiRegister } from '../api/auth';
 import { FormError } from '../components/FormError';
 import { FormAlert } from '../components/FormAlert';
-import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/memphis/button';
+import { Card } from '@/components/memphis/card';
+import { Input } from '@/components/memphis/input';
+import { Label } from '@/components/memphis/label';
 
 const signUpSchema = z
   .object({
@@ -65,7 +65,7 @@ export function SignUp(): JSX.Element {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center gradient-mesh p-4">
+    <div className="flex min-h-screen items-center justify-center canvas-dots p-4">
       <Card className="w-full max-w-md rounded-2xl p-8">
         <h1 className="mb-2 text-2xl font-semibold text-foreground">
           Create your account
