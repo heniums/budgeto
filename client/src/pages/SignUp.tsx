@@ -8,6 +8,9 @@ import { register as apiRegister } from '../api/auth';
 import { FormError } from '../components/FormError';
 import { FormAlert } from '../components/FormAlert';
 import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const signUpSchema = z
   .object({
@@ -63,7 +66,7 @@ export function SignUp(): JSX.Element {
 
   return (
     <div className="flex min-h-screen items-center justify-center gradient-mesh p-4">
-      <div className="glass w-full max-w-md rounded-2xl p-8">
+      <Card className="w-full max-w-md rounded-2xl p-8">
         <h1 className="mb-2 text-2xl font-semibold text-foreground">
           Create your account
         </h1>
@@ -74,10 +77,10 @@ export function SignUp(): JSX.Element {
 
         <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4">
           <div className="space-y-2">
-            <label htmlFor={ids.name} className="text-sm font-medium text-foreground">
+            <Label htmlFor={ids.name} className="text-sm font-medium text-foreground">
               Full name
-            </label>
-            <input
+            </Label>
+            <Input
               id={ids.name}
               type="text"
               autoComplete="name"
@@ -85,16 +88,15 @@ export function SignUp(): JSX.Element {
               {...register('name')}
               aria-invalid={errors.name ? true : undefined}
               aria-describedby={errors.name ? `${ids.name}-error` : undefined}
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError id={`${ids.name}-error`} message={errors.name?.message} />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor={ids.email} className="text-sm font-medium text-foreground">
+            <Label htmlFor={ids.email} className="text-sm font-medium text-foreground">
               Email address
-            </label>
-            <input
+            </Label>
+            <Input
               id={ids.email}
               type="email"
               autoComplete="email"
@@ -102,7 +104,6 @@ export function SignUp(): JSX.Element {
               {...register('email')}
               aria-invalid={errors.email ? true : undefined}
               aria-describedby={errors.email ? `${ids.email}-error` : undefined}
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${ids.email}-error`}
@@ -111,10 +112,10 @@ export function SignUp(): JSX.Element {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor={ids.password} className="text-sm font-medium text-foreground">
+            <Label htmlFor={ids.password} className="text-sm font-medium text-foreground">
               Password
-            </label>
-            <input
+            </Label>
+            <Input
               id={ids.password}
               type="password"
               autoComplete="new-password"
@@ -124,7 +125,6 @@ export function SignUp(): JSX.Element {
               aria-describedby={
                 errors.password ? `${ids.password}-error` : undefined
               }
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${ids.password}-error`}
@@ -133,10 +133,10 @@ export function SignUp(): JSX.Element {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor={ids.confirm} className="text-sm font-medium text-foreground">
+            <Label htmlFor={ids.confirm} className="text-sm font-medium text-foreground">
               Confirm password
-            </label>
-            <input
+            </Label>
+            <Input
               id={ids.confirm}
               type="password"
               autoComplete="new-password"
@@ -146,7 +146,6 @@ export function SignUp(): JSX.Element {
               aria-describedby={
                 errors.confirm ? `${ids.confirm}-error` : undefined
               }
-              className="glass w-full rounded-lg border px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/20"
             />
             <FormError
               id={`${ids.confirm}-error`}
@@ -167,7 +166,7 @@ export function SignUp(): JSX.Element {
             Sign in
           </Link>
         </p>
-      </div>
+      </Card>
     </div>
   );
 }

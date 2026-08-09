@@ -40,7 +40,7 @@ export function Landing(): JSX.Element {
   return (
     <div className="min-h-screen bg-background gradient-mesh">
       {/* Navigation */}
-      <header className="border-b glass">
+      <header className="sticky top-0 z-50 border-b glass-strong">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             <div className="flex items-center gap-2">
@@ -206,83 +206,31 @@ export function Landing(): JSX.Element {
       {/* CTA Section */}
       <section className="py-20">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div data-impeccable-variants="9437241d" data-impeccable-variant-count="3" style={{ display: "contents" }}>
-            {/* impeccable-variants-start 9437241d */}
-            {/* Original */}
-            <div data-impeccable-variant="original">
-              <div className="glass-card text-center py-16 px-8 rounded-2xl">
-                <h2
-                  className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight"
-                  style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
-                >
-                  Ready to take control?
-                </h2>
-                <p
-                  className="text-muted-foreground mb-8 max-w-xl mx-auto"
-                  style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
-                >
-                  Join users who have simplified their personal finance management with Budgeto.
-                </p>
-                <Button asChild size="lg" className="font-semibold shadow-[0_0_24px_hsl(160_84%_39%_/_0.3)]">
-                  <Link to="/signup">
-                    Create free account
-                    <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-                  </Link>
-                </Button>
-              </div>
-            </div>
-            {/* Variants: insert below this line */}
-            <style data-impeccable-css="9437241d">{`
-              @scope ([data-impeccable-variant="1"]) { :scope > .v1 {
-                background: rgba(255,255,255,0.72);
-                backdrop-filter: blur(28px) saturate(200%);
-                -webkit-backdrop-filter: blur(28px) saturate(200%);
-                border: 1px solid rgba(255,255,255,0.55);
-                box-shadow: 0 0 0 1px rgba(16,183,127,0.10) inset, 0 12px 40px rgba(16,183,127,0.08), 0 4px 16px rgba(0,0,0,0.06);
-              } }
-              @scope ([data-impeccable-variant="2"]) { :scope > .v2 {
-                background: rgba(255,255,255,0.60);
-                backdrop-filter: blur(20px) saturate(180%);
-                -webkit-backdrop-filter: blur(20px) saturate(180%);
-                border: 1px solid rgba(16,183,127,0.30);
-                box-shadow: 0 0 40px rgba(16,183,127,0.15) inset, 0 8px 32px rgba(16,183,127,0.10), 0 2px 8px rgba(0,0,0,0.05);
-              } }
-              @scope ([data-impeccable-variant="3"]) { :scope > .v3 {
-                background: rgba(245,250,248,0.80);
-                backdrop-filter: blur(24px) saturate(190%);
-                -webkit-backdrop-filter: blur(24px) saturate(190%);
-                border: 1px solid rgba(150,200,180,0.40);
-                box-shadow: 0 8px 48px rgba(16,183,127,0.12), 0 2px 12px rgba(0,0,0,0.04);
-              } }
-            `}</style>
-            <div data-impeccable-variant="1" className="v1 text-center py-16 px-8 rounded-2xl">
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 20% 12%)" }}>Ready to take control?</h2>
-              <p className="text-muted-foreground mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 8% 38%)" }}>Join users who have simplified their personal finance management with Budgeto.</p>
-              <Button asChild size="lg" className="font-semibold shadow-[0_0_28px_rgba(16,183,127,0.40)]" style={{ background: "hsl(150 69% 32%)", color: "#fff" }}>
-                <Link to="/signup">Create free account<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
-              </Button>
-            </div>
-            <div data-impeccable-variant="2" className="v2 text-center py-16 px-8 rounded-2xl" style={{ display: "none" }}>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 20% 12%)" }}>Ready to take control?</h2>
-              <p className="text-muted-foreground mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 8% 38%)" }}>Join users who have simplified their personal finance management with Budgeto.</p>
-              <Button asChild size="lg" className="font-semibold shadow-[0_0_32px_rgba(16,183,127,0.50)]" style={{ background: "hsl(150 69% 32%)", color: "#fff" }}>
-                <Link to="/signup">Create free account<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
-              </Button>
-            </div>
-            <div data-impeccable-variant="3" className="v3 text-center py-16 px-8 rounded-2xl" style={{ display: "none" }}>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 20% 12%)" }}>Ready to take control?</h2>
-              <p className="text-muted-foreground mb-8 max-w-xl mx-auto" style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif", color: "hsl(150 8% 38%)" }}>Join users who have simplified their personal finance management with Budgeto.</p>
-              <Button asChild size="lg" className="font-semibold shadow-[0_0_24px_rgba(16,183,127,0.35)]" style={{ background: "hsl(150 69% 32%)", color: "#fff" }}>
-                <Link to="/signup">Create free account<ArrowRight className="ml-2 h-4 w-4" aria-hidden /></Link>
-              </Button>
-            </div>
-            {/* impeccable-variants-end 9437241d */}
+          <div className="glass-card text-center py-16 px-8 rounded-2xl">
+            <h2
+              className="text-3xl sm:text-4xl font-bold mb-4 tracking-tight"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Ready to take control?
+            </h2>
+            <p
+              className="text-muted-foreground mb-8 max-w-xl mx-auto"
+              style={{ fontFamily: "'Plus Jakarta Sans', system-ui, sans-serif" }}
+            >
+              Join users who have simplified their personal finance management with Budgeto.
+            </p>
+            <Button asChild size="lg" className="font-semibold shadow-[0_0_24px_hsl(160_84%_39%_/_0.3)]">
+              <Link to="/signup">
+                Create free account
+                <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+              </Link>
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Footer */}
-      <footer className="border-t glass py-8">
+      <footer className="border-t glass-strong py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">

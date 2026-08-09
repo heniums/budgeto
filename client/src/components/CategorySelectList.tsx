@@ -66,10 +66,14 @@ function LongPressCategoryChip({
       aria-label={category.name}
       title={category.name}
       tabIndex={0}
-      style={{ color: category.color }}
+      style={
+        isSelected
+          ? { backgroundColor: category.color, borderColor: category.color }
+          : { borderColor: category.color + '40', color: category.color, backgroundColor: category.color + '15' }
+      }
       className={cn(
-        'flex items-center gap-1.5 h-9 px-3 rounded-full border-2 border-transparent cursor-pointer shrink-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
-        isSelected ? 'border-current bg-current/15' : 'hover:bg-muted',
+        'flex items-center gap-1.5 h-9 px-3 rounded-full border-2 cursor-pointer shrink-0 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 select-none',
+        isSelected ? 'text-white border-transparent' : 'hover:border-current',
       )}
       onClick={() => onSelect(category.id)}
       onKeyDown={(e) => onKeyDown(e, index, category)}

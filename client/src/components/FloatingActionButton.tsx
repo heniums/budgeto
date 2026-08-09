@@ -15,7 +15,7 @@ export function FloatingActionButton({
   return (
     <Button
       size="icon"
-      className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full glass glass-strong text-primary shadow-lg shadow-primary/20 hover:brightness-110 transition-all"
+      className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full glass bg-primary shadow-lg shadow-primary/25 text-primary-foreground hover:bg-primary/90"
       aria-label={label}
       title={label}
       onClick={onClick}

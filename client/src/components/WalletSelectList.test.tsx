@@ -67,7 +67,7 @@ describe('WalletSelectList — rendering', () => {
       .getByText('Cash')
       .closest('[data-testid="wallet-chip"]');
     expect(cashChip).toHaveStyle({
-      borderColor: '#1f8a4c',
+      borderColor: '#1f8a4c40',
       color: '#1f8a4c',
     });
   });
