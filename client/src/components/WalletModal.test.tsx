@@ -84,7 +84,7 @@ describe('WalletModal — create mode (no walletId)', () => {
       expect(createWallet).toHaveBeenCalledWith({
         name: 'Savings',
         description: '',
-        color: '#1f8a4c',
+        color: '#22a55a',
         currency: 'USD',
         balance: '100.00',
       });

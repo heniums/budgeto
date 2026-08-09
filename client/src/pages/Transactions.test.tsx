@@ -556,7 +556,8 @@ describe('Home responsive layout', () => {
     renderHome();
     await screen.findByText('Salary');
     const table = screen.getByText('Salary').closest('table');
-    expect(table?.parentElement).toHaveClass('rounded-lg');
+    expect(table?.parentElement).toHaveClass('memphis-card');
+    expect(table?.parentElement).toHaveClass('overflow-hidden');
   });
 });
 
