@@ -169,7 +169,7 @@ export function WalletSelectList({
           </PopoverTrigger>
           <PopoverPrimitive.Content
             align="start"
-            className="z-50 w-72 rounded-md border bg-popover p-4 text-popover-foreground shadow-md outline-none"
+            className="z-50 w-72 rounded-md border glass p-4 text-popover-foreground shadow-md outline-none"
             sideOffset={4}
           >
             <FuzzyItemPicker

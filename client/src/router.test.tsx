@@ -108,7 +108,7 @@ describe('router guards', () => {
         <RouterProvider router={router} />
       </AuthProvider>,
     );
-    expect(await screen.findByText('Your Money,')).toBeInTheDocument();
-    expect(await screen.findByText('Under Control')).toBeInTheDocument();
+    expect(await screen.findByText('Your Money.')).toBeInTheDocument();
+    expect(await screen.findByText('Under Control.')).toBeInTheDocument();
   });
 });

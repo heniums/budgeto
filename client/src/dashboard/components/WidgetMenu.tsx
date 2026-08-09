@@ -39,7 +39,7 @@ export function WidgetMenu({
             <Button
               variant="ghost"
               size="icon"
-              className="h-7 w-7 bg-background/80 backdrop-blur-sm"
+              className="h-7 w-7 glass"
               aria-label="Widget options"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}

@@ -63,7 +63,7 @@ export function DateRangeButton({
         <div
           role="menu"
           aria-label="Date range"
-          className="absolute z-20 mt-1 min-w-[10rem] rounded-md border border-input bg-background p-1 shadow-md"
+          className="absolute z-20 mt-1 min-w-[10rem] rounded-md border glass p-1 shadow-md"
         >
           {DATE_PRESETS.map((preset) => (
             <button
