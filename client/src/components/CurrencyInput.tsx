@@ -1,6 +1,6 @@
 import * as React from 'react';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/memphis/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { cn } from '@/lib/utils';
 import {
@@ -128,7 +128,7 @@ export function CurrencyInput({
       <PopoverPrimitive.Content
         align="start"
         sideOffset={4}
-        className="w-72 rounded-md border glass p-0 text-popover-foreground shadow-md outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
+        className="w-72 rounded-md border-2 border-border bg-card p-0 text-popover-foreground memphis-card outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
         onCloseAutoFocus={(e) => e.preventDefault()}
       >
         <div

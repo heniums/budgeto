@@ -13,16 +13,16 @@ import type { CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { ICONS } from '../lib/icons';
 import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Button } from '@/components/memphis/button';
+import { Input } from '@/components/memphis/input';
+import { Label } from '@/components/memphis/label';
 import { MoneyInput } from './MoneyInput';
 import { ColorInput } from './ColorInput';
 import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/memphis/dialog';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
 import { CategoryBudgetField } from './CategoryBudgetField';

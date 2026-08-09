@@ -4,11 +4,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { transferFunds, type WalletData } from '../api/wallets';
 import { ApiError } from '../api/client';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/memphis/input';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
+import { Label } from '@/components/memphis/label';
+import { Button } from '@/components/memphis/button';
 import { MoneyInput } from './MoneyInput';
 
 const transferSchema = z

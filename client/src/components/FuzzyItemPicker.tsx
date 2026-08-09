@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { Input } from '@/components/ui/input';
+import { Input } from '@/components/memphis/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Search } from 'lucide-react';
 import { cn } from '@/lib/utils';

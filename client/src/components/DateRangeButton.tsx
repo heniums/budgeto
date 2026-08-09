@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/memphis/button';
 import { cn } from '@/lib/utils';
 import { DATE_PRESETS, type DatePreset } from '@/lib/dateRange';
 
@@ -63,7 +63,7 @@ export function DateRangeButton({
         <div
           role="menu"
           aria-label="Date range"
-          className="absolute z-20 mt-1 min-w-[10rem] rounded-md border glass p-1 shadow-md"
+          className="absolute z-20 mt-1 min-w-[10rem] rounded-md border-2 border-border bg-card p-1 memphis-card"
         >
           {DATE_PRESETS.map((preset) => (
             <button

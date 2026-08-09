@@ -1,5 +1,5 @@
 import { Plus, type LucideIcon } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/memphis/button';
 
 interface FloatingActionButtonProps {
   onClick: () => void;
@@ -15,7 +15,7 @@ export function FloatingActionButton({
   return (
     <Button
       size="icon"
-      className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full glass bg-primary shadow-lg shadow-primary/25 text-primary-foreground hover:bg-primary/90"
+      className="fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full border-2 border-border bg-accent text-accent-foreground memphis-btn-shadow"
       aria-label={label}
       title={label}
       onClick={onClick}

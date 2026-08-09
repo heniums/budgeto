@@ -3,8 +3,8 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
+} from '@/components/memphis/dialog';
+import { Button } from '@/components/memphis/button';
 import type { TransactionData } from '../api/transactions';
 import dayjs from 'dayjs';
 import { Money } from './Money';

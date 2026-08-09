@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import { Progress } from '@/components/ui/progress';
+import { Progress } from '@/components/memphis/progress';
 import { Money } from './Money';
 import type { BudgetData, BudgetCategoryData } from '../api/budgets';
 
@@ -27,7 +27,7 @@ export function BudgetCard({ budget, onClick }: BudgetCardProps): JSX.Element {
   return (
     <div
       key={budget.id}
-      className="glass cursor-pointer rounded-md p-4 space-y-3 hover:brightness-110"
+      className="memphis-card cursor-pointer rounded-2xl p-4 space-y-3 hover:shadow-cartoon"
       data-testid="budget-card"
       onClick={onClick}
     >
