@@ -1,14 +1,20 @@
-export const OTHER_COLOR = '#9ca3af';
+export const OTHER_COLOR = 'hsl(160 12% 35%)';
 
 export const CHART_COLORS = {
-  income: '#10b981',
-  expense: '#f43f5e',
-  net: '#38bdf8',
-  grid: 'rgba(148, 163, 184, 0.15)',
-  text: '#94a3b8',
-  tooltipBg: 'rgba(11, 18, 37, 0.9)',
+  income: 'hsl(152 76% 38%)',
+  expense: 'hsl(0 78% 50%)',
+  net: 'hsl(48 96% 56%)',
+  grid: 'hsl(160 12% 35% / 0.15)',
+  text: 'hsl(160 12% 35%)',
+  tooltipBg: 'hsl(0 0% 100%)',
   fallback: [
-    '#6366f1', '#f59e0b', '#10b981', '#f43f5e',
-    '#8b5cf6', '#ec4899', '#14b8a6', '#f97316',
+    'hsl(152 76% 38%)',
+    'hsl(48 96% 56%)',
+    'hsl(0 78% 50%)',
+    'hsl(210 80% 50%)',
+    'hsl(280 60% 50%)',
+    'hsl(330 70% 50%)',
+    'hsl(20 80% 50%)',
+    'hsl(195 70% 45%)',
   ],
-};
+} as const;
