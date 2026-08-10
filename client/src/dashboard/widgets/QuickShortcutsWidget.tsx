@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/memphis/button';
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -17,7 +17,7 @@ export function QuickShortcutsWidget(): JSX.Element {
         className="h-auto flex-col gap-2 py-4"
         onClick={() => navigate('/transactions', { state: { mode: 'income' } })}
       >
-        <ArrowDownLeft className="h-5 w-5 text-emerald-500" />
+        <ArrowDownLeft className="h-5 w-5 text-primary" />
         <span>Add Income</span>
       </Button>
       <Button
@@ -27,7 +27,7 @@ export function QuickShortcutsWidget(): JSX.Element {
           navigate('/transactions', { state: { mode: 'expense' } })
         }
       >
-        <ArrowUpRight className="h-5 w-5 text-rose-500" />
+        <ArrowUpRight className="h-5 w-5 text-destructive" />
         <span>Add Expense</span>
       </Button>
       <Button
@@ -37,7 +37,7 @@ export function QuickShortcutsWidget(): JSX.Element {
           navigate('/transactions', { state: { mode: 'transfer' } })
         }
       >
-        <ArrowLeftRight className="h-5 w-5 text-sky-500" />
+        <ArrowLeftRight className="h-5 w-5 text-ring" />
         <span>Transfer</span>
       </Button>
       <Button
@@ -45,7 +45,7 @@ export function QuickShortcutsWidget(): JSX.Element {
         className="h-auto flex-col gap-2 py-4"
         onClick={() => navigate('/budgets')}
       >
-        <PiggyBank className="h-5 w-5 text-amber-500" />
+        <PiggyBank className="h-5 w-5 text-accent" />
         <span>Add Budget</span>
       </Button>
     </div>

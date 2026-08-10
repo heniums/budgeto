@@ -7,17 +7,17 @@ import { createWallet } from '../api/wallets';
 import { createCategory, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { detectLocaleCurrency } from '../lib/currencies';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/memphis/button';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/memphis/input';
+import { Label } from '@/components/memphis/label';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from '@/components/memphis/dialog';
 
 const walletSchema = z.object({
   name: z.string().min(1, 'Name is required.').max(128),

@@ -10,9 +10,9 @@ describe('ColorInput', () => {
   });
 
   it('shows the current hex value in the trigger', () => {
-    render(<ColorInput value="#1f8a4c" onChange={vi.fn()} />);
-    expect(screen.getByRole('button', { name: '#1f8a4c' })).toHaveTextContent(
-      '#1f8a4c',
+    render(<ColorInput value="#22a55a" onChange={vi.fn()} />);
+    expect(screen.getByRole('button', { name: '#22a55a' })).toHaveTextContent(
+      '#22a55a',
     );
   });
 
@@ -29,12 +29,12 @@ describe('ColorInput', () => {
     render(<ColorInput value="#ff0000" onChange={onChange} />);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', { name: '#ff0000' }));
-    // Click the first preset (#1f8a4c)
-    const presets = screen.getAllByTitle('#1f8a4c');
+    // Click the first preset (#22a55a)
+    const presets = screen.getAllByTitle('#22a55a');
     if (presets.length > 0) {
       await user.click(presets[0]);
     }
-    expect(onChange).toHaveBeenCalledWith('#1f8a4c');
+    expect(onChange).toHaveBeenCalledWith('#22a55a');
   });
 
   it('renders a custom color input inside the popover', async () => {
@@ -50,11 +50,11 @@ describe('ColorInput', () => {
   });
 
   it('preset color buttons have aria-label and aria-pressed', async () => {
-    render(<ColorInput value="#1f8a4c" onChange={vi.fn()} />);
+    render(<ColorInput value="#22a55a" onChange={vi.fn()} />);
     const user = userEvent.setup();
-    await user.click(screen.getByRole('button', { name: '#1f8a4c' }));
+    await user.click(screen.getByRole('button', { name: '#22a55a' }));
     const activePreset = screen.getByRole('button', {
-      name: '#1f8a4c',
+      name: '#22a55a',
       pressed: true,
     });
     expect(activePreset).toBeInTheDocument();

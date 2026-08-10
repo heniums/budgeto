@@ -67,7 +67,7 @@ describe('CategoryModal — create mode (no categoryId)', () => {
     await waitFor(() => {
       expect(createCategory).toHaveBeenCalledWith({
         name: 'Food',
-        color: '#1f8a4c',
+        color: '#22a55a',
         icon: 'Tag',
       });
     });

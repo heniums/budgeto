@@ -2,24 +2,24 @@
 // These values are stable and unlikely to change per-feature.
 
 /** Default wallet/category accent colour (Budgeto brand green). */
-export const DEFAULT_COLOR = '#1f8a4c';
+export const DEFAULT_COLOR = '#22a55a';
 
 /** Curated preset colour palette for the colour picker. */
 export const PRESET_COLORS = [
-  '#1f8a4c',
-  '#ef4444',
-  '#f97316',
+  '#22a55a',
+  '#10b981',
+  '#84cc16',
   '#eab308',
-  '#22c55e',
-  '#14b8a6',
-  '#3b82f6',
-  '#6366f1',
-  '#8b5cf6',
-  '#a855f7',
+  '#f59e0b',
+  '#ef4444',
   '#ec4899',
-  '#f43f5e',
-  '#6b7280',
-  '#09090b',
+  '#a855f7',
+  '#6366f1',
+  '#3b82f6',
+  '#0ea5e9',
+  '#14b8a6',
+  '#64748b',
+  '#0f172a',
   '#ffffff',
 ] as const;
 

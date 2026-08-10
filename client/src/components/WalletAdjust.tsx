@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { adjustBalance } from '../api/wallets';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/memphis/button';
+import { Input } from '@/components/memphis/input';
 import { TableCell, TableRow } from '@/components/ui/table';
 
 export interface WalletAdjustProps {

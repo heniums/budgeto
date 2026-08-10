@@ -149,7 +149,8 @@ describe('Categories page', () => {
     renderList();
     await screen.findByText('Groceries');
     const table = screen.getByText('Groceries').closest('table');
-    expect(table?.parentElement).toHaveClass('rounded-lg');
+    expect(table?.parentElement).toHaveClass('memphis-card');
+    expect(table?.parentElement).toHaveClass('overflow-hidden');
   });
 
   it('opens CategoryModal in create mode when clicking the FAB', async () => {

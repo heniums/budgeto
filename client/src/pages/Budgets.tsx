@@ -3,8 +3,8 @@ import dayjs from 'dayjs';
 import { getBudgets, type BudgetData } from '../api/budgets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
-import { Button } from '@/components/ui/button';
-import { Dialog, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from '@/components/memphis/button';
+import { Dialog, DialogTrigger } from '@/components/memphis/dialog';
 import { BudgetCard } from '../components/BudgetCard';
 import { BudgetForm } from '../components/BudgetForm';
 import { BudgetPeriodNav } from '../components/BudgetPeriodNav';
@@ -120,7 +120,7 @@ export function Budgets(): JSX.Element {
           <Skeleton className="h-48 w-full rounded-md" />
         </div>
       ) : budgets.length === 0 ? (
-        <div className="glass rounded-lg p-6 text-center">
+        <div className="memphis-card rounded-2xl p-6 text-center">
           <p className="text-muted-foreground">No budgets yet.</p>
           <p className="text-sm text-muted-foreground">
             Add a budget to start tracking your spending limits.

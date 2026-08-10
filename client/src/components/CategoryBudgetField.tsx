@@ -1,5 +1,5 @@
 import type { CategoryData } from '../api/categories';
-import { Button } from '@/components/ui/button';
+import { Button } from '@/components/memphis/button';
 import { MoneyInput } from './MoneyInput';
 import { FormError } from './FormError';
 

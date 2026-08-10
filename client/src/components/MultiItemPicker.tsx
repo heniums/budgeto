@@ -1,9 +1,9 @@
 import { useState, useMemo } from 'react';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/memphis/popover';
+import { Checkbox } from '@/components/memphis/checkbox';
+import { Input } from '@/components/memphis/input';
+import { Badge } from '@/components/memphis/badge';
+import { Button } from '@/components/memphis/button';
 import { getIcon } from '@/lib/icons';
 import { X } from 'lucide-react';
 

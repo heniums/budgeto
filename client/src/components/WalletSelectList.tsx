@@ -1,14 +1,14 @@
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/memphis/badge';
+import { Button } from '@/components/memphis/button';
 import { useState, useRef } from 'react';
-import { Popover, PopoverTrigger } from '@/components/ui/popover';
+import { Popover, PopoverTrigger } from '@/components/memphis/popover';
 import * as PopoverPrimitive from '@radix-ui/react-popover';
 import {
   ContextMenu,
   ContextMenuContent,
   ContextMenuItem,
   ContextMenuTrigger,
-} from '@/components/ui/context-menu';
+} from '@/components/memphis/context-menu';
 import { cn } from '@/lib/utils';
 import { useLongPress } from '../hooks/use-long-press';
 import { Plus, Grid3X3, MoreHorizontal } from 'lucide-react';
@@ -169,7 +169,7 @@ export function WalletSelectList({
           </PopoverTrigger>
           <PopoverPrimitive.Content
             align="start"
-            className="z-50 w-72 rounded-md border glass p-4 text-popover-foreground shadow-md outline-none"
+            className="z-50 w-72 rounded-md border-2 border-border bg-card p-4 text-popover-foreground memphis-card outline-none"
             sideOffset={4}
           >
             <FuzzyItemPicker

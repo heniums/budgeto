@@ -12,8 +12,8 @@ import {
 import { getWallets, type WalletData } from '../api/wallets';
 import { getCategories, type CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/memphis/button';
+import { Input } from '@/components/memphis/input';
 import {
   Table,
   TableBody,
@@ -28,7 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from '@/components/ui/dialog';
+} from '@/components/memphis/dialog';
 import { TransactionForm } from '../components/TransactionForm';
 import { FormAlert } from '../components/FormAlert';
 import { TransferForm } from '../components/TransferForm';
@@ -44,7 +44,7 @@ import {
   ContextMenuTrigger,
   ContextMenuContent,
   ContextMenuItem,
-} from '@/components/ui/context-menu';
+} from '@/components/memphis/context-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
@@ -563,7 +563,7 @@ export function Transactions(): JSX.Element {
 
       {initialLoading ? (
         <div className="space-y-6">
-          <div className="glass rounded-lg">
+          <div className="memphis-card rounded-2xl overflow-hidden">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -601,7 +601,7 @@ export function Transactions(): JSX.Element {
           </div>
         </div>
       ) : !loadingMore && wallets.length === 0 ? (
-        <div className="glass rounded-lg p-8 text-center">
+        <div className="memphis-card rounded-2xl p-8 text-center">
           <p className="text-lg font-medium">You have no wallets yet.</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Create your first wallet to start tracking transactions.
@@ -611,7 +611,7 @@ export function Transactions(): JSX.Element {
           </Button>
         </div>
       ) : !loadingMore && categories.length === 0 ? (
-        <div className="glass rounded-lg p-8 text-center">
+        <div className="memphis-card rounded-2xl p-8 text-center">
           <p className="text-lg font-medium">You have no categories yet.</p>
           <p className="mt-2 text-sm text-muted-foreground">
             Create your first category to organize spending.
@@ -621,7 +621,7 @@ export function Transactions(): JSX.Element {
           </Button>
         </div>
       ) : transactions.length === 0 ? (
-        <div className="glass rounded-lg p-8 text-center">
+        <div className="memphis-card rounded-2xl p-8 text-center">
           <p className="text-muted-foreground">No transactions found.</p>
           <Button className="mt-4" onClick={() => setTxOpen(true)}>
             Add your first transaction
@@ -632,7 +632,7 @@ export function Transactions(): JSX.Element {
           <div className="space-y-6">
             {groups.map((group) => (
             <div key={group.key} className="mb-4">
-              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 border border-primary/40 glass rounded-lg px-3 py-2 md:top-8 shadow-md transition-shadow duration-200 hover:shadow-lg">
+              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 border-2 border-border bg-card rounded-lg px-3 py-2 md:top-8 shadow-md transition-shadow duration-200 hover:shadow-lg">
                 <h2
                   data-testid="period-header"
                   className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
@@ -656,7 +656,7 @@ export function Transactions(): JSX.Element {
                   </div>
                 )}
               </div>
-                <div className="glass rounded-lg">
+                <div className="memphis-card rounded-2xl overflow-hidden">
                   <Table>
                     <TableHeader>
                       <TableRow>

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getCategories, type CategoryData } from '../api/categories';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Button } from '@/components/memphis/button';
+import { Input } from '@/components/memphis/input';
 import {
   Table,
   TableBody,
@@ -79,7 +79,7 @@ export function Categories(): JSX.Element {
       </div>
 
       {loading ? (
-        <div className="glass rounded-lg">
+        <div className="memphis-card rounded-2xl">
           <Table>
             <TableHeader>
               <TableRow>
@@ -116,7 +116,7 @@ export function Categories(): JSX.Element {
       ) : categories.length === 0 ? (
         <p>No categories yet.</p>
       ) : (
-        <div className="glass rounded-lg">
+        <div className="memphis-card rounded-2xl overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -146,7 +146,7 @@ export function Categories(): JSX.Element {
                       key={category.id}
                       style={isSelected ? { backgroundColor: category.color } : undefined}
                       className={cn(
-                        'cursor-pointer glass',
+                        'cursor-pointer memphis-card',
                         !isSelected && 'hover:bg-muted/50'
                       )}
                       onClick={() => {

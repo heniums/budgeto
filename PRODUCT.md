@@ -47,7 +47,7 @@ Multi-wallet with per-wallet currency. Unlike single-account trackers, Budgeto l
 
 ## Brand Commitments
 
-None confirmed.
+Memphis-style illustration aesthetic with finance-green tint: cream canvas (`hsl(60 30% 96%)`), near-black 2px ink strokes, hard offset drop shadows, finance-green primary (`hsl(152 76% 38%)`), and a yellow accent (`hsl(48 96% 56%)`) for the floating action button and net-cash signals. Display typography uses Fraunces (system fallback).
 
 ## Evidence on Hand
 
