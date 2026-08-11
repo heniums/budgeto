@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { MonthlyCashFlowWidget } from './MonthlyCashFlowWidget';
+import { WidgetCard } from '../components/WidgetCard';
 
 interface ChartProps {
   data: { datasets: { label: string }[] };
@@ -36,7 +37,11 @@ vi.mock('../hooks/useWidgetData', () => ({
 
 describe('MonthlyCashFlowWidget', () => {
   it('renders the chart with 3 datasets', () => {
-    render(<MonthlyCashFlowWidget />);
+    render(
+      <WidgetCard title="Cash Flow">
+        <MonthlyCashFlowWidget />
+      </WidgetCard>,
+    );
     expect(screen.getByText('Cash Flow')).toBeInTheDocument();
     expect(mockLine).toHaveBeenCalledTimes(1);
     const callProps = mockLine.mock.calls[0][0] as ChartProps;

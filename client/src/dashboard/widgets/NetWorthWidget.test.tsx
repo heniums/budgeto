@@ -1,6 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import { NetWorthWidget } from './NetWorthWidget';
+import { WidgetCard } from '../components/WidgetCard';
 
 vi.mock('../hooks/useWidgetData', () => ({
   useWidgetData: () => ({
@@ -30,7 +31,11 @@ vi.mock('../hooks/useWidgetData', () => ({
 
 describe('NetWorthWidget', () => {
   it('renders both currency totals', () => {
-    render(<NetWorthWidget />);
+    render(
+      <WidgetCard title="Net Worth">
+        <NetWorthWidget />
+      </WidgetCard>,
+    );
     expect(screen.getByText('Net Worth')).toBeInTheDocument();
     expect(screen.getByText('USD')).toBeInTheDocument();
     expect(screen.getByText('EUR')).toBeInTheDocument();

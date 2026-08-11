@@ -196,10 +196,8 @@ describe('Home transactions list', () => {
   it('filters by wallet on the server', async () => {
     renderHome();
     await screen.findByText('Salary');
-    await userEvent.selectOptions(
-      screen.getByLabelText('Filter by wallet'),
-      'w1',
-    );
+    await userEvent.click(screen.getByLabelText('Filter by wallet'));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Cash' }));
     await waitFor(() => {
       expect(screen.queryByText('Coffee')).not.toBeInTheDocument();
     });
@@ -209,10 +207,8 @@ describe('Home transactions list', () => {
   it('filters by type (expense) on the server', async () => {
     renderHome();
     await screen.findByText('Salary');
-    await userEvent.selectOptions(
-      screen.getByLabelText('Filter by type'),
-      'expense',
-    );
+    await userEvent.click(screen.getByLabelText('Filter by type'));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Expense' }));
     await waitFor(() => {
       expect(screen.queryByText('Salary')).not.toBeInTheDocument();
     });
@@ -222,10 +218,8 @@ describe('Home transactions list', () => {
   it('filters by category on the server', async () => {
     renderHome();
     await screen.findByText('Salary');
-    await userEvent.selectOptions(
-      screen.getByLabelText('Filter by category'),
-      'c1',
-    );
+    await userEvent.click(screen.getByLabelText('Filter by category'));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Food' }));
     await waitFor(() => {
       expect(screen.queryByText('Coffee')).not.toBeInTheDocument();
     });
@@ -416,7 +410,7 @@ describe('Home period grouping', () => {
     // Day preset: two different days => two headers.
     expect(screen.getAllByTestId('period-header')).toHaveLength(2);
 
-    await userEvent.click(screen.getByRole('button', { name: /date:/i }));
+    await userEvent.click(screen.getByLabelText('Date range'));
     await userEvent.click(screen.getByRole('menuitem', { name: 'Month' }));
     // Month preset: both in January => single header.
     await waitFor(() => {
@@ -430,7 +424,7 @@ describe('Home period grouping', () => {
     await screen.findByText(/no transactions found/i);
     expect(screen.queryByLabelText('From date')).not.toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole('button', { name: /date:/i }));
+    await userEvent.click(screen.getByLabelText('Date range'));
     await userEvent.click(screen.getByRole('menuitem', { name: 'Custom' }));
     expect(await screen.findByLabelText('From date')).toBeInTheDocument();
     expect(screen.getByLabelText('To date')).toBeInTheDocument();
@@ -646,7 +640,7 @@ describe('Home transaction summary', () => {
     await screen.findAllByTestId('period-header');
 
     // Open the date range menu and click the "Month" preset.
-    const dateButton = screen.getByRole('button', { name: /date:/i });
+    const dateButton = screen.getByLabelText('Date range');
     await user.click(dateButton);
     const monthOption = await screen.findByRole('menuitem', { name: /month/i });
     await user.click(monthOption);
