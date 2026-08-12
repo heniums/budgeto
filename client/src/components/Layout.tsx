@@ -48,15 +48,15 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }): JSX.Element {
           onClick={onNavigate}
           className={({ isActive }) =>
             cn(
-              'flex items-center gap-2 rounded-full px-3 py-2 text-sm font-bold transition-all border-2',
+              'flex w-full min-w-0 items-center gap-2 rounded-full px-3 py-2 text-sm font-bold transition-all border-2',
               isActive
                 ? 'bg-primary text-primary-foreground border-border memphis-btn-shadow'
                 : 'text-foreground border-transparent hover:border-border hover:bg-secondary',
             )
           }
         >
-          <Icon className="h-4 w-4" aria-hidden />
-          {label}
+          <Icon className="h-4 w-4 shrink-0" aria-hidden />
+          <span className="min-w-0 flex-1 truncate">{label}</span>
         </NavLink>
       ))}
     </>
@@ -77,7 +77,7 @@ function SidebarContent({
       <div className="mb-6 shrink-0 px-2 text-lg font-black text-foreground">
         Budgeto
       </div>
-      <nav className="flex flex-1 flex-col gap-1 overflow-y-auto">
+      <nav className="flex flex-1 flex-col gap-2 overflow-x-clip overflow-y-auto pr-1">
         <NavLinks onNavigate={onNavigate} />
       </nav>
       <div className="mt-auto flex shrink-0 flex-col gap-3 border-t-2 border-border pt-4">
@@ -185,7 +185,7 @@ export function Layout(): JSX.Element {
       </aside>
 
       <div className="flex flex-1 flex-col">
-        <header className="sticky top-0 z-50 flex items-center justify-between border-b-2 border-border bg-card px-4 py-3 md:hidden">
+        <header className="sticky top-0 z-50 mb-6 flex items-center justify-between border-b-2 border-border bg-card px-4 py-3 memphis-btn-shadow md:hidden">
           <div className="flex items-center gap-2">
             <Avatar variant="mint" size={32} />
             <span className="font-black text-foreground">Budgeto</span>

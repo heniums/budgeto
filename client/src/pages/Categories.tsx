@@ -146,8 +146,8 @@ export function Categories(): JSX.Element {
                       key={category.id}
                       style={isSelected ? { backgroundColor: category.color } : undefined}
                       className={cn(
-                        'cursor-pointer memphis-card',
-                        !isSelected && 'hover:bg-muted/50'
+                        'cursor-pointer',
+                        !isSelected && 'hover:bg-muted/50',
                       )}
                       onClick={() => {
                         setSelectedCategoryId(category.id);
@@ -202,10 +202,16 @@ export function Categories(): JSX.Element {
                               borderRadius: '50%',
                               background: category.color,
                               flexShrink: 0,
+                              boxShadow: isSelected ? '0 0 0 2px #fff' : undefined,
                             }}
                             aria-hidden
                           />
-                          <span className="text-sm text-muted-foreground">
+                          <span
+                            className={cn(
+                              'text-sm',
+                              isSelected ? 'text-white' : 'text-muted-foreground',
+                            )}
+                          >
                             {category.color}
                           </span>
                         </div>

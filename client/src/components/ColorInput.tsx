@@ -48,8 +48,7 @@ export function ColorInput({
       <PopoverPrimitive.Content
         align="center"
         sideOffset={4}
-        className="w-64 rounded-md border-2 border-border bg-card p-4 text-popover-foreground memphis-card outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
-        onCloseAutoFocus={(e) => e.preventDefault()}
+        className="z-50 w-64 rounded-md border-2 border-border bg-card p-4 text-popover-foreground memphis-card outline-none data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95"
       >
         <div className="grid grid-cols-4 gap-2">
           {PRESET_COLORS.map((color) => (

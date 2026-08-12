@@ -37,6 +37,7 @@ import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WalletModal } from '../components/WalletModal';
 import { CategoryModal } from '../components/CategoryModal';
 import { DateRangeButton } from '../components/DateRangeButton';
+import { FilterDropdown } from '../components/FilterDropdown';
 import { Money } from '../components/Money';
 import { formatPeriodLabel, periodKey, type DatePreset } from '@/lib/dateRange';
 import {
@@ -503,44 +504,37 @@ export function Transactions(): JSX.Element {
           aria-label="Search transactions"
         />
         <DateRangeButton value={datePreset} onChange={setDatePreset} />
-        <select
+        <FilterDropdown
+          label="Wallet"
           value={walletFilter}
-          onChange={(e) => setWalletFilter(e.target.value)}
-          aria-label="Filter by wallet"
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="">All wallets</option>
-          {wallets.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.name}
-            </option>
-          ))}
-        </select>
-        <select
+          onChange={setWalletFilter}
+          ariaLabel="Filter by wallet"
+          options={[
+            { value: '', label: 'All wallets' },
+            ...wallets.map((w) => ({ value: w.id, label: w.name })),
+          ]}
+        />
+        <FilterDropdown
+          label="Category"
           value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          aria-label="Filter by category"
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="">All categories</option>
-          {categories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
-        <select
+          onChange={setCategoryFilter}
+          ariaLabel="Filter by category"
+          options={[
+            { value: '', label: 'All categories' },
+            ...categories.map((c) => ({ value: c.id, label: c.name })),
+          ]}
+        />
+        <FilterDropdown
+          label="Type"
           value={typeFilter}
-          onChange={(e) =>
-            setTypeFilter(e.target.value as 'all' | 'income' | 'expense')
-          }
-          aria-label="Filter by type"
-          className="rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="all">All types</option>
-          <option value="income">Income</option>
-          <option value="expense">Expense</option>
-        </select>
+          onChange={(v) => setTypeFilter(v as 'all' | 'income' | 'expense')}
+          ariaLabel="Filter by type"
+          options={[
+            { value: 'all', label: 'All types' },
+            { value: 'income', label: 'Income' },
+            { value: 'expense', label: 'Expense' },
+          ]}
+        />
         {datePreset === 'custom' && (
           <>
             <Input
@@ -632,7 +626,7 @@ export function Transactions(): JSX.Element {
           <div className="space-y-6">
             {groups.map((group) => (
             <div key={group.key} className="mb-4">
-              <div className="sticky top-16 z-10 mb-2 flex items-center justify-between gap-3 border-2 border-border bg-card rounded-lg px-3 py-2 md:top-8 shadow-md transition-shadow duration-200 hover:shadow-lg">
+              <div className="sticky top-[70px] z-10 mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-2 border-border bg-card rounded-lg px-3 py-2 md:top-8 md:flex-nowrap md:gap-3 shadow-md transition-shadow duration-200 hover:shadow-lg">
                 <h2
                   data-testid="period-header"
                   className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"

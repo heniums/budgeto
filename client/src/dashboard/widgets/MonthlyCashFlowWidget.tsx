@@ -1,12 +1,11 @@
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { useWidgetData } from '../hooks/useWidgetData';
-import { WidgetCard } from '../components/WidgetCard';
 import { CHART_COLORS } from '@/lib/chartTheme';
 import { formatPeriodLabel } from '@/lib/dateRange';
 
-export function MonthlyCashFlowWidget(): JSX.Element {
-  const { data, loading, error } = useWidgetData('monthly-cash-flow');
+export function MonthlyCashFlowWidget(): JSX.Element | null {
+  const { data, loading } = useWidgetData('monthly-cash-flow');
 
   const chartData = useMemo(() => {
     if (!data?.rows?.length) return null;
@@ -42,42 +41,40 @@ export function MonthlyCashFlowWidget(): JSX.Element {
     };
   }, [data]);
 
+  if (!chartData) {
+    return loading ? null : (
+      <p className="text-sm text-muted-foreground">
+        No cash flow data available
+      </p>
+    );
+  }
+
   return (
-    <WidgetCard loading={loading} error={error} title="Cash Flow">
-      {chartData ? (
-        <div className="h-full">
-          <Line
-            data={chartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              scales: {
-                x: {
-                  grid: { color: CHART_COLORS.grid },
-                  ticks: { color: CHART_COLORS.text },
-                },
-                y: {
-                  beginAtZero: true,
-                  grid: { color: CHART_COLORS.grid },
-                  ticks: { color: CHART_COLORS.text },
-                },
-              },
-              plugins: {
-                legend: {
-                  position: 'bottom' as const,
-                  labels: { color: CHART_COLORS.text },
-                },
-              },
-            }}
-          />
-        </div>
-      ) : (
-        !loading && (
-          <p className="text-sm text-muted-foreground">
-            No cash flow data available
-          </p>
-        )
-      )}
-    </WidgetCard>
+    <div className="h-full">
+      <Line
+        data={chartData}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              grid: { color: CHART_COLORS.grid },
+              ticks: { color: CHART_COLORS.text },
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: CHART_COLORS.grid },
+              ticks: { color: CHART_COLORS.text },
+            },
+          },
+          plugins: {
+            legend: {
+              position: 'bottom' as const,
+              labels: { color: CHART_COLORS.text },
+            },
+          },
+        }}
+      />
+    </div>
   );
 }

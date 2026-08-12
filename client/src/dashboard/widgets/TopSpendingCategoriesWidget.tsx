@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
 import { useWidgetData } from '../hooks/useWidgetData';
-import { WidgetCard } from '../components/WidgetCard';
 import { Money } from '@/components/Money';
 import { CHART_COLORS } from '@/lib/chartTheme';
 
-export function TopSpendingCategoriesWidget(): JSX.Element {
-  const { data, loading, error } = useWidgetData('top-spending-categories');
+export function TopSpendingCategoriesWidget(): JSX.Element | null {
+  const { data, loading } = useWidgetData('top-spending-categories');
 
   const currency = data?.currency ?? 'USD';
 
@@ -27,41 +26,39 @@ export function TopSpendingCategoriesWidget(): JSX.Element {
     }));
   }, [data?.categories]);
 
+  if (top5.length === 0) {
+    return loading ? null : (
+      <p className="text-sm text-muted-foreground">
+        No spending data available
+      </p>
+    );
+  }
+
   return (
-    <WidgetCard loading={loading} error={error} title="Top Categories">
-      {top5.length > 0 ? (
-        <ul className="space-y-3">
-          {top5.map((c) => (
-            <li key={c.name} className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span
-                  className="h-3 w-3 rounded-full flex-shrink-0"
-                  style={{
-                    backgroundColor: c.color ?? CHART_COLORS.fallback[0],
-                  }}
-                />
-                <span className="text-sm">{c.name}</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <span className="text-xs text-muted-foreground">
-                  {c.pct.toFixed(0)}%
-                </span>
-                <Money
-                  amount={c.amount}
-                  currency={currency}
-                  className="text-sm font-medium"
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        !loading && (
-          <p className="text-sm text-muted-foreground">
-            No spending data available
-          </p>
-        )
-      )}
-    </WidgetCard>
+    <ul className="space-y-3">
+      {top5.map((c) => (
+        <li key={c.name} className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span
+              className="h-3 w-3 rounded-full flex-shrink-0"
+              style={{
+                backgroundColor: c.color ?? CHART_COLORS.fallback[0],
+              }}
+            />
+            <span className="text-sm">{c.name}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-muted-foreground">
+              {c.pct.toFixed(0)}%
+            </span>
+            <Money
+              amount={c.amount}
+              currency={currency}
+              className="text-sm font-medium"
+            />
+          </div>
+        </li>
+      ))}
+    </ul>
   );
 }

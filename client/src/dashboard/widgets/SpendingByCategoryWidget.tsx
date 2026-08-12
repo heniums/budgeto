@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { useWidgetData } from '../hooks/useWidgetData';
-import { WidgetCard } from '../components/WidgetCard';
 import { CHART_COLORS, OTHER_COLOR } from '@/lib/chartTheme';
 
-export function SpendingByCategoryWidget(): JSX.Element {
-  const { data, loading, error } = useWidgetData('spending-by-category');
+export function SpendingByCategoryWidget(): JSX.Element | null {
+  const { data, loading } = useWidgetData('spending-by-category');
 
   const chartData = useMemo(() => {
     const categories = data?.categories ?? [];
@@ -46,29 +45,25 @@ export function SpendingByCategoryWidget(): JSX.Element {
     };
   }, [data?.categories]);
 
+  if (!chartData) {
+    return loading ? null : (
+      <p className="text-sm text-muted-foreground">No spending data available</p>
+    );
+  }
+
   return (
-    <WidgetCard loading={loading} error={error} title="Spending by Category">
-      {chartData ? (
-        <div className="h-full">
-          <Doughnut
-            data={chartData}
-            options={{
-              responsive: true,
-              maintainAspectRatio: false,
-              plugins: {
-                legend: { display: false },
-              },
-              cutout: '60%',
-            }}
-          />
-        </div>
-      ) : (
-        !loading && (
-          <p className="text-sm text-muted-foreground">
-            No spending data available
-          </p>
-        )
-      )}
-    </WidgetCard>
+    <div className="h-full">
+      <Doughnut
+        data={chartData}
+        options={{
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+          },
+          cutout: '60%',
+        }}
+      />
+    </div>
   );
 }
