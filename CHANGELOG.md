@@ -7,8 +7,39 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-## [Unreleased]
+## [1.6.0] — 2026-08-13
 
+### Added
+
+**Design system**
+
+- Memphis Vault — new visual identity introducing a primitive shell (`Button`, `Card`, `Dialog`, `Field`, `Chip`, `Sidebar`, etc.) layered on top of shadcn/ui primitives
+- Decor components — `DecoratedCard` with corner accents and `Squiggle` for chart canvas flair
+- Memphis Green palette — replaces the prior design tokens with a warmer, higher-contrast palette
+- Landing page UI refresh aligned to the Memphis system
+- Per-widget dashboard configuration with per-widget filters and column/row spans (PR #52)
+- Sticky day/summary headers on the transactions list with hover elevation when pinned (PR #53)
+- Work in progress badge on the Home page while the dashboard is under active development
+
+**Mobile**
+
+- Responsive dashboard layouts and transaction filter polish (PR #57)
+
+### Changed
+
+- Migrated layout, landing, dashboard widgets, forms, pickers, and modals to Memphis primitives across PRs #54–#56
+- Wallet/category chips — selected variants use the full category color background with white text; unselected use a subtle tint with colored text
+- Standardized chip and form control sizes across `TransactionForm`
+
+### Removed
+
+- `WidgetAccent.tsx` and the corner-accent pattern on the Home dashboard (replaced by `DecoratedCard` in the Memphis system)
+
+### Fixed
+
+- Removed dead `transition-shadow` from the mobile header
+
+---
 
 ## [1.5.0] — 2026-08-03
 
@@ -167,6 +198,10 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-[Unreleased]: https://github.com/heniums/budgeto/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/heniums/budgeto/compare/v1.6.0...HEAD
+[1.6.0]: https://github.com/heniums/budgeto/releases/tag/v1.6.0
+[1.5.0]: https://github.com/heniums/budgeto/releases/tag/v1.5.0
+[1.4.0]: https://github.com/heniums/budgeto/releases/tag/v1.4.0
 [1.3.0]: https://github.com/heniums/budgeto/releases/tag/v1.3.0
 [1.0.0]: https://github.com/heniums/budgeto/releases/tag/v1.0.0
+
