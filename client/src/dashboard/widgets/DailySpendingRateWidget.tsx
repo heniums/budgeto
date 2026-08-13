@@ -12,7 +12,7 @@ export function DailySpendingRateWidget(): JSX.Element {
       <Money
         amount={rate ?? '0'}
         currency={currency}
-        className="text-3xl font-bold"
+        className="text-4xl font-black"
       />
       <p className="text-sm text-muted-foreground">
         average daily spend this month

@@ -31,7 +31,7 @@ export function RecentTransactionsWidget(): JSX.Element | null {
           <Money
             amount={t.amount}
             currency={currency}
-            className="text-sm font-medium"
+            className="text-sm font-bold"
           />
         </li>
       ))}
