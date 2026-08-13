@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
-import { Dialog } from '@/components/ui/dialog';
+import { Dialog } from '@/components/memphis/dialog';
 import { BudgetForm } from './BudgetForm';
 
 import type * as BudgetsModule from '../api/budgets';
