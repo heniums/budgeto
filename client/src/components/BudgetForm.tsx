@@ -229,7 +229,7 @@ export function BudgetForm({
     }
   };
   return (
-    <DialogContent className="max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-h-[90vh] overflow-y-auto overflow-x-hidden">
       <DialogHeader>
         <DialogTitle>
           {editingBudget ? 'Edit budget' : 'Add budget'}

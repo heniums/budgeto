@@ -86,7 +86,7 @@ export function WidgetConfigDialog({
         <DialogHeader>
           <DialogTitle>Configure Widget</DialogTitle>
         </DialogHeader>
-        <div className="flex-1 overflow-y-auto py-2">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden py-2">
           <form onSubmit={handleSave} id="widget-config-form">
             <div className="space-y-4">
               <div>

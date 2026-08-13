@@ -102,7 +102,7 @@ export function MultiItemPicker({
               className="h-8"
             />
           </div>
-          <div className="h-[200px] overflow-y-auto p-1">
+          <div className="h-[200px] overflow-y-auto overflow-x-hidden p-1">
             {filtered.length === 0 ? (
               <p className="px-2 py-4 text-center text-sm text-muted-foreground">
                 {emptyMessage}
