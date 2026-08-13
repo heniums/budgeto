@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { MoreHorizontal } from 'lucide-react';
 import {
   Popover,
-  PopoverTrigger,
   PopoverContent,
-} from '@/components/ui/popover';
-import { Button } from '@/components/ui/button';
+  PopoverTrigger,
+} from '@/components/memphis/popover';
+import { Button } from '@/components/memphis/button';
 import { WidgetConfigDialog } from './WidgetConfigDialog';
 import type { WidgetConfig } from '../types';
 

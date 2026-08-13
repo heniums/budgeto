@@ -20,7 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/memphis/button';
 import { Badge } from '@/components/memphis/badge';
-import { Settings, GripVertical } from 'lucide-react';
+import { Settings, GripVertical, Wallet } from 'lucide-react';
 import {
   DashboardDataProvider,
   useDashboardData,
@@ -179,7 +179,10 @@ function HomeContent(): JSX.Element {
                   height: activeWidget.height || undefined,
                 }}
               >
-                <WidgetCard title={activeWidget.title}>
+                <WidgetCard
+                  title={activeWidget.title}
+                  icon={Wallet}
+                >
                   <div className="flex items-center justify-center h-full text-muted-foreground text-sm" />
                 </WidgetCard>
               </div>
@@ -242,8 +245,9 @@ function SortableWidgetItem({
 function WidgetRenderer({ type }: { type: WidgetType }): JSX.Element {
   const meta = WIDGET_REGISTRY[type];
   const Component = meta.component;
+  const Icon = meta.icon;
   return (
-    <WidgetCard title={meta.title}>
+    <WidgetCard title={meta.title} icon={Icon}>
       <Component />
     </WidgetCard>
   );

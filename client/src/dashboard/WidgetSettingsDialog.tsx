@@ -2,12 +2,12 @@ import { useCallback, useState } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
+} from '@/components/memphis/dialog';
+import { Button } from '@/components/memphis/button';
+import { Checkbox } from '@/components/memphis/checkbox';
 import { RotateCcw } from 'lucide-react';
 import { useDashboardData } from './DashboardDataProvider';
 import { WIDGET_REGISTRY } from './registry';

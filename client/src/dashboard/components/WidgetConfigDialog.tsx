@@ -1,13 +1,13 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import {
   Dialog,
   DialogContent,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from '@/components/memphis/dialog';
+import { Button } from '@/components/memphis/button';
+import { Input } from '@/components/memphis/input';
 import { WIDGET_REGISTRY } from '../registry';
 import type { WidgetConfig, WidgetFilterConfig } from '../types';
 import { DEFAULT_WIDGET_FILTERS } from '../widgetFilters';
@@ -49,7 +49,7 @@ export function WidgetConfigDialog({
 
   const meta = WIDGET_REGISTRY[widget.id];
 
-  async function handleSave(e: React.FormEvent) {
+  async function handleSave(e: FormEvent) {
     e.preventDefault();
     setSaving(true);
     setSaveError(null);

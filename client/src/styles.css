@@ -152,3 +152,12 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+.memphis-card-press {
+  transition: transform 120ms ease-out, box-shadow 120ms ease-out;
+}
+
+.group:hover .memphis-card-press,
+.group:focus-within .memphis-card-press {
+  transform: translate(2px, 2px);
+  box-shadow: 4px 4px 0 0 hsl(var(--border));
+}
