@@ -76,7 +76,7 @@ export function WidgetConfigDialog({
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange} modal={false}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className="max-w-lg h-[80vh] flex flex-col"
         onEscapeKeyDown={(e) => {
