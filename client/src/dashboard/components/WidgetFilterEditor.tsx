@@ -1,8 +1,8 @@
 import { useDashboardData } from '../DashboardDataProvider';
 import { MultiItemPicker } from '@/components/MultiItemPicker';
 import { DateRangeButton } from '@/components/DateRangeButton';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Input } from '@/components/memphis/input';
+import { Label } from '@/components/memphis/label';
 import { WIDGET_FILTER_FIELDS, type FilterField } from '../widgetFilters';
 import type { DateInterval, WidgetFilterConfig, WidgetType } from '../types';
 import type { DatePreset } from '@/lib/dateRange';

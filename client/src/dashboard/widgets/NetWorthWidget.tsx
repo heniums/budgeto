@@ -26,9 +26,9 @@ export function NetWorthWidget(): JSX.Element {
           <Money
             amount={total.toFixed(2)}
             currency={currency}
-            className="text-2xl font-bold"
+            className="text-3xl font-black"
           />
-          <span className="text-xs text-muted-foreground uppercase">
+          <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
             {currency}
           </span>
         </div>

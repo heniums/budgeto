@@ -18,8 +18,8 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Memphis Green palette — replaces the prior design tokens with a warmer, higher-contrast palette
 - Landing page UI refresh aligned to the Memphis system
 - Per-widget dashboard configuration with per-widget filters and column/row spans (PR #52)
-- Sticky day/summary headers on the transactions list with hover elevation when pinned (PR #53)
-- Work in progress badge on the Home page while the dashboard is under active development
+- Bolder widget typography in the Memphis voice and widget chrome aligned with Memphis Vault (PR #59)
+- `.glass` and `.glass-strong` utility classes for translucency across dialogs and pickers
 
 **Mobile**
 
@@ -37,7 +37,8 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ### Fixed
 
-- Removed dead `transition-shadow` from the mobile header
+- Widget configuration modal now renders a dim backdrop, matching other modals (PR #59)
+- Suppressed phantom horizontal scrollbar in dialogs and pickers (PR #59)
 
 ---
 

@@ -54,7 +54,7 @@ export function TopSpendingCategoriesWidget(): JSX.Element | null {
             <Money
               amount={c.amount}
               currency={currency}
-              className="text-sm font-medium"
+              className="text-sm font-bold"
             />
           </div>
         </li>
