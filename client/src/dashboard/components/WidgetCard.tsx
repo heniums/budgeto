@@ -18,7 +18,7 @@ export function WidgetCard({
   return (
     <Card className={`memphis-card-press h-full flex flex-col ${className ?? ''}`}>
       <CardHeader className="flex flex-row items-center gap-0 space-y-0 p-6 pb-3">
-        <div className="h-7 w-7 rounded-lg border-2 border-border bg-card flex items-center justify-center mr-3 flex-shrink-0">
+        <div aria-hidden="true" className="h-7 w-7 rounded-lg border-2 border-border bg-card flex items-center justify-center mr-3 flex-shrink-0">
           <Icon className="h-4 w-4" />
         </div>
         <CardTitle>{title}</CardTitle>

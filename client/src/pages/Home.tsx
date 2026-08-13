@@ -181,7 +181,7 @@ function HomeContent(): JSX.Element {
               >
                 <WidgetCard
                   title={activeWidget.title}
-                  icon={Wallet}
+                  icon={WIDGET_REGISTRY[activeWidget.type]?.icon ?? Wallet}
                 >
                   <div className="flex items-center justify-center h-full text-muted-foreground text-sm" />
                 </WidgetCard>

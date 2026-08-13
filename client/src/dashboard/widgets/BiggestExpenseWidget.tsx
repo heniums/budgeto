@@ -21,8 +21,6 @@ export function BiggestExpenseWidget(): JSX.Element | null {
         className="text-4xl font-black text-destructive"
       />
       <p className="text-sm">{biggest.description || 'Unnamed transaction'}</p>
-      <p className="text-xs text-muted-foreground">
-      </p>
     </div>
   );
 }
