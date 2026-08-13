@@ -44,11 +44,13 @@ vi.mock('@/dashboard/registry', () => ({
       id: 'net-worth',
       title: 'Net Worth',
       component: () => <div data-testid="widget-net-worth">NetWorth</div>,
+      icon: () => null,
     },
     'monthly-cash-flow': {
       id: 'monthly-cash-flow',
       title: 'Cash Flow',
       component: () => <div data-testid="widget-cash-flow">CashFlow</div>,
+      icon: () => null,
     },
     'income-vs-expense': {
       id: 'income-vs-expense',
@@ -56,11 +58,13 @@ vi.mock('@/dashboard/registry', () => ({
       component: () => (
         <div data-testid="widget-income-expense">IncomeVsExpense</div>
       ),
+      icon: () => null,
     },
     'recent-transactions': {
       id: 'recent-transactions',
       title: 'Recent Transactions',
       component: () => <div data-testid="widget-recent-tx">RecentTx</div>,
+      icon: () => null,
     },
   },
 }));

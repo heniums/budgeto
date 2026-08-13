@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { TrendingUp } from 'lucide-react';
 import { MonthlyCashFlowWidget } from './MonthlyCashFlowWidget';
 import { WidgetCard } from '../components/WidgetCard';
 
@@ -38,7 +39,7 @@ vi.mock('../hooks/useWidgetData', () => ({
 describe('MonthlyCashFlowWidget', () => {
   it('renders the chart with 3 datasets', () => {
     render(
-      <WidgetCard title="Cash Flow">
+      <WidgetCard title="Cash Flow" icon={TrendingUp}>
         <MonthlyCashFlowWidget />
       </WidgetCard>,
     );
