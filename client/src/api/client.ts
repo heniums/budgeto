@@ -6,14 +6,43 @@ export const UNAUTHORIZED_EVENT = 'budgeto:unauthorized';
 declare module 'axios' {
   interface AxiosRequestConfig {
     skipRefresh?: boolean;
+    skipAuth?: boolean;
   }
+}
+
+/**
+ * In-memory access token store. The token never touches localStorage or
+ * sessionStorage — a page refresh wipes it and forces a refresh-cookie based
+ * silent re-auth. Mutators live below; the interceptor reads it via the getter.
+ */
+let accessToken: string | null = null;
+
+export function getAccessToken(): string | null {
+  return accessToken;
+}
+
+export function setAccessToken(token: string | null): void {
+  accessToken = token;
 }
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000',
 });
 
-apiClient.defaults.withCredentials = true;
+// The refresh cookie is httpOnly and SameSite=Lax; the SPA needs it sent on
+// the refresh request only, so we opt-in per call via the flag below.
+apiClient.defaults.withCredentials = false;
+
+apiClient.interceptors.request.use((config) => {
+  if (config.skipAuth) {
+    return config;
+  }
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 
 let refreshing: Promise<void> | null = null;
 
@@ -36,6 +65,7 @@ apiClient.interceptors.response.use(
 
       // For /auth/refresh failure, dispatch unauthorized event
       if (url === '/auth/refresh') {
+        setAccessToken(null);
         window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
         throw new ApiError(
           error.response.data?.message || 'Unauthorized',
@@ -57,18 +87,28 @@ apiClient.interceptors.response.use(
       // Try silent refresh
       if (!refreshing) {
         refreshing = refreshSession()
-          .then(() => {
+          .then(({ accessToken: next }) => {
+            setAccessToken(next);
             refreshing = null;
           })
           .catch((err) => {
             refreshing = null;
+            setAccessToken(null);
             window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
             throw err;
           });
       }
 
       await refreshing;
-      return apiClient(config);
+      // After refresh, retry with the new token. Setting Authorization here
+      // (rather than re-running the interceptor) avoids a redundant read of
+      // the just-written in-memory token.
+      const retried = { ...config };
+      retried.headers = {
+        ...(config.headers ?? {}),
+        Authorization: `Bearer ${getAccessToken()}`,
+      };
+      return apiClient(retried);
     }
 
     // Existing error handling for non-401

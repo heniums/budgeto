@@ -11,19 +11,23 @@ import {
   getMe,
   logout as apiLogout,
   updateSettings as updateSettingsApi,
+  refreshSession,
   type AuthUser,
   type UserSettings,
 } from '../api/auth';
-import { UNAUTHORIZED_EVENT } from '../api/client';
+import {
+  setAccessToken,
+  UNAUTHORIZED_EVENT,
+} from '../api/client';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
 export interface AuthContextValue {
   user: AuthUser | null;
   status: AuthStatus;
-  /** Persists the current user. */
-  login: (user: AuthUser) => void;
-  /** Clears the session and returns to the unauthenticated state. */
+  /** Persists the user and its access token after a successful login/register/refresh. */
+  login: (session: { user: AuthUser; accessToken: string }) => void;
+  /** Clears the session and revokes the access token. */
   logout: () => Promise<void>;
   /** Refreshes the current user from the server. */
   refreshUser: () => Promise<void>;
@@ -42,24 +46,32 @@ export function AuthProvider({
   const [status, setStatus] = useState<AuthStatus>('loading');
 
   const clearSession = useCallback(() => {
+    setAccessToken(null);
     setUser(null);
     setStatus('unauthenticated');
   }, []);
 
+  // Attempt silent re-auth on mount via the refresh cookie. If no refresh
+  // cookie is present (first visit, expired refresh) the request 401s and the
+  // session becomes unauthenticated. Transient (non-401) failures keep the
+  // session in `loading` so a brief network blip doesn't bounce the user to
+  // the sign-in page.
   useEffect(() => {
     let active = true;
     setStatus('loading');
-    getMe({ skipRefresh: true })
-      .then((fetched) => {
+    refreshSession()
+      .then(({ user: fetched, accessToken }) => {
         if (!active) return;
+        setAccessToken(accessToken);
         setUser(fetched);
         setStatus('authenticated');
       })
       .catch((error) => {
         if (!active) return;
-        if (error?.status === 401) {
+        if (error instanceof Error && 'status' in error && error.status === 401) {
           clearSession();
         }
+        // Non-401: leave status as 'loading' so the user sees no false logout.
       });
     return () => {
       active = false;
@@ -76,10 +88,14 @@ export function AuthProvider({
     };
   }, [clearSession]);
 
-  const login = useCallback((nextUser: AuthUser) => {
-    setUser(nextUser);
-    setStatus('authenticated');
-  }, []);
+  const login = useCallback(
+    (session: { user: AuthUser; accessToken: string }) => {
+      setAccessToken(session.accessToken);
+      setUser(session.user);
+      setStatus('authenticated');
+    },
+    [],
+  );
 
   const logout = useCallback(async () => {
     try {
@@ -96,7 +112,7 @@ export function AuthProvider({
       setUser(user);
     } catch (error) {
       // Only clear session on 401 — transient errors should not wipe a valid token
-      if ((error as { status?: number })?.status === 401) {
+      if (error instanceof Error && 'status' in error && error.status === 401) {
         clearSession();
       }
     }

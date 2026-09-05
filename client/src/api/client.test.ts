@@ -26,15 +26,15 @@ describe('apiClient', () => {
     vi.clearAllMocks();
   });
 
-  it('has withCredentials enabled', () => {
-    expect(apiClient.defaults.withCredentials).toBe(true);
+  it('has withCredentials disabled by default (refresh opts in per call)', () => {
+    expect(apiClient.defaults.withCredentials).toBe(false);
   });
 
-  it('has no request interceptors', () => {
+  it('has exactly one request interceptor that injects the Bearer token', () => {
     const { handlers } = apiClient.interceptors.request as unknown as {
       handlers: unknown[];
     };
-    expect(handlers.length).toBe(0);
+    expect(handlers.length).toBe(1);
   });
 
   describe('response interceptor', () => {

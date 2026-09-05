@@ -3,14 +3,16 @@ import { render, screen, act, cleanup } from '@testing-library/react';
 import { AuthProvider, useAuth } from './AuthContext';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
+const mockSession = { user: mockUser, accessToken: 'tok' };
 
 vi.mock('../api/auth', () => ({
+  refreshSession: vi.fn(),
   getMe: vi.fn(),
   logout: vi.fn().mockResolvedValue(undefined),
   updateSettings: vi.fn(),
 }));
 
-import { getMe, updateSettings as updateSettingsApi } from '../api/auth';
+import { refreshSession, getMe, updateSettings as updateSettingsApi } from '../api/auth';
 import { UNAUTHORIZED_EVENT, ApiError } from '../api/client';
 
 function Probe(): JSX.Element {
@@ -18,28 +20,26 @@ function Probe(): JSX.Element {
     useAuth();
   return (
     <div>
-      <span data-testid="status">{status}</span>
-      <span data-testid="email">{user?.email ?? 'none'}</span>
-      <span data-testid="name">{user?.name ?? 'noname'}</span>
-      <button onClick={() => login(mockUser)}>login</button>
+      <div data-testid="status">{status}</div>
+      <div data-testid="email">{user?.email ?? 'none'}</div>
+      <div data-testid="name">{user?.name ?? 'none'}</div>
       <button
-        onClick={() => {
-          void logout();
-        }}
+        type="button"
+        onClick={() => login(mockSession)}
+        data-testid="login-btn"
       >
+        login
+      </button>
+      <button type="button" onClick={() => void logout()} data-testid="logout-btn">
         logout
       </button>
-      <button
-        onClick={() => {
-          void refreshUser();
-        }}
-      >
+      <button type="button" onClick={() => void refreshUser()} data-testid="refresh-btn">
         refresh
       </button>
       <button
-        onClick={() => {
-          void updateSettings({ theme: 'dark' });
-        }}
+        type="button"
+        onClick={() => void updateSettings({ theme: 'dark' })}
+        data-testid="update-btn"
       >
         updateSettings
       </button>
@@ -53,8 +53,8 @@ describe('AuthProvider', () => {
     cleanup();
   });
 
-  it('starts unauthenticated when getMe fails with 401', async () => {
-    vi.mocked(getMe).mockRejectedValue(new ApiError('Unauthorized', 401));
+  it('starts unauthenticated when refreshSession fails', async () => {
+    vi.mocked(refreshSession).mockRejectedValue(new ApiError('Unauthorized', 401));
     render(
       <AuthProvider>
         <Probe />
@@ -66,8 +66,8 @@ describe('AuthProvider', () => {
     expect(screen.getByTestId('email')).toHaveTextContent('none');
   });
 
-  it('loads the current user via getMe on mount', async () => {
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+  it('loads the current user via refreshSession on mount', async () => {
+    vi.mocked(refreshSession).mockResolvedValue(mockSession);
     render(
       <AuthProvider>
         <Probe />
@@ -77,32 +77,23 @@ describe('AuthProvider', () => {
       'authenticated',
     );
     expect(screen.getByTestId('email')).toHaveTextContent('a@b.co');
-    expect(vi.mocked(getMe)).toHaveBeenCalledWith({ skipRefresh: true });
-  });
-  it('clears the session when initial getMe returns 401', async () => {
-    vi.mocked(getMe).mockRejectedValue(new ApiError('Unauthorized', 401));
-    render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
-    );
-    expect(await screen.findByTestId('status')).toHaveTextContent(
-      'unauthenticated',
-    );
-  });
-  it('preserves the session on transient getMe failure (non-401)', async () => {
-    vi.mocked(getMe).mockRejectedValue(new Error('network error'));
-    render(
-      <AuthProvider>
-        <Probe />
-      </AuthProvider>,
-    );
-    // Wait for initial render — status stays 'loading' since non-401 doesn't clear session
-    await screen.findByTestId('status');
+    expect(vi.mocked(refreshSession)).toHaveBeenCalled();
   });
 
-  it('login exposes the user', async () => {
-    vi.mocked(getMe).mockRejectedValue(new Error('unauthorized'));
+  it('preserves the session on transient refreshSession failure (non-401)', async () => {
+    vi.mocked(refreshSession).mockRejectedValue(new Error('network error'));
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    // Status stays 'loading' since non-401 doesn't clear session
+    await screen.findByTestId('status');
+    expect(screen.getByTestId('status')).toHaveTextContent('loading');
+  });
+
+  it('login exposes the user and persists the session', async () => {
+    vi.mocked(refreshSession).mockRejectedValue(new Error('unauthorized'));
     render(
       <AuthProvider>
         <Probe />
@@ -110,14 +101,15 @@ describe('AuthProvider', () => {
     );
     await screen.findByTestId('status');
     act(() => {
-      screen.getByText('login').click();
+      screen.getByTestId('login-btn').click();
     });
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'authenticated',
     );
+    expect(screen.getByTestId('email')).toHaveTextContent('a@b.co');
   });
   it('logout clears the session', async () => {
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue(mockSession);
     render(
       <AuthProvider>
         <Probe />
@@ -127,14 +119,14 @@ describe('AuthProvider', () => {
       'authenticated',
     );
     await act(async () => {
-      screen.getByText('logout').click();
+      screen.getByTestId('logout-btn').click();
     });
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'unauthenticated',
     );
   });
   it('refreshUser clears session when getMe returns 401', async () => {
-    vi.mocked(getMe).mockResolvedValueOnce(mockUser);
+    vi.mocked(refreshSession).mockResolvedValueOnce(mockSession);
     render(
       <AuthProvider>
         <Probe />
@@ -147,7 +139,7 @@ describe('AuthProvider', () => {
 
     vi.mocked(getMe).mockRejectedValueOnce(new ApiError('Unauthorized', 401));
     await act(async () => {
-      screen.getByText('refresh').click();
+      screen.getByTestId('refresh-btn').click();
     });
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'unauthenticated',
@@ -156,7 +148,7 @@ describe('AuthProvider', () => {
   });
 
   it('refreshUser preserves session on transient getMe failure (non-401)', async () => {
-    vi.mocked(getMe).mockResolvedValueOnce(mockUser);
+    vi.mocked(refreshSession).mockResolvedValueOnce(mockSession);
     render(
       <AuthProvider>
         <Probe />
@@ -168,7 +160,7 @@ describe('AuthProvider', () => {
 
     vi.mocked(getMe).mockRejectedValueOnce(new Error('network error'));
     await act(async () => {
-      screen.getByText('refresh').click();
+      screen.getByTestId('refresh-btn').click();
     });
     // Session is preserved — still authenticated
     expect(await screen.findByTestId('status')).toHaveTextContent(
@@ -177,7 +169,7 @@ describe('AuthProvider', () => {
   });
 
   it('clears the session when budgeto:unauthorized is dispatched', async () => {
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue(mockSession);
     render(
       <AuthProvider>
         <Probe />
@@ -195,11 +187,11 @@ describe('AuthProvider', () => {
       'unauthenticated',
     );
   });
-  it('does not warn when unmounted while getMe is pending', async () => {
+  it('does not warn when unmounted while refreshSession is pending', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    const { promise, resolve: resolveGetMe } =
-      Promise.withResolvers<typeof mockUser>();
-    vi.mocked(getMe).mockReturnValue(promise);
+    const { promise, resolve: resolveRefresh } =
+      Promise.withResolvers<typeof mockSession>();
+    vi.mocked(refreshSession).mockReturnValue(promise);
 
     render(
       <AuthProvider>
@@ -211,7 +203,7 @@ describe('AuthProvider', () => {
 
     // Resolve after unmount to exercise the cleanup guard.
     await act(async () => {
-      resolveGetMe(mockUser);
+      resolveRefresh(mockSession);
     });
 
     const stateUpdateWarnings = warnSpy.mock.calls.filter((call) =>
@@ -222,7 +214,7 @@ describe('AuthProvider', () => {
   });
 
   it('updateSettings calls the API and updates the user', async () => {
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue(mockSession);
     const updatedUser = {
       ...mockUser,
       name: 'Updated',
@@ -240,7 +232,7 @@ describe('AuthProvider', () => {
     );
 
     await act(async () => {
-      screen.getByText('updateSettings').click();
+      screen.getByTestId('update-btn').click();
     });
 
     expect(updateSettingsApi).toHaveBeenCalledWith({ theme: 'dark' });

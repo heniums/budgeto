@@ -50,12 +50,12 @@ export function SignUp(): JSX.Element {
 
   const onSubmit = async (data: SignUpValues): Promise<void> => {
     try {
-      const user = await apiRegister({
+      const session = await apiRegister({
         name: data.name.trim(),
         email: data.email.trim(),
         password: data.password,
       });
-      signIn(user);
+      signIn(session);
       navigate('/home');
     } catch (err) {
       setError('root', {

@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type TokenPayload } from './token';
 import { unauthorizedError } from '../errors';
-import { ACCESS_COOKIE_NAME } from './cookies';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -13,16 +12,22 @@ declare global {
 }
 
 /**
- * Guards an endpoint, requiring a valid access-token cookie. On success it
- * attaches the decoded token payload to `req.user`; otherwise it forwards an
- * UnauthorizedError.
+ * Guards an endpoint, requiring a valid access token. The token must be sent
+ * as `Authorization: Bearer <token>` from the client — the server never stores
+ * it. On success it attaches the decoded token payload to `req.user`;
+ * otherwise it forwards an UnauthorizedError.
  */
 export function authenticate(
   req: Request,
   _res: Response,
   next: NextFunction,
 ): void {
-  const token = req.cookies?.[ACCESS_COOKIE_NAME];
+  const header = req.headers.authorization;
+  if (!header || !header.startsWith('Bearer ')) {
+    next(unauthorizedError('Missing or invalid access token'));
+    return;
+  }
+  const token = header.slice('Bearer '.length).trim();
   if (!token) {
     next(unauthorizedError('Missing or invalid access token'));
     return;

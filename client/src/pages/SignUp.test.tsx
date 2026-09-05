@@ -45,7 +45,7 @@ describe('SignUp form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(getMe).mockResolvedValue(mockUser);
-    vi.mocked(register).mockResolvedValue(mockUser);
+    vi.mocked(register).mockResolvedValue({ user: mockUser, accessToken: 'tok' });
     cleanup();
   });
 

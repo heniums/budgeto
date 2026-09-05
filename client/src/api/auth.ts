@@ -9,6 +9,11 @@ export interface AuthUser {
   settings?: UserSettings;
 }
 
+export interface AuthSession {
+  user: AuthUser;
+  accessToken: string;
+}
+
 export interface RegisterInput {
   name: string;
   email: string;
@@ -25,20 +30,22 @@ export interface ChangePasswordInput {
   newPassword: string;
 }
 
-export async function register(input: RegisterInput): Promise<AuthUser> {
-  const response = await apiClient.post<{ user: AuthUser }>(
+export async function register(input: RegisterInput): Promise<AuthSession> {
+  const response = await apiClient.post<AuthSession>(
     '/auth/register',
     input,
+    { skipAuth: true },
   );
-  return response.data.user;
+  return response.data;
 }
 
-export async function login(input: LoginInput): Promise<AuthUser> {
-  const response = await apiClient.post<{ user: AuthUser }>(
+export async function login(input: LoginInput): Promise<AuthSession> {
+  const response = await apiClient.post<AuthSession>(
     '/auth/login',
     input,
+    { skipAuth: true },
   );
-  return response.data.user;
+  return response.data;
 }
 
 export async function getMe(options?: {
@@ -72,11 +79,25 @@ export async function updateSettings(
   return response.data.user;
 }
 
-export async function refreshSession(): Promise<AuthUser> {
-  const response = await apiClient.post<{ user: AuthUser }>('/auth/refresh');
-  return response.data.user;
+/**
+ * Exchanges the httpOnly refresh cookie for a fresh access token. Called by
+ * the response interceptor on 401s; must NOT itself be wrapped by the
+ * refresh-on-401 logic. `withCredentials` is enabled only for this call so
+ * the browser sends the refresh cookie.
+ */
+export async function refreshSession(): Promise<AuthSession> {
+  const response = await apiClient.post<AuthSession>(
+    '/auth/refresh',
+    undefined,
+    { skipAuth: true, withCredentials: true },
+  );
+  return response.data;
 }
 
 export async function logout(): Promise<void> {
-  await apiClient.post('/auth/logout');
+  await apiClient.post(
+    '/auth/logout',
+    undefined,
+    { withCredentials: true },
+  );
 }

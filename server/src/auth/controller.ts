@@ -13,8 +13,8 @@ import {
   logout,
 } from './service';
 import {
-  setAuthCookies,
-  clearAuthCookies,
+  setRefreshCookie,
+  clearRefreshCookie,
   REFRESH_COOKIE_NAME,
 } from './cookies';
 import { notFoundError, unauthorizedError } from '../errors';
@@ -22,6 +22,11 @@ import { notFoundError, unauthorizedError } from '../errors';
 /**
  * HTTP handlers for the auth endpoints. Validation is delegated to zod schemas;
  * parse errors bubble to the central error handler as `ZodError`.
+ *
+ * The access token is returned in the response body and kept by the SPA in
+ * memory only; the long-lived refresh token is set as an `httpOnly` cookie so
+ * the client cannot read it. `/auth/refresh` exchanges the cookie for a fresh
+ * access token (also in the body) plus a rotated refresh cookie.
  */
 export async function registerHandler(
   req: Request,
@@ -31,13 +36,11 @@ export async function registerHandler(
   try {
     const input = registerSchema.parse(req.body);
     const result = await register(input);
-    setAuthCookies(
-      res,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
-    res.status(201).json({ user: result.user });
+    setRefreshCookie(res, result.refreshToken, result.refreshExpiresAt);
+    res.status(201).json({
+      user: result.user,
+      accessToken: result.accessToken,
+    });
   } catch (error) {
     next(error);
   }
@@ -51,13 +54,11 @@ export async function loginHandler(
   try {
     const input = loginSchema.parse(req.body);
     const result = await login(input);
-    setAuthCookies(
-      res,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
-    res.status(200).json({ user: result.user });
+    setRefreshCookie(res, result.refreshToken, result.refreshExpiresAt);
+    res.status(200).json({
+      user: result.user,
+      accessToken: result.accessToken,
+    });
   } catch (error) {
     next(error);
   }
@@ -124,13 +125,11 @@ export async function refreshHandler(
       throw unauthorizedError('Missing refresh token');
     }
     const result = await refreshSession(refreshToken);
-    setAuthCookies(
-      res,
-      result.accessToken,
-      result.refreshToken,
-      result.refreshExpiresAt,
-    );
-    res.status(200).json({ user: result.user });
+    setRefreshCookie(res, result.refreshToken, result.refreshExpiresAt);
+    res.status(200).json({
+      user: result.user,
+      accessToken: result.accessToken,
+    });
   } catch (error) {
     next(error);
   }
@@ -144,7 +143,7 @@ export async function logoutHandler(
   try {
     const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
     await logout(refreshToken);
-    clearAuthCookies(res);
+    clearRefreshCookie(res);
     res.status(204).send();
   } catch (error) {
     next(error);

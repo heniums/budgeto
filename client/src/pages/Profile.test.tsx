@@ -42,8 +42,6 @@ describe('Profile page', () => {
       Promise.resolve({ ...mockUser, name }),
     );
     vi.mocked(changePassword).mockResolvedValue(undefined);
-    window.localStorage.clear();
-    window.localStorage.setItem('budgeto:token', 'test-token');
     cleanup();
   });
 
