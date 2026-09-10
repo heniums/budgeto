@@ -13,12 +13,12 @@ vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
   return {
     ...actual,
-    getMe: vi.fn(),
+    refreshSession: vi.fn(),
     login: vi.fn(),
   };
 });
 
-import { getMe, login } from '../api/auth';
+import { refreshSession, login } from '../api/auth';
 import { ApiError } from '../api/client';
 
 function LocationSpy(): JSX.Element {
@@ -45,7 +45,10 @@ function renderSignIn(initialEntry: unknown = '/login'): void {
 describe('SignIn form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(login).mockResolvedValue({ user: mockUser, accessToken: 'tok' });
     cleanup();
   });

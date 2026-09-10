@@ -45,7 +45,7 @@ describe('auth API client', () => {
     expect(mockPost).toHaveBeenCalledWith(
       '/auth/register',
       input,
-      { skipAuth: true },
+      { skipAuth: true, withCredentials: true },
     );
     expect(session.user).toEqual({ id: 'u1', email: 'a@b.co', name: 'A' });
     expect(session.accessToken).toBe('tok-1');
@@ -63,7 +63,7 @@ describe('auth API client', () => {
     expect(mockPost).toHaveBeenCalledWith(
       '/auth/login',
       input,
-      { skipAuth: true },
+      { skipAuth: true, withCredentials: true },
     );
     expect(session.user.email).toBe('a@b.co');
     expect(session.accessToken).toBe('tok-2');

@@ -13,12 +13,12 @@ vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
   return {
     ...actual,
-    getMe: vi.fn(),
+    refreshSession: vi.fn(),
     register: vi.fn(),
   };
 });
 
-import { getMe, register } from '../api/auth';
+import { refreshSession, register } from '../api/auth';
 import { ApiError } from '../api/client';
 
 function LocationSpy(): JSX.Element {
@@ -44,7 +44,10 @@ function renderSignUp(): void {
 describe('SignUp form', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(register).mockResolvedValue({ user: mockUser, accessToken: 'tok' });
     cleanup();
   });

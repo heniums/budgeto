@@ -14,13 +14,13 @@ vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
   return {
     ...actual,
-    getMe: vi.fn(),
+    refreshSession: vi.fn(),
     register: vi.fn(),
     login: vi.fn(),
   };
 });
 
-import { getMe, register, login } from '../api/auth';
+import { refreshSession, register, login } from '../api/auth';
 
 function renderAt(path: string, element: JSX.Element): void {
   render(
@@ -38,7 +38,10 @@ function renderAt(path: string, element: JSX.Element): void {
 describe('form accessibility', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(register).mockResolvedValue({ user: mockUser, accessToken: 'tok' });
     vi.mocked(login).mockResolvedValue({ user: mockUser, accessToken: 'tok' });
     cleanup();

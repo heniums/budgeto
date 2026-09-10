@@ -13,7 +13,12 @@ vi.mock('../api/auth', () => ({
 }));
 
 import { refreshSession, getMe, updateSettings as updateSettingsApi } from '../api/auth';
-import { UNAUTHORIZED_EVENT, ApiError } from '../api/client';
+import {
+  UNAUTHORIZED_EVENT,
+  ApiError,
+  getAccessToken,
+  setAccessToken,
+} from '../api/client';
 
 function Probe(): JSX.Element {
   const { user, status, login, logout, refreshUser, updateSettings } =
@@ -50,6 +55,7 @@ function Probe(): JSX.Element {
 describe('AuthProvider', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    setAccessToken(null);
     cleanup();
   });
 
@@ -107,6 +113,7 @@ describe('AuthProvider', () => {
       'authenticated',
     );
     expect(screen.getByTestId('email')).toHaveTextContent('a@b.co');
+    expect(getAccessToken()).toBe('tok');
   });
   it('logout clears the session', async () => {
     vi.mocked(refreshSession).mockResolvedValue(mockSession);
@@ -118,12 +125,14 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'authenticated',
     );
+    expect(getAccessToken()).toBe('tok');
     await act(async () => {
       screen.getByTestId('logout-btn').click();
     });
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'unauthenticated',
     );
+    expect(getAccessToken()).toBeNull();
   });
   it('refreshUser clears session when getMe returns 401', async () => {
     vi.mocked(refreshSession).mockResolvedValueOnce(mockSession);
@@ -186,6 +195,31 @@ describe('AuthProvider', () => {
     expect(await screen.findByTestId('status')).toHaveTextContent(
       'unauthenticated',
     );
+  });
+  it('clears the access token on budgeto:unauthorized', async () => {
+    vi.mocked(refreshSession).mockRejectedValue(new Error('unauthorized'));
+    render(
+      <AuthProvider>
+        <Probe />
+      </AuthProvider>,
+    );
+    await screen.findByTestId('status');
+    act(() => {
+      screen.getByTestId('login-btn').click();
+    });
+    expect(await screen.findByTestId('status')).toHaveTextContent(
+      'authenticated',
+    );
+    expect(getAccessToken()).toBe('tok');
+
+    act(() => {
+      window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+    });
+
+    expect(await screen.findByTestId('status')).toHaveTextContent(
+      'unauthenticated',
+    );
+    expect(getAccessToken()).toBeNull();
   });
   it('does not warn when unmounted while refreshSession is pending', async () => {
     const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});

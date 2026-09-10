@@ -43,6 +43,8 @@ Multi-wallet with per-wallet currency. Unlike single-account trackers, Budgeto l
 - Budget periods (monthly/custom) computed via dayjs, not stored
 - Ownership enforced: resource.userId === req.user.sub → 404 on mismatch
 - JWT Bearer auth: short-lived access token in client memory (sent as `Authorization: Bearer`); long-lived refresh token in `httpOnly` cookie (`budgeto_refresh_token`)
+- Embedded PostgreSQL available for local dev (no external DB needed)
+
 
 ## Brand Commitments
 

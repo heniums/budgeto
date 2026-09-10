@@ -34,7 +34,7 @@ export async function register(input: RegisterInput): Promise<AuthSession> {
   const response = await apiClient.post<AuthSession>(
     '/auth/register',
     input,
-    { skipAuth: true },
+    { skipAuth: true, withCredentials: true },
   );
   return response.data;
 }
@@ -43,7 +43,7 @@ export async function login(input: LoginInput): Promise<AuthSession> {
   const response = await apiClient.post<AuthSession>(
     '/auth/login',
     input,
-    { skipAuth: true },
+    { skipAuth: true, withCredentials: true },
   );
   return response.data;
 }

@@ -41,6 +41,9 @@ main.tsx → AuthProvider (Context) → App → RouterProvider
 - **Auth flow**: short-lived JWT access token lives in client memory (attached as `Authorization: Bearer <token>` via axios request interceptor); long-lived refresh token is stored as an `httpOnly` cookie. `AuthProvider` calls `refreshSession()` on mount to silently re-authenticate; the response interceptor transparently retries with a fresh access token on 401. `ProtectedRoute` redirects to `/login` preserving `location.state.from`. 401 responses dispatch `budgeto:unauthorized` `CustomEvent`.
 - **API layer**: One axios instance (`client/src/api/client.ts`). Request interceptor injects `Bearer` token from in-memory store. Response interceptor wraps errors in `ApiError` class and performs silent refresh on 401. One module per resource domain.
 
+### Database schema (PostgreSQL via Drizzle ORM)
+
+
 6 tables: `users`, `wallets` (FK→users), `transactions` (FK→wallets CASCADE, FK→categories SET NULL), `categories` (FK→users), `budgets` (FK→users CASCADE), `budget_categories` (FK→budgets CASCADE, FK→categories CASCADE, UNIQUE on budget_id+category_id). All PKs are UUIDs. Wallet balance is computed on-the-fly via `SUM(transactions.amount)` — no denormalized balance column.
 
 ### Key domain concepts
@@ -175,6 +178,7 @@ Consistent status codes: 201 (create), 200 (read/update), 204 (delete, change-pa
 | `server/src/db/schema.ts`         | All Drizzle table definitions + relations         |
 | `server/src/db/client.ts`         | pg Pool + drizzle instance                        |
 | `server/src/errors.ts`            | Domain error factory (`AppError` with Symbol tag) |
+| `server/src/config.ts`            | Cached env config singleton (JWT TTLs, cookie attrs, CORS) |
 | `server/src/auth/middleware.ts`   | JWT Bearer `authenticate` middleware (reads `Authorization` header) |
 | `client/src/api/client.ts`        | Axios instance with in-memory Bearer injection + silent refresh + `ApiError`  |
 | `client/src/auth/AuthContext.tsx` | Auth state + `useAuth()` hook                     |
@@ -228,6 +232,8 @@ npm test
 - **Component mocking**: `vi.mock` on API modules (not client directly), often using `async importOriginal` to preserve unimplemented exports
 - **Rendering**: `render()` from `@testing-library/react`, interactions via `userEvent.setup()`
 - **Common mocks**: `IntersectionObserver` (infinite scroll), `window.confirm` (delete confirmations), `localStorage` (theme + onboarding dismissal; auth tokens are NOT in localStorage anymore)
+- **Covers**: pages, components, API modules, auth context, route guards, utility functions, accessibility (labels, Enter submission, auto-focus), microcopy
+
 
 ### Quality gates
 

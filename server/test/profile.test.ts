@@ -24,7 +24,7 @@ describe('GET /auth/me', () => {
     await deleteAllUsers();
   });
 
-  it('returns the user name for a valid cookie (200)', async () => {
+  it('returns the user name for a valid Bearer token (200)', async () => {
     const { token } = await loginToken();
     const response = await request(app)
       .get('/auth/me')
@@ -40,7 +40,7 @@ describe('PATCH /auth/me', () => {
     await deleteAllUsers();
   });
 
-  it('updates the user name for a valid cookie (200)', async () => {
+  it('updates the user name for a valid Bearer token (200)', async () => {
     const { token } = await loginToken();
     const response = await request(app)
       .patch('/auth/me')

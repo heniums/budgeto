@@ -30,8 +30,17 @@ describe('Protected routes', () => {
     expect(response.body.code).toBe('UNAUTHORIZED');
   });
 
-  it('rejects a request with no Authorization header (401)', async () => {
-    const response = await request(app).get('/auth/me');
+  it('rejects a request with a non-Bearer scheme (401)', async () => {
+    const response = await request(app)
+      .get('/auth/me')
+      .set('Authorization', 'Token abc123');
+    expect(response.status).toBe(401);
+  });
+
+  it('rejects a Bearer header with an empty token (401)', async () => {
+    const response = await request(app)
+      .get('/auth/me')
+      .set('Authorization', 'Bearer ');
     expect(response.status).toBe(401);
   });
 
