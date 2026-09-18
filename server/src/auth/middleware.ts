@@ -22,16 +22,15 @@ export function authenticate(
   _res: Response,
   next: NextFunction,
 ): void {
-  const header = req.headers.authorization;
-  if (!header || !header.startsWith('Bearer ')) {
+  const header = req.headers.authorization ?? '';
+  const [scheme, ...rest] = header.split(' ');
+  // RFC 7235: the auth-scheme token is case-insensitive, so `bearer`,
+  // `BEARER`, etc. must be accepted alongside the canonical `Bearer`.
+  if (scheme.toLowerCase() !== 'bearer' || rest.join(' ').trim() === '') {
     next(unauthorizedError('Missing or invalid access token'));
     return;
   }
-  const token = header.slice('Bearer '.length).trim();
-  if (!token) {
-    next(unauthorizedError('Missing or invalid access token'));
-    return;
-  }
+  const token = rest.join(' ').trim();
   try {
     req.user = verifyToken(token);
     next();

@@ -51,6 +51,23 @@ describe('Protected routes', () => {
     expect(response.status).toBe(401);
   });
 
+  it('accepts a lowercase bearer scheme (200)', async () => {
+    const token = await loginToken();
+    const response = await request(app)
+      .get('/auth/me')
+      .set('Authorization', `bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.user.email).toBe('mallory@example.com');
+  });
+
+  it('ignores cookies — even one carrying a valid access token (401)', async () => {
+    const token = await loginToken();
+    const response = await request(app)
+      .get('/auth/me')
+      .set('Cookie', `budgeto_access_token=${token}`);
+    expect(response.status).toBe(401);
+  });
+
   it('returns the user for a valid Bearer token (200)', async () => {
     const token = await loginToken();
     const response = await request(app)
