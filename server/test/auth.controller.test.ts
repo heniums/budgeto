@@ -89,10 +89,19 @@ describe('POST /auth/login', () => {
     expect(response.body.accessToken.length).toBeGreaterThan(0);
     const raw = response.headers['set-cookie'];
     const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
-    expect(cookies.length).toBeGreaterThan(0);
-    expect(cookies.some((c) => c.startsWith(`${REFRESH_COOKIE_NAME}=`))).toBe(
-      true,
+    // Only the refresh cookie is ever set — an access-token cookie must not
+    // come back.
+    expect(cookies).toHaveLength(1);
+    const refreshCookie = cookies.find((c) =>
+      c.startsWith(`${REFRESH_COOKIE_NAME}=`),
     );
+    expect(refreshCookie).toBeDefined();
+    // Security-critical flags: invisible to client-side JS, scheme fallback
+    // (Lax), path-scoped, and bound to the refresh TTL.
+    expect(refreshCookie).toContain('HttpOnly');
+    expect(refreshCookie).toContain('SameSite=Lax');
+    expect(refreshCookie).toContain('Path=/');
+    expect(refreshCookie).toContain('Max-Age=');
   });
 
   it('rejects an unknown user (401)', async () => {

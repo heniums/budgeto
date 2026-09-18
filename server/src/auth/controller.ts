@@ -108,6 +108,10 @@ export async function changePasswordHandler(
     }
     const input = changePasswordSchema.parse(req.body);
     await changePassword(req.user.sub, input);
+    // changePassword() revoked every refresh token server-side; drop the now
+    // dead cookie too so the browser stops presenting it (a guaranteed 401)
+    // until its Max-Age lapses.
+    clearRefreshCookie(res);
     res.status(204).send();
   } catch (error) {
     next(error);
