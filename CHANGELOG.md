@@ -7,6 +7,16 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- Dispatch unauthorized event exactly once when a shared token refresh fails
+- Stop infinite 401 refresh retries by marking retried requests with `skipRefresh`
+- Keep an explicit login from being overwritten by a racing mount-time refresh
+- Clear the refresh cookie in the change-password response after token revocation
+- Accept case-insensitive Bearer auth schemes per RFC 7235 in the auth middleware
+
 ## [1.6.0] — 2026-08-13
 
 ### Added

@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -15,10 +16,7 @@ import {
   type AuthUser,
   type UserSettings,
 } from '../api/auth';
-import {
-  setAccessToken,
-  UNAUTHORIZED_EVENT,
-} from '../api/client';
+import { setAccessToken, UNAUTHORIZED_EVENT } from '../api/client';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -44,6 +42,10 @@ export function AuthProvider({
 }): JSX.Element {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>('loading');
+  // Set once an explicit login/register establishes the session. The
+  // mount-time silent refresh must never override it, even if its response
+  // lands afterwards.
+  const explicitSessionRef = useRef(false);
 
   const clearSession = useCallback(() => {
     setAccessToken(null);
@@ -61,14 +63,18 @@ export function AuthProvider({
     setStatus('loading');
     refreshSession()
       .then(({ user: fetched, accessToken }) => {
-        if (!active) return;
+        if (!active || explicitSessionRef.current) return;
         setAccessToken(accessToken);
         setUser(fetched);
         setStatus('authenticated');
       })
       .catch((error) => {
-        if (!active) return;
-        if (error instanceof Error && 'status' in error && error.status === 401) {
+        if (!active || explicitSessionRef.current) return;
+        if (
+          error instanceof Error &&
+          'status' in error &&
+          error.status === 401
+        ) {
           clearSession();
         }
         // Non-401: leave status as 'loading' so the user sees no false logout.
@@ -90,6 +96,7 @@ export function AuthProvider({
 
   const login = useCallback(
     (session: { user: AuthUser; accessToken: string }) => {
+      explicitSessionRef.current = true;
       setAccessToken(session.accessToken);
       setUser(session.user);
       setStatus('authenticated');

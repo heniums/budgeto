@@ -25,7 +25,14 @@ vi.mock('./client', () => ({
   },
 }));
 
-import { register, login, getMe, updateName, changePassword, refreshSession } from './auth';
+import {
+  register,
+  login,
+  getMe,
+  updateName,
+  changePassword,
+  refreshSession,
+} from './auth';
 import { ApiError } from './client';
 
 describe('auth API client', () => {
@@ -42,11 +49,10 @@ describe('auth API client', () => {
     });
     const input = { name: 'A', email: 'a@b.co', password: 'password123' };
     const session = await register(input);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/auth/register',
-      input,
-      { skipAuth: true, withCredentials: true },
-    );
+    expect(mockPost).toHaveBeenCalledWith('/auth/register', input, {
+      skipAuth: true,
+      withCredentials: true,
+    });
     expect(session.user).toEqual({ id: 'u1', email: 'a@b.co', name: 'A' });
     expect(session.accessToken).toBe('tok-1');
   });
@@ -60,11 +66,10 @@ describe('auth API client', () => {
     });
     const input = { email: 'a@b.co', password: 'password123' };
     const session = await login(input);
-    expect(mockPost).toHaveBeenCalledWith(
-      '/auth/login',
-      input,
-      { skipAuth: true, withCredentials: true },
-    );
+    expect(mockPost).toHaveBeenCalledWith('/auth/login', input, {
+      skipAuth: true,
+      withCredentials: true,
+    });
     expect(session.user.email).toBe('a@b.co');
     expect(session.accessToken).toBe('tok-2');
   });
@@ -77,11 +82,11 @@ describe('auth API client', () => {
       },
     });
     const session = await refreshSession();
-    expect(mockPost).toHaveBeenCalledWith(
-      '/auth/refresh',
-      undefined,
-      { skipAuth: true, withCredentials: true },
-    );
+    expect(mockPost).toHaveBeenCalledWith('/auth/refresh', undefined, {
+      skipAuth: true,
+      skipRefresh: true,
+      withCredentials: true,
+    });
     expect(session.accessToken).toBe('tok-3');
   });
 
@@ -112,7 +117,11 @@ describe('auth API client', () => {
     ).resolves.toBeUndefined();
     expect(mockPost).toHaveBeenCalledWith(
       '/auth/change-password',
-      { currentPassword: 'a', newPassword: 'b' },
+      {
+        currentPassword: 'a',
+        newPassword: 'b',
+      },
+      { withCredentials: true },
     );
   });
 

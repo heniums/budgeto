@@ -10,10 +10,16 @@ import type * as AuthModule from '../api/auth';
 
 vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
-  return { ...actual, getMe: vi.fn(), login: vi.fn(), register: vi.fn() };
+  return {
+    ...actual,
+    getMe: vi.fn(),
+    login: vi.fn(),
+    register: vi.fn(),
+    refreshSession: vi.fn(),
+  };
 });
 
-import { getMe } from '../api/auth';
+import { refreshSession } from '../api/auth';
 
 function renderAt(path: string, element: JSX.Element): void {
   render(
@@ -30,10 +36,9 @@ function renderAt(path: string, element: JSX.Element): void {
 describe('conversational microcopy', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue({
-      id: 'u1',
-      email: 'a@b.co',
-      name: 'Ada',
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: { id: 'u1', email: 'a@b.co', name: 'Ada' },
+      accessToken: 'tok',
     });
     window.localStorage.clear();
     cleanup();

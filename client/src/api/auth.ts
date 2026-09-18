@@ -31,20 +31,18 @@ export interface ChangePasswordInput {
 }
 
 export async function register(input: RegisterInput): Promise<AuthSession> {
-  const response = await apiClient.post<AuthSession>(
-    '/auth/register',
-    input,
-    { skipAuth: true, withCredentials: true },
-  );
+  const response = await apiClient.post<AuthSession>('/auth/register', input, {
+    skipAuth: true,
+    withCredentials: true,
+  });
   return response.data;
 }
 
 export async function login(input: LoginInput): Promise<AuthSession> {
-  const response = await apiClient.post<AuthSession>(
-    '/auth/login',
-    input,
-    { skipAuth: true, withCredentials: true },
-  );
+  const response = await apiClient.post<AuthSession>('/auth/login', input, {
+    skipAuth: true,
+    withCredentials: true,
+  });
   return response.data;
 }
 
@@ -67,7 +65,11 @@ export async function updateName(name: string): Promise<AuthUser> {
 export async function changePassword(
   input: ChangePasswordInput,
 ): Promise<void> {
-  await apiClient.post('/auth/change-password', input);
+  // withCredentials is required for the 204's Set-Cookie clear to apply:
+  // browsers discard cookies from non-credentialed cross-origin responses.
+  await apiClient.post('/auth/change-password', input, {
+    withCredentials: true,
+  });
 }
 
 export async function updateSettings(
@@ -81,23 +83,20 @@ export async function updateSettings(
 
 /**
  * Exchanges the httpOnly refresh cookie for a fresh access token. Called by
- * the response interceptor on 401s; must NOT itself be wrapped by the
- * refresh-on-401 logic. `withCredentials` is enabled only for this call so
- * the browser sends the refresh cookie.
+ * the response interceptor on 401s and by AuthProvider on mount. `skipRefresh`
+ * keeps it out of the refresh-on-401 logic even if the endpoint path ever
+ * changes; `withCredentials` is enabled only for this call so the browser
+ * sends the refresh cookie.
  */
 export async function refreshSession(): Promise<AuthSession> {
   const response = await apiClient.post<AuthSession>(
     '/auth/refresh',
     undefined,
-    { skipAuth: true, withCredentials: true },
+    { skipAuth: true, skipRefresh: true, withCredentials: true },
   );
   return response.data;
 }
 
 export async function logout(): Promise<void> {
-  await apiClient.post(
-    '/auth/logout',
-    undefined,
-    { withCredentials: true },
-  );
+  await apiClient.post('/auth/logout', undefined, { withCredentials: true });
 }

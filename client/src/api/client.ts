@@ -63,10 +63,15 @@ apiClient.interceptors.response.use(
         );
       }
 
-      // For /auth/refresh failure, dispatch unauthorized event
+      // For /auth/refresh failure: when this 401 IS the shared refresh
+      // promise failing, its catch below dispatches the event — dispatch
+      // here only when no refresh is in flight (e.g. the mount-time
+      // silent refresh), so the event fires exactly once per failure.
       if (url === '/auth/refresh') {
         setAccessToken(null);
-        window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+        if (!refreshing) {
+          window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
+        }
         throw new ApiError(
           error.response.data?.message || 'Unauthorized',
           401,
@@ -74,8 +79,10 @@ apiClient.interceptors.response.use(
         );
       }
 
-      // Don't retry if skipRefresh is set
+      // Don't retry if skipRefresh is set: the session is unrecoverable, so
+      // drop the dead token and notify listeners.
       if (config?.skipRefresh) {
+        setAccessToken(null);
         window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
         throw new ApiError(
           error.response.data?.message || 'Unauthorized',
@@ -100,10 +107,11 @@ apiClient.interceptors.response.use(
       }
 
       await refreshing;
-      // After refresh, retry with the new token. Setting Authorization here
-      // (rather than re-running the interceptor) avoids a redundant read of
-      // the just-written in-memory token.
-      const retried = { ...config };
+      // After refresh, retry with the new token — exactly once. skipRefresh
+      // marks the retried request so a second 401 fails straight through
+      // (dispatching unauthorized) instead of minting another token and
+      // looping.
+      const retried = { ...config, skipRefresh: true };
       retried.headers = {
         ...(config.headers ?? {}),
         Authorization: `Bearer ${getAccessToken()}`,
