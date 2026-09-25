@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, cleanup, waitFor, act, within } from '@testing-library/react';
+import {
+  render,
+  screen,
+  cleanup,
+  waitFor,
+  act,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
@@ -11,7 +18,7 @@ import type * as CategoryModule from '../api/categories';
 
 vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
-  return { ...actual, getMe: vi.fn() };
+  return { ...actual, refreshSession: vi.fn() };
 });
 
 vi.mock('../api/budgets', async (importOriginal) => {
@@ -33,7 +40,7 @@ vi.mock('../api/categories', async (importOriginal) => {
   };
 });
 
-import { getMe } from '../api/auth';
+import { refreshSession } from '../api/auth';
 import { getBudgets, deleteBudget } from '../api/budgets';
 import { getCategories } from '../api/categories';
 
@@ -105,7 +112,10 @@ function renderPage(): void {
 describe('Budgets page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(getCategories).mockResolvedValue({
       categories: mockCategories,
     });

@@ -1,7 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { verifyToken, type TokenPayload } from './token';
 import { unauthorizedError } from '../errors';
-import { ACCESS_COOKIE_NAME } from './cookies';
 
 declare global {
   // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -13,20 +12,25 @@ declare global {
 }
 
 /**
- * Guards an endpoint, requiring a valid access-token cookie. On success it
- * attaches the decoded token payload to `req.user`; otherwise it forwards an
- * UnauthorizedError.
+ * Guards an endpoint, requiring a valid access token. The token must be sent
+ * as `Authorization: Bearer <token>` from the client — the server never stores
+ * it. On success it attaches the decoded token payload to `req.user`;
+ * otherwise it forwards an UnauthorizedError.
  */
 export function authenticate(
   req: Request,
   _res: Response,
   next: NextFunction,
 ): void {
-  const token = req.cookies?.[ACCESS_COOKIE_NAME];
-  if (!token) {
+  const header = req.headers.authorization ?? '';
+  const [scheme, ...rest] = header.split(' ');
+  // RFC 7235: the auth-scheme token is case-insensitive, so `bearer`,
+  // `BEARER`, etc. must be accepted alongside the canonical `Bearer`.
+  if (scheme.toLowerCase() !== 'bearer' || rest.join(' ').trim() === '') {
     next(unauthorizedError('Missing or invalid access token'));
     return;
   }
+  const token = rest.join(' ').trim();
   try {
     req.user = verifyToken(token);
     next();

@@ -13,13 +13,14 @@ vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
   return {
     ...actual,
+    refreshSession: vi.fn(),
     getMe: vi.fn(),
     updateName: vi.fn(),
     changePassword: vi.fn(),
   };
 });
 
-import { getMe, updateName, changePassword } from '../api/auth';
+import { refreshSession, getMe, updateName, changePassword } from '../api/auth';
 import { ApiError } from '../api/client';
 
 function renderProfile(): void {
@@ -37,13 +38,15 @@ function renderProfile(): void {
 describe('Profile page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(getMe).mockResolvedValue(mockUser);
     vi.mocked(updateName).mockImplementation((name) =>
       Promise.resolve({ ...mockUser, name }),
     );
     vi.mocked(changePassword).mockResolvedValue(undefined);
-    window.localStorage.clear();
-    window.localStorage.setItem('budgeto:token', 'test-token');
     cleanup();
   });
 

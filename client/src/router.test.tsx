@@ -15,10 +15,11 @@ import { routes } from './router';
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
 vi.mock('./api/auth', () => ({
+  refreshSession: vi.fn(),
   getMe: vi.fn(),
   logout: vi.fn().mockResolvedValue(undefined),
 }));
-import { getMe } from './api/auth';
+import { getMe, refreshSession, type AuthSession } from './api/auth';
 import { ApiError } from './api/client';
 
 function LoginSpy(): JSX.Element {
@@ -30,9 +31,39 @@ function LoginSpy(): JSX.Element {
 
 describe('router guards', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.mocked(refreshSession).mockRejectedValue(
+      new ApiError('Unauthorized', 401),
+    );
     vi.mocked(getMe).mockRejectedValue(new ApiError('Unauthorized', 401));
     cleanup();
+  });
+
+  it('holds the loading gate while refresh is pending', async () => {
+    const { promise, resolve } = Promise.withResolvers<AuthSession>();
+    vi.mocked(refreshSession).mockReturnValue(promise);
+    render(
+      <AuthProvider>
+        <MemoryRouter initialEntries={['/profile']}>
+          <Routes>
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <div>secret</div>
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/login" element={<div>Sign in</div>} />
+          </Routes>
+        </MemoryRouter>
+      </AuthProvider>,
+    );
+    // Neither a protected-content flash nor a premature redirect may happen
+    // while the silent mount refresh is in flight.
+    expect(screen.queryByText('secret')).not.toBeInTheDocument();
+    expect(screen.queryByText('Sign in')).not.toBeInTheDocument();
+    resolve({ user: mockUser, accessToken: 'tok' });
+    expect(await screen.findByText('secret')).toBeInTheDocument();
   });
 
   it('redirects an unauthenticated user from /profile to /login', async () => {
@@ -79,6 +110,10 @@ describe('router guards', () => {
   });
 
   it('lets an authenticated user reach /profile', async () => {
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(getMe).mockResolvedValue(mockUser);
     render(
       <AuthProvider>

@@ -3,12 +3,22 @@ import request from 'supertest';
 import { createApp } from '../src/app';
 import { register } from '../src/auth/service';
 import { deleteAllUsers } from '../src/auth/repository';
-import {
-  ACCESS_COOKIE_NAME,
-  REFRESH_COOKIE_NAME,
-} from '../src/auth/cookies';
+import { REFRESH_COOKIE_NAME } from '../src/auth/cookies';
 
 const app = createApp();
+
+async function loginAndCaptureRefreshCookie(email: string): Promise<string> {
+  const response = await request(app)
+    .post('/auth/login')
+    .send({ email, password: 'password123' });
+  const raw = response.headers['set-cookie'];
+  const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
+  const cookie = cookies.find((c) => c.startsWith(`${REFRESH_COOKIE_NAME}=`));
+  if (!cookie) {
+    throw new Error(`login for ${email} did not set a refresh cookie`);
+  }
+  return cookie;
+}
 
 describe('POST /auth/register', () => {
   beforeEach(async () => {
@@ -25,6 +35,14 @@ describe('POST /auth/register', () => {
     expect(response.body.user.email).toBe('heidi@example.com');
     expect(response.body.user.name).toBe('Heidi');
     expect(response.body.user.id).toBeDefined();
+    expect(typeof response.body.accessToken).toBe('string');
+    expect(response.body.accessToken.length).toBeGreaterThan(0);
+    const raw = response.headers['set-cookie'];
+    const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    expect(cookies.length).toBeGreaterThan(0);
+    expect(cookies.some((c) => c.startsWith(`${REFRESH_COOKIE_NAME}=`))).toBe(
+      true,
+    );
   });
 
   it('rejects invalid input (400)', async () => {
@@ -61,21 +79,29 @@ describe('POST /auth/login', () => {
     });
   });
 
-  it('returns a user and sets auth cookies with valid credentials (200)', async () => {
+  it('returns a user, access token, and refresh cookie with valid credentials (200)', async () => {
     const response = await request(app)
       .post('/auth/login')
       .send({ email: 'judy@example.com', password: 'password123' });
     expect(response.status).toBe(200);
     expect(response.body.user.email).toBe('judy@example.com');
+    expect(typeof response.body.accessToken).toBe('string');
+    expect(response.body.accessToken.length).toBeGreaterThan(0);
     const raw = response.headers['set-cookie'];
     const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
-    expect(cookies.length).toBeGreaterThan(0);
-    expect(cookies.some((c) => c.startsWith(`${ACCESS_COOKIE_NAME}=`))).toBe(
-      true,
+    // Only the refresh cookie is ever set — an access-token cookie must not
+    // come back.
+    expect(cookies).toHaveLength(1);
+    const refreshCookie = cookies.find((c) =>
+      c.startsWith(`${REFRESH_COOKIE_NAME}=`),
     );
-    expect(cookies.some((c) => c.startsWith(`${REFRESH_COOKIE_NAME}=`))).toBe(
-      true,
-    );
+    expect(refreshCookie).toBeDefined();
+    // Security-critical flags: invisible to client-side JS, scheme fallback
+    // (Lax), path-scoped, and bound to the refresh TTL.
+    expect(refreshCookie).toContain('HttpOnly');
+    expect(refreshCookie).toContain('SameSite=Lax');
+    expect(refreshCookie).toContain('Path=/');
+    expect(refreshCookie).toContain('Max-Age=');
   });
 
   it('rejects an unknown user (401)', async () => {
@@ -90,5 +116,91 @@ describe('POST /auth/login', () => {
       .post('/auth/login')
       .send({ email: 'judy@example.com', password: 'wrong' });
     expect(response.status).toBe(401);
+  });
+});
+
+describe('POST /auth/refresh', () => {
+  beforeEach(async () => {
+    await deleteAllUsers();
+    await register({
+      name: 'Karen',
+      email: 'karen@example.com',
+      password: 'password123',
+    });
+  });
+
+  it('returns a user, access token, and rotated refresh cookie with a valid cookie (200)', async () => {
+    const cookie = await loginAndCaptureRefreshCookie('karen@example.com');
+    const response = await request(app)
+      .post('/auth/refresh')
+      .set('Cookie', cookie);
+    expect(response.status).toBe(200);
+    expect(response.body.user.email).toBe('karen@example.com');
+    expect(typeof response.body.accessToken).toBe('string');
+    expect(response.body.accessToken.length).toBeGreaterThan(0);
+    const raw = response.headers['set-cookie'];
+    const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    expect(cookies.length).toBeGreaterThan(0);
+    expect(cookies.some((c) => c.startsWith(`${REFRESH_COOKIE_NAME}=`))).toBe(
+      true,
+    );
+  });
+
+  it('rotates the refresh token, rejecting the original cookie afterwards (401)', async () => {
+    const cookie = await loginAndCaptureRefreshCookie('karen@example.com');
+    const first = await request(app)
+      .post('/auth/refresh')
+      .set('Cookie', cookie);
+    expect(first.status).toBe(200);
+
+    const replay = await request(app)
+      .post('/auth/refresh')
+      .set('Cookie', cookie);
+    expect(replay.status).toBe(401);
+  });
+
+  it('rejects a missing refresh cookie (401)', async () => {
+    const response = await request(app).post('/auth/refresh');
+    expect(response.status).toBe(401);
+  });
+
+  it('rejects a garbage refresh token (401)', async () => {
+    const response = await request(app)
+      .post('/auth/refresh')
+      .set('Cookie', `${REFRESH_COOKIE_NAME}=not-a-real-token`);
+    expect(response.status).toBe(401);
+  });
+});
+
+describe('POST /auth/logout', () => {
+  beforeEach(async () => {
+    await deleteAllUsers();
+    await register({
+      name: 'Leonardo',
+      email: 'leonardo@example.com',
+      password: 'password123',
+    });
+  });
+
+  it('clears the refresh cookie and invalidates the stored token (204)', async () => {
+    const cookie = await loginAndCaptureRefreshCookie('leonardo@example.com');
+    const response = await request(app)
+      .post('/auth/logout')
+      .set('Cookie', cookie);
+    expect(response.status).toBe(204);
+    const raw = response.headers['set-cookie'];
+    const cookies = Array.isArray(raw) ? raw : raw ? [raw] : [];
+    expect(
+      cookies.some(
+        (c) =>
+          c.startsWith(`${REFRESH_COOKIE_NAME}=`) &&
+          c.includes('Expires=Thu, 01 Jan 1970 00:00:00 GMT'),
+      ),
+    ).toBe(true);
+
+    const replay = await request(app)
+      .post('/auth/refresh')
+      .set('Cookie', cookie);
+    expect(replay.status).toBe(401);
   });
 });

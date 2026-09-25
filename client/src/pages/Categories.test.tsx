@@ -10,7 +10,7 @@ import type * as CategoryModule from '../api/categories';
 
 vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
-  return { ...actual, getMe: vi.fn() };
+  return { ...actual, refreshSession: vi.fn() };
 });
 
 vi.mock('../api/categories', async (importOriginal) => {
@@ -21,7 +21,7 @@ vi.mock('../api/categories', async (importOriginal) => {
   };
 });
 
-import { getMe } from '../api/auth';
+import { refreshSession } from '../api/auth';
 import { getCategories } from '../api/categories';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
@@ -60,7 +60,10 @@ function renderList(): void {
 describe('Categories page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(getCategories).mockResolvedValue({
       categories: mockCategories,
     });
@@ -84,7 +87,9 @@ describe('Categories page', () => {
     const tableIcons = table.querySelectorAll('svg');
     expect(tableIcons).toHaveLength(2);
     // FAB is present (alongside the header button)
-    expect(screen.getAllByRole('button', { name: /new category/i })).toHaveLength(2);
+    expect(
+      screen.getAllByRole('button', { name: /new category/i }),
+    ).toHaveLength(2);
   });
 
   it('shows empty state when no categories exist', async () => {

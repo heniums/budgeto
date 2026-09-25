@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 const refreshSessionMock = vi.fn();
 
@@ -6,7 +6,14 @@ vi.mock('./auth', () => ({
   refreshSession: (...args: unknown[]) => refreshSessionMock(...args),
 }));
 
-import { apiClient, ApiError, UNAUTHORIZED_EVENT } from './client';
+import {
+  apiClient,
+  ApiError,
+  UNAUTHORIZED_EVENT,
+  setAccessToken,
+  getAccessToken,
+} from './client';
+import type { InternalAxiosRequestConfig } from 'axios';
 
 // axios InterceptorManager.handlers is not part of the public API, so we cast
 // through unknown to access the registered interceptor functions for direct
@@ -21,20 +28,63 @@ const getResponseErrorHandler = () => {
   return handlers[0].rejected;
 };
 
+const getRequestInterceptor = () => {
+  const { handlers } = apiClient.interceptors.request as unknown as {
+    handlers: Array<{
+      fulfilled: (value: unknown) => unknown;
+    }>;
+  };
+  return handlers[0].fulfilled;
+};
+
+// Swap the transport for a recorder so retried requests can be asserted
+// without touching the network. Restored in afterEach.
+const defaultAdapter = apiClient.defaults.adapter;
+const recordRequests = () => {
+  const requests: InternalAxiosRequestConfig[] = [];
+  apiClient.defaults.adapter = async (config: InternalAxiosRequestConfig) => {
+    requests.push(config);
+    return {
+      data: { ok: true },
+      status: 200,
+      statusText: 'OK',
+      headers: {},
+      config,
+    };
+  };
+  return requests;
+};
+
 describe('apiClient', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('has withCredentials enabled', () => {
-    expect(apiClient.defaults.withCredentials).toBe(true);
+  afterEach(() => {
+    setAccessToken(null);
+    apiClient.defaults.adapter = defaultAdapter;
   });
 
-  it('has no request interceptors', () => {
-    const { handlers } = apiClient.interceptors.request as unknown as {
-      handlers: unknown[];
+  it('has withCredentials disabled by default (refresh opts in per call)', () => {
+    expect(apiClient.defaults.withCredentials).toBe(false);
+  });
+
+  it('injects the Bearer token into outgoing requests', () => {
+    const interceptor = getRequestInterceptor();
+    setAccessToken('tok');
+    const config = interceptor({ headers: {}, skipAuth: undefined }) as {
+      headers: Record<string, string>;
     };
-    expect(handlers.length).toBe(0);
+    expect(config.headers.Authorization).toBe('Bearer tok');
+  });
+
+  it('leaves the Authorization header unset when skipAuth is true', () => {
+    const interceptor = getRequestInterceptor();
+    setAccessToken('tok');
+    const config = interceptor({ headers: {}, skipAuth: true }) as {
+      headers: Record<string, string>;
+    };
+    expect(config.headers.Authorization).toBeUndefined();
   });
 
   describe('response interceptor', () => {
@@ -103,7 +153,7 @@ describe('apiClient', () => {
         },
       };
       await expect(handler(error)).rejects.toBeInstanceOf(ApiError);
-      expect(dispatchSpy).toHaveBeenCalled();
+      expect(dispatchSpy).toHaveBeenCalledTimes(1);
       const event = dispatchSpy.mock.calls[0][0] as CustomEvent;
       expect(event.type).toBe(UNAUTHORIZED_EVENT);
       dispatchSpy.mockRestore();
@@ -130,6 +180,157 @@ describe('apiClient', () => {
       const handler = getResponseErrorHandler();
       const networkError = new Error('Network Error');
       await expect(handler(networkError)).rejects.toBe(networkError);
+    });
+
+    describe('silent refresh on 401', () => {
+      it('refreshes the session and retries with the fresh token', async () => {
+        const handler = getResponseErrorHandler();
+        const requests = recordRequests();
+        setAccessToken('stale-token');
+        refreshSessionMock.mockResolvedValue({
+          user: { id: 'u1', email: 'a@b.co', name: 'A' },
+          accessToken: 'fresh-token',
+        });
+        const error = {
+          config: {
+            url: '/transactions',
+            headers: { Authorization: 'Bearer stale-token' },
+          },
+          response: {
+            data: { message: 'Unauthorized' },
+            status: 401,
+          },
+        };
+        const response = await handler(error);
+        expect(refreshSessionMock).toHaveBeenCalledTimes(1);
+        expect(getAccessToken()).toBe('fresh-token');
+        expect(requests).toHaveLength(1);
+        expect(requests[0].url).toBe('/transactions');
+        expect(requests[0].headers.Authorization).toBe('Bearer fresh-token');
+        expect(response).toMatchObject({ status: 200, data: { ok: true } });
+      });
+
+      it('shares one in-flight refresh across concurrent 401s', async () => {
+        const handler = getResponseErrorHandler();
+        const requests = recordRequests();
+        const { promise: refreshPromise, resolve: resolveRefresh } =
+          Promise.withResolvers<{ accessToken: string }>();
+        refreshSessionMock.mockImplementation(() => refreshPromise);
+        const makeError = () => ({
+          config: { url: '/transactions' },
+          response: {
+            data: { message: 'Unauthorized' },
+            status: 401,
+          },
+        });
+        const first = handler(makeError());
+        const second = handler(makeError());
+        expect(refreshSessionMock).toHaveBeenCalledTimes(1);
+        resolveRefresh({ accessToken: 'fresh-token' });
+        await Promise.all([first, second]);
+        expect(requests).toHaveLength(2);
+        expect(requests[0].headers.Authorization).toBe('Bearer fresh-token');
+        expect(requests[1].headers.Authorization).toBe('Bearer fresh-token');
+      });
+
+      it('propagates the refresh failure and does not retry', async () => {
+        const handler = getResponseErrorHandler();
+        const requests = recordRequests();
+        setAccessToken('stale-token');
+        const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+        const refreshError = new Error('refresh failed');
+        refreshSessionMock.mockRejectedValue(refreshError);
+        const error = {
+          config: { url: '/transactions' },
+          response: {
+            data: { message: 'Unauthorized' },
+            status: 401,
+          },
+        };
+        await expect(handler(error)).rejects.toBe(refreshError);
+        expect(refreshSessionMock).toHaveBeenCalledTimes(1);
+        expect(dispatchSpy).toHaveBeenCalled();
+        const event = dispatchSpy.mock.calls[0][0] as CustomEvent;
+        expect(event.type).toBe(UNAUTHORIZED_EVENT);
+        expect(requests).toHaveLength(0);
+        expect(getAccessToken()).toBeNull();
+        dispatchSpy.mockRestore();
+      });
+
+      it('does not loop when the retried request 401s again', async () => {
+        const handler = getResponseErrorHandler();
+        apiClient.defaults.adapter = async (
+          config: InternalAxiosRequestConfig,
+        ) => {
+          // Adapters own the status-based settle: a 401 must reject or the
+          // interceptor never sees an error response.
+          const response = {
+            data: { message: 'Unauthorized' },
+            status: 401,
+            statusText: 'Unauthorized',
+            headers: {},
+            config,
+          };
+          throw Object.assign(
+            new Error('Request failed with status code 401'),
+            { config, response },
+          );
+        };
+        const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+        refreshSessionMock.mockResolvedValue({
+          user: { id: 'u1', email: 'a@b.co', name: 'A' },
+          accessToken: 'fresh-token',
+        });
+        const error = {
+          config: {
+            url: '/transactions',
+            headers: { Authorization: 'Bearer stale-token' },
+          },
+          response: {
+            data: { message: 'Unauthorized' },
+            status: 401,
+          },
+        };
+        await expect(handler(error)).rejects.toBeInstanceOf(ApiError);
+        expect(refreshSessionMock).toHaveBeenCalledTimes(1);
+        expect(dispatchSpy).toHaveBeenCalledTimes(1);
+        expect(getAccessToken()).toBeNull();
+        dispatchSpy.mockRestore();
+      });
+
+      it('dispatches unauthorized exactly once when the shared refresh fails', async () => {
+        const handler = getResponseErrorHandler();
+        const dispatchSpy = vi.spyOn(window, 'dispatchEvent');
+        // The in-flight /auth/refresh call itself 401s; that inner error
+        // flows through this same interceptor while `refreshing` is pending,
+        // so the URL branch must not dispatch — the catch below does.
+        const refreshUrlError = {
+          config: { url: '/auth/refresh' },
+          response: {
+            data: { message: 'Unauthorized' },
+            status: 401,
+          },
+        };
+        refreshSessionMock.mockImplementation(async () => {
+          await Promise.resolve();
+          await expect(handler(refreshUrlError)).rejects.toBeInstanceOf(
+            ApiError,
+          );
+          throw new Error('session expired');
+        });
+        const error = {
+          config: { url: '/transactions' },
+          response: {
+            data: { message: 'Unauthorized' },
+            status: 401,
+          },
+        };
+        await expect(handler(error)).rejects.toBeTruthy();
+        expect(refreshSessionMock).toHaveBeenCalledTimes(1);
+        expect(dispatchSpy).toHaveBeenCalledTimes(1);
+        expect(getAccessToken()).toBeNull();
+        dispatchSpy.mockRestore();
+      });
     });
   });
 });

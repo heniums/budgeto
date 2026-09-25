@@ -10,7 +10,7 @@ import type * as WalletModule from '../api/wallets';
 
 vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
-  return { ...actual, getMe: vi.fn() };
+  return { ...actual, refreshSession: vi.fn() };
 });
 
 vi.mock('../api/wallets', async (importOriginal) => {
@@ -21,7 +21,7 @@ vi.mock('../api/wallets', async (importOriginal) => {
   };
 });
 
-import { getMe } from '../api/auth';
+import { refreshSession } from '../api/auth';
 import { getWallets } from '../api/wallets';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
@@ -62,7 +62,10 @@ function renderList(): void {
 describe('WalletList page', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue(mockUser);
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: mockUser,
+      accessToken: 'tok',
+    });
     vi.mocked(getWallets).mockResolvedValue({ wallets: mockWallets });
     window.localStorage.clear();
     cleanup();

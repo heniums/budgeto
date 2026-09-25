@@ -9,9 +9,9 @@ import type * as AuthModule from '../api/auth';
 
 vi.mock('../api/auth', async (importOriginal) => {
   const actual = await importOriginal<typeof AuthModule>();
-  return { ...actual, getMe: vi.fn() };
+  return { ...actual, refreshSession: vi.fn() };
 });
-import { getMe } from '../api/auth';
+import { refreshSession } from '../api/auth';
 
 function renderLayout(): void {
   render(
@@ -28,10 +28,9 @@ function renderLayout(): void {
 describe('Layout', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.mocked(getMe).mockResolvedValue({
-      id: 'u1',
-      email: 'a@b.co',
-      name: 'Ada',
+    vi.mocked(refreshSession).mockResolvedValue({
+      user: { id: 'u1', email: 'a@b.co', name: 'Ada' },
+      accessToken: 'tok',
     });
     window.localStorage.clear();
     cleanup();

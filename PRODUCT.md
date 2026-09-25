@@ -42,8 +42,9 @@ Multi-wallet with per-wallet currency. Unlike single-account trackers, Budgeto l
 - Balance adjustments use FOR UPDATE row lock against an auto-created per-user "Balance Adjustment" category
 - Budget periods (monthly/custom) computed via dayjs, not stored
 - Ownership enforced: resource.userId === req.user.sub → 404 on mismatch
-- JWT Bearer auth; tokens stored in localStorage key `budgeto:token`
+- JWT Bearer auth: short-lived access token in client memory (sent as `Authorization: Bearer`); long-lived refresh token in `httpOnly` cookie (`budgeto_refresh_token`)
 - Embedded PostgreSQL available for local dev (no external DB needed)
+
 
 ## Brand Commitments
 
