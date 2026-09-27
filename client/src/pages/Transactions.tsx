@@ -9,9 +9,12 @@ import {
   type TransactionSummaryQuery,
   deleteTransaction,
 } from '../api/transactions';
-import { getWallets, type WalletData } from '../api/wallets';
-import { getCategories, type CategoryData } from '../api/categories';
+import type { CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
+import { useWalletsQuery } from '@/hooks/use-wallets';
+import { useCategoriesQuery } from '@/hooks/use-categories';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateFinancialData } from '@/lib/queryClient';
 import { Button } from '@/components/memphis/button';
 import { Input } from '@/components/memphis/input';
 import {
@@ -123,10 +126,13 @@ function matchesFilters(
 }
 
 export function Transactions(): JSX.Element {
+  const queryClient = useQueryClient();
   const [transactions, setTransactions] = useState<TransactionData[]>([]);
   const [total, setTotal] = useState(0);
-  const [wallets, setWallets] = useState<WalletData[]>([]);
-  const [categories, setCategories] = useState<CategoryData[]>([]);
+  const walletsQuery = useWalletsQuery();
+  const categoriesQuery = useCategoriesQuery();
+  const wallets = walletsQuery.data ?? [];
+  const categories = categoriesQuery.data ?? [];
   const [initialLoading, setInitialLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const loadingMoreRef = useRef(false);
@@ -270,52 +276,32 @@ export function Transactions(): JSX.Element {
       });
   }, [transactions.length, total, buildQuery]);
 
-  // Reload reference data (wallets/categories) and the transaction list together.
+  // Reload cached reference data (and anything money-adjacent) plus the
+  // transaction list together.
   const reload = useCallback(() => {
-    Promise.all([getWallets(), getCategories()])
-      .then(([walletResult, catResult]) => {
-        setWallets(walletResult.wallets);
-        setCategories(catResult.categories);
-      })
-      .catch(() => {
-        // Reference-data failures are non-fatal for the list reload.
-      })
-      .finally(() => loadInitial());
+    void invalidateFinancialData(queryClient);
+    loadInitial();
   }, [loadInitial]);
 
-  // Refresh reference data (wallets/categories) without reloading the transaction list.
+  // Refresh cached reference data (wallets/categories) without reloading the
+  // transaction list.
   const refreshReferenceData = useCallback(() => {
-    Promise.all([getWallets(), getCategories()])
-      .then(([walletResult, catResult]) => {
-        setWallets(walletResult.wallets);
-        setCategories(catResult.categories);
-      })
-      .catch(() => {
-        // Reference-data failures are non-fatal.
-      });
+    void invalidateFinancialData(queryClient);
   }, []);
 
+  // Open the onboarding wizard once, only if the first wallets load comes
+  // back empty and the user hasn't dismissed the wizard before.
+  const wizardCheckedRef = useRef(false);
   useEffect(() => {
-    let cancelled = false;
-    Promise.all([getWallets(), getCategories()])
-      .then(([walletResult, catResult]) => {
-        if (cancelled) return;
-        setWallets(walletResult.wallets);
-        setCategories(catResult.categories);
-        if (
-          walletResult.wallets.length === 0 &&
-          localStorage.getItem('budgeto:wizardDismissed') !== 'true'
-        ) {
-          setWizardOpen(true);
-        }
-      })
-      .catch(() => {
-        // Ignore — the transaction list effect will surface real errors.
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (wizardCheckedRef.current || !walletsQuery.isSuccess) return;
+    wizardCheckedRef.current = true;
+    if (
+      walletsQuery.data.length === 0 &&
+      localStorage.getItem('budgeto:wizardDismissed') !== 'true'
+    ) {
+      setWizardOpen(true);
+    }
+  }, [walletsQuery.isSuccess, walletsQuery.data]);
 
   useEffect(() => {
     loadInitial();
@@ -426,6 +412,7 @@ export function Transactions(): JSX.Element {
                     setTxOpen(false);
                     setPendingWalletId(null);
                     setPendingCategoryId(null);
+                    void invalidateFinancialData(queryClient);
                     if (
                       newTx &&
                       matchesFilters(newTx, {
@@ -785,6 +772,7 @@ export function Transactions(): JSX.Element {
               onSuccess={(updatedTx) => {
                 setEditTx(null);
                 if (updatedTx) {
+                  void invalidateFinancialData(queryClient);
                   if (
                     matchesFilters(updatedTx, {
                       walletFilter,
@@ -877,6 +865,7 @@ export function Transactions(): JSX.Element {
                     );
                     setTotal((t) => t - 1);
                     setDeleteConfirm(null);
+                    void invalidateFinancialData(queryClient);
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
                   }
@@ -922,6 +911,7 @@ export function Transactions(): JSX.Element {
                       prev.filter((t) => t.id !== cascadeTx.tx.id),
                     );
                     setTotal((t) => t - 1);
+                    void invalidateFinancialData(queryClient);
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
                     return;
@@ -947,6 +937,7 @@ export function Transactions(): JSX.Element {
                       ),
                     );
                     setTotal((t) => Math.max(0, t - 2));
+                    void invalidateFinancialData(queryClient);
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
                     return;
@@ -984,7 +975,7 @@ export function Transactions(): JSX.Element {
           setCreateWalletOpen(false);
           if (newWallet) {
             setPendingWalletId(newWallet.id);
-            setWallets((prev) => [...prev, newWallet]);
+            void invalidateFinancialData(queryClient);
           }
         }}
       />
@@ -1012,7 +1003,7 @@ export function Transactions(): JSX.Element {
           setCreateCategoryOpen(false);
           if (newCategory) {
             setPendingCategoryId(newCategory.id);
-            setCategories((prev) => [...prev, newCategory]);
+            void invalidateFinancialData(queryClient);
           }
         }}
       />

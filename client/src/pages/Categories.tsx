@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getCategories, type CategoryData } from '../api/categories';
+import { useMemo, useState } from 'react';
+import { useCategoriesQuery } from '@/hooks/use-categories';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateFinancialData } from '@/lib/queryClient';
 import { Button } from '@/components/memphis/button';
 import { Input } from '@/components/memphis/input';
 import {
@@ -18,32 +20,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function Categories(): JSX.Element {
-  const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: categories = [], isPending, error } = useCategoriesQuery();
   const [search, setSearch] = useState('');
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null,
   );
-
-  const load = (): void => {
-    setLoading(true);
-    setError(null);
-    getCategories()
-      .then((res) => {
-        setCategories(res.categories);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -64,7 +47,7 @@ export function Categories(): JSX.Element {
     <div className="space-y-6 min-w-0 pb-24">
       <h1 className="text-2xl font-semibold text-foreground">Categories</h1>
 
-      <FormAlert message={error} />
+      <FormAlert message={error?.message ?? null} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button data-testid="header-add-button" onClick={() => setModalMode('create')}>New Category</Button>
@@ -78,7 +61,7 @@ export function Categories(): JSX.Element {
         />
       </div>
 
-      {loading ? (
+      {isPending ? (
         <div className="memphis-card rounded-2xl">
           <Table>
             <TableHeader>
@@ -239,25 +222,15 @@ export function Categories(): JSX.Element {
         categoryId={
           modalMode === 'create' ? undefined : (selectedCategoryId ?? undefined)
         }
-        onSuccess={(cat) => {
+        onSuccess={() => {
           setModalMode(null);
           setSelectedCategoryId(null);
-          if (cat) {
-            setCategories((prev) => {
-              const exists = prev.some((c) => c.id === cat.id);
-              if (exists) {
-                return prev.map((c) => (c.id === cat.id ? cat : c));
-              }
-              return [...prev, cat];
-            });
-          } else {
-            load();
-          }
+          void invalidateFinancialData(queryClient);
         }}
-        onDelete={(id) => {
-          setCategories((prev) => prev.filter((c) => c.id !== id));
+        onDelete={() => {
           setModalMode(null);
           setSelectedCategoryId(null);
+          void invalidateFinancialData(queryClient);
         }}
       />
 

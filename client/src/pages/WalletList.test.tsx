@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, cleanup, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createTestQueryClient } from '../../test/test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { WalletList } from './WalletList';
@@ -53,7 +55,9 @@ function renderList(): void {
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/wallets']}>
-        <WalletList />
+        <QueryClientProvider client={createTestQueryClient()}>
+          <WalletList />
+        </QueryClientProvider>
       </MemoryRouter>
     </AuthProvider>,
   );
