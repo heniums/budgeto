@@ -17,6 +17,7 @@ import {
   type UserSettings,
 } from '../api/auth';
 import { setAccessToken, UNAUTHORIZED_EVENT } from '../api/client';
+import { queryClient } from '../lib/queryClient';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -51,6 +52,9 @@ export function AuthProvider({
     setAccessToken(null);
     setUser(null);
     setStatus('unauthenticated');
+    // Wipe all cached authenticated data so a re-login (possibly another
+    // user) can never render the previous session's queries.
+    queryClient.clear();
   }, []);
 
   // Attempt silent re-auth on mount via the refresh cookie. If no refresh

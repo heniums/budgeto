@@ -8,6 +8,8 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { createTestQueryClient } from '../../test/test-utils';
 import { MemoryRouter } from 'react-router-dom';
 import { AuthProvider } from '../auth/AuthContext';
 import { Budgets } from './Budgets';
@@ -103,7 +105,9 @@ function renderPage(): void {
   render(
     <AuthProvider>
       <MemoryRouter initialEntries={['/budgets']}>
-        <Budgets />
+        <QueryClientProvider client={createTestQueryClient()}>
+          <Budgets />
+        </QueryClientProvider>
       </MemoryRouter>
     </AuthProvider>,
   );
@@ -196,8 +200,13 @@ describe('Budgets page', () => {
     await screen.findByText('Budgets');
 
     // Two "Add budget" buttons exist (header + FAB); [1] is the FAB.
+    // waitFor polls until the FAB appears once categories finish loading.
+    await waitFor(() => {
+      expect(
+        screen.getAllByRole('button', { name: /add budget/i }),
+      ).toHaveLength(2);
+    });
     const buttons = screen.getAllByRole('button', { name: /add budget/i });
-    expect(buttons).toHaveLength(2);
     await user.click(buttons[1]); // [1] is the FAB
 
     // BudgetForm opens with the "Add budget" dialog title

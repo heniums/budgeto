@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useDashboardData } from '../DashboardDataProvider';
 import { getWidgetData } from '@/api/dashboard';
 import { defaultDataForWidget, type WidgetDataMap } from '../widgetData';
+import { widgetDataKey } from '@/lib/queryKeys';
 import type { WidgetFilterConfig, WidgetType } from '../types';
 
 interface UseWidgetDataResult<T extends WidgetType> {
@@ -19,52 +21,22 @@ export function useWidgetData<T extends WidgetType>(
   const config = widget?.config ?? {};
   const configKey = useMemo(() => JSON.stringify(config), [config]);
 
-  const [data, setData] = useState<WidgetDataMap[T] | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  // Widgets whose data is fully derivable from the summary never hit the
+  // network; the query stays disabled and the default short-circuits.
+  const defaultData = summary ? defaultDataForWidget(id, summary, config) : null;
 
-  useEffect(() => {
-    if (!summary) {
-      setData(null);
-      if (providerError) {
-        setError(providerError);
-        setLoading(false);
-      } else {
-        setLoading(true);
-      }
-      return;
-    }
+  const query = useQuery({
+    queryKey: widgetDataKey(id, configKey),
+    queryFn: () => getWidgetData(id, config),
+    enabled: !!summary && defaultData === null,
+  });
 
-    const defaultData = defaultDataForWidget(id, summary, config);
-    if (defaultData !== null) {
-      setData(defaultData);
-      setLoading(false);
-      setError(null);
-      return;
-    }
-
-    let cancelled = false;
-    setLoading(true);
-    setError(null);
-
-    getWidgetData(id, config)
-      .then((result) => {
-        if (!cancelled) {
-          setData(result);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err : new Error(String(err)));
-          setLoading(false);
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [id, summary, configKey, providerError]);
-
-  return { config, data, loading, error };
+  return {
+    config,
+    data: defaultData ?? query.data ?? null,
+    // Preserves the previous semantics: pending while the summary is absent
+    // or a real fetch is in flight; not loading once the default covers it.
+    loading: providerError ? false : defaultData === null ? query.isPending : false,
+    error: providerError ?? query.error ?? null,
+  };
 }

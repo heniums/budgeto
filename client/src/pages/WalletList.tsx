@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
-import { getWallets, type WalletData } from '../api/wallets';
+import { useMemo, useState } from 'react';
+import { useWalletsQuery } from '@/hooks/use-wallets';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateFinancialData } from '@/lib/queryClient';
 import { Button } from '@/components/memphis/button';
 import { Input } from '@/components/memphis/input';
 import {
@@ -18,29 +20,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function WalletList(): JSX.Element {
-  const [wallets, setWallets] = useState<WalletData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
+  const { data: wallets = [], isPending, error } = useWalletsQuery();
   const [search, setSearch] = useState('');
   const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
   const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
-  const load = (): void => {
-    setLoading(true);
-    setError(null);
-    getWallets()
-      .then((res) => {
-        setWallets(res.wallets);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err.message);
-        setLoading(false);
-      });
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -65,7 +49,7 @@ export function WalletList(): JSX.Element {
     <div className="space-y-6 min-w-0 pb-24">
       <h1 className="text-2xl font-semibold text-foreground">Wallets</h1>
 
-      <FormAlert message={error} />
+      <FormAlert message={error?.message ?? null} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Button data-testid="header-add-button" onClick={() => setModalMode('create')}>New Wallet</Button>
@@ -79,7 +63,7 @@ export function WalletList(): JSX.Element {
         />
       </div>
 
-      {loading ? (
+      {isPending ? (
         <div className="memphis-card rounded-2xl">
           <Table>
             <TableHeader>
@@ -238,25 +222,15 @@ export function WalletList(): JSX.Element {
         walletId={
           modalMode === 'create' ? undefined : (selectedWalletId ?? undefined)
         }
-        onSuccess={(w) => {
+        onSuccess={() => {
           setModalMode(null);
           setSelectedWalletId(null);
-          if (w) {
-            setWallets((prev) => {
-              const exists = prev.some((wallet) => wallet.id === w.id);
-              if (exists) {
-                return prev.map((wallet) => (wallet.id === w.id ? w : wallet));
-              }
-              return [...prev, w];
-            });
-          } else {
-            load();
-          }
+          void invalidateFinancialData(queryClient);
         }}
-        onDelete={(id) => {
-          setWallets((prev) => prev.filter((w) => w.id !== id));
+        onDelete={() => {
           setModalMode(null);
           setSelectedWalletId(null);
+          void invalidateFinancialData(queryClient);
         }}
       />
 

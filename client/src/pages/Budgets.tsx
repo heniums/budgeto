@@ -1,8 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import dayjs from 'dayjs';
-import { getBudgets, type BudgetData } from '../api/budgets';
-import { getCategories, type CategoryData } from '../api/categories';
+import { type BudgetData } from '../api/budgets';
 import { ApiError } from '../api/client';
+import { useBudgetsQuery } from '@/hooks/use-budgets';
+import { useCategoriesQuery } from '@/hooks/use-categories';
+import { useQueryClient } from '@tanstack/react-query';
+import { invalidateFinancialData } from '@/lib/queryClient';
 import { Button } from '@/components/memphis/button';
 import { Dialog, DialogTrigger } from '@/components/memphis/dialog';
 import { BudgetCard } from '../components/BudgetCard';
@@ -13,55 +16,36 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function Budgets(): JSX.Element {
-  const [budgets, setBudgets] = useState<BudgetData[]>([]);
-  const [categories, setCategories] = useState<CategoryData[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null);
   const [period, setPeriod] = useState(() => dayjs().format('YYYY-MM'));
 
-  const loadData = async (periodParam?: string): Promise<void> => {
-    setLoading(true);
-    setError(null);
-    try {
-      const [budgetResult, categoryResult] = await Promise.all([
-        getBudgets(periodParam),
-        getCategories(),
-      ]);
-      setBudgets(budgetResult.budgets);
-      setCategories(categoryResult.categories);
-    } catch (err: unknown) {
-      setError(
-        err instanceof ApiError ? err.message : 'Failed to load budgets.',
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadData(period);
-  }, [period]);
+  const {
+    data: budgets = [],
+    isPending: budgetsPending,
+    error: budgetsError,
+  } = useBudgetsQuery(period);
+  const { data: categories = [], isPending: categoriesPending, error: categoriesError } =
+    useCategoriesQuery();
+  const loading = budgetsPending || categoriesPending;
+  const loadError = budgetsError ?? categoriesError;
+  const errorMessage = loadError
+    ? loadError instanceof ApiError
+      ? loadError.message
+      : 'Failed to load budgets.'
+    : null;
 
   const handleEdit = (budget: BudgetData): void => {
     setEditingBudget(budget);
     setDialogOpen(true);
   };
-  const handleFormSuccess = (budget?: BudgetData): void => {
+  const handleFormSuccess = (): void => {
     setEditingBudget(null);
     setDialogOpen(false);
-    if (budget) {
-      setBudgets((prev) => {
-        const exists = prev.some((b) => b.id === budget.id);
-        if (exists) {
-          return prev.map((b) => (b.id === budget.id ? budget : b));
-        }
-        return [...prev, budget];
-      });
-    } else {
-      loadData();
-    }
+    // Budget create/update/delete can affect any cached period and the
+    // dashboard's budget section.
+    void invalidateFinancialData(queryClient);
   };
 
   const handleFormCancel = (): void => {
@@ -100,17 +84,17 @@ export function Budgets(): JSX.Element {
               categories={categories}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
-              onDelete={(id) => {
-                setBudgets((prev) => prev.filter((b) => b.id !== id));
+              onDelete={() => {
                 setEditingBudget(null);
                 setDialogOpen(false);
+                void invalidateFinancialData(queryClient);
               }}
             />
           )}
         </Dialog>
       </div>
 
-      {!dialogOpen && <FormAlert message={error} />}
+      {!dialogOpen && <FormAlert message={errorMessage} />}
 
       <BudgetPeriodNav period={period} onChange={setPeriod} />
 

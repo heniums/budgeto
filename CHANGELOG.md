@@ -9,14 +9,16 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
-### Fixed
+### Changed
+- Migrate client data fetching from manual effects to TanStack Query with shared hooks and a central query-key registry
 
+### Fixed
 - Dispatch unauthorized event exactly once when a shared token refresh fails
 - Stop infinite 401 refresh retries by marking retried requests with `skipRefresh`
 - Keep an explicit login from being overwritten by a racing mount-time refresh
 - Clear the refresh cookie in the change-password response after token revocation
 - Accept case-insensitive Bearer auth schemes per RFC 7235 in the auth middleware
-
+- Clear the client query cache on sign out so a re-login never renders the previous session's data
 ## [1.6.0] — 2026-08-13
 
 ### Added
