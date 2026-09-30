@@ -10,12 +10,13 @@ let enabledOverride: boolean | null = null;
 const userKeys = new Map<string, Set<string>>();
 
 /**
- * userId -> current cache generation. Bumped on every invalidateUser so an
- * in-flight loader whose set() lands after the deletion writes to an
- * orphaned key instead of repopulating pre-mutation data (cache-manager's
- * wrap runs get → loader → set with no invalidation re-check).
+ * userId -> current version of that user's cache-key namespace. Bumped on
+ * every invalidateUser so an in-flight loader whose set() lands after the
+ * deletion writes to an orphaned key instead of repopulating pre-mutation
+ * data (cache-manager's wrap runs get → loader → set with no invalidation
+ * re-check).
  */
-const userGenerations = new Map<string, number>();
+const userKeyVersions = new Map<string, number>();
 
 function isEnabled(): boolean {
   if (enabledOverride !== null) {
@@ -38,8 +39,8 @@ export function getOrLoad<T>(
   if (!isEnabled()) {
     return loader();
   }
-  const generation = userGenerations.get(userId) ?? 0;
-  const key = `${userId}:g${generation}:${scope}`;
+  const keyVersion = userKeyVersions.get(userId) ?? 0;
+  const key = `${userId}:v${keyVersion}:${scope}`;
   let keys = userKeys.get(userId);
   if (!keys) {
     keys = new Set<string>();
@@ -54,7 +55,7 @@ export function getOrLoad<T>(
  * mutation invalidates all of the user's cached scopes.
  */
 export async function invalidateUser(userId: string): Promise<void> {
-  userGenerations.set(userId, (userGenerations.get(userId) ?? 0) + 1);
+  userKeyVersions.set(userId, (userKeyVersions.get(userId) ?? 0) + 1);
   const keys = userKeys.get(userId);
   if (!keys) {
     return;
@@ -66,7 +67,7 @@ export async function invalidateUser(userId: string): Promise<void> {
 /** Clears the entire cache and the per-user key registry. */
 export async function clearCache(): Promise<void> {
   userKeys.clear();
-  userGenerations.clear();
+  userKeyVersions.clear();
   await cache.clear();
 }
 
