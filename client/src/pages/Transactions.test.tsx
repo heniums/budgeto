@@ -58,6 +58,7 @@ vi.mock('../api/transactions', async (importOriginal) => {
     ...actual,
     getTransactions: vi.fn(),
     getTransactionsSummary: vi.fn(),
+    deleteTransaction: vi.fn(),
   };
 });
 vi.mock('../api/wallets', async (importOriginal) => {
@@ -74,7 +75,12 @@ vi.mock('../api/categories', async (importOriginal) => {
   return { ...actual, getCategories: vi.fn() };
 });
 
-import { getTransactions, getTransactionsSummary, type TransactionData } from '../api/transactions';
+import {
+  getTransactions,
+  getTransactionsSummary,
+  deleteTransaction,
+  type TransactionData,
+} from '../api/transactions';
 import { formatMoney } from '../lib/currencies';
 import { getWallets, getWallet, createWallet } from '../api/wallets';
 import { getCategories } from '../api/categories';
@@ -247,8 +253,12 @@ describe('Home transactions list', () => {
     await screen.findByText('Transactions');
 
     // Two "Add transaction" buttons exist (header + FAB); [1] is the FAB.
-    const buttons = screen.getAllByRole('button', { name: /add transaction/i });
-    expect(buttons).toHaveLength(2);
+    // Wait for the wallets/categories query data that gates both buttons.
+    let buttons: HTMLElement[] = [];
+    await waitFor(() => {
+      buttons = screen.getAllByRole('button', { name: /add transaction/i });
+      expect(buttons).toHaveLength(2);
+    });
     await user.click(buttons[1]); // [1] is the FAB
 
     // The transaction dialog should open
@@ -559,6 +569,71 @@ describe('Home responsive layout', () => {
   });
 });
 
+describe('Home delete refetch', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    transactionsFixture = [
+      {
+        id: 't1',
+        walletId: 'w1',
+        amount: '50.00',
+        description: 'Salary',
+        categoryId: 'c1',
+        categoryName: 'Food',
+        createdAt: '2026-01-15T10:00:00Z',
+        date: '2026-01-15T10:00:00.000Z',
+      },
+      {
+        id: 't2',
+        walletId: 'w2',
+        amount: '-20.00',
+        description: 'Coffee',
+        categoryId: null,
+        categoryName: null,
+        createdAt: '2026-01-14T10:00:00Z',
+        date: '2026-01-14T10:00:00.000Z',
+      },
+    ];
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
+    cleanup();
+  });
+
+  it('refetches the list from the server after deleting', async () => {
+    const user = userEvent.setup();
+    vi.mocked(deleteTransaction).mockResolvedValue({
+      id: 't1',
+      walletId: 'w1',
+      amount: '50.00',
+      description: 'Salary',
+      categoryId: 'c1',
+      categoryName: 'Food',
+      date: '2026-01-15T10:00:00.000Z',
+      createdAt: '2026-01-15T10:00:00Z',
+    });
+    renderHome();
+    await screen.findByText('Salary');
+    const listCallsBefore = vi.mocked(getTransactions).mock.calls.length;
+
+    // Open the edit dialog for t1, then its delete confirmation.
+    await user.click(screen.getByText('Salary'));
+    await user.click(await screen.findByText('Delete this transaction'));
+    await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+    await waitFor(() => {
+      expect(deleteTransaction).toHaveBeenCalledWith('t1');
+    });
+    // Invalidation (not local splice) must drive the update: the list query
+    // refetches from the mocked API after the delete succeeds.
+    await waitFor(() => {
+      expect(vi.mocked(getTransactions).mock.calls.length).toBeGreaterThan(
+        listCallsBefore,
+      );
+    });
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+});
+
 describe('Home transaction summary', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -582,7 +657,9 @@ describe('Home transaction summary', () => {
     vi.mocked(getWallets).mockResolvedValue({ wallets });
     vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
     vi.mocked(getTransactionsSummary).mockResolvedValue({
-      groups: [{ key: '2026-01-15', net: [{ currency: 'USD', amount: '50.00' }] }],
+      groups: [
+        { key: '2026-01-15', net: [{ currency: 'USD', amount: '50.00' }] },
+      ],
     });
     cleanup();
   });
