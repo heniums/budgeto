@@ -91,8 +91,8 @@ export async function sumTransactionsByUserAndCategoryAndRange(
       and(
         eq(wallets.userId, userId),
         eq(transactions.categoryId, categoryId),
-        sql`${transactions.date} >= ${startDate}`,
-        sql`${transactions.date} <= ${endDate}`,
+        sql`${transactions.date} >= ${startDate}::date`,
+        sql`${transactions.date} < ${endDate}::date + INTERVAL '1 day'`,
       ),
     );
   return row?.total ?? '0';
