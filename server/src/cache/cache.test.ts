@@ -71,6 +71,41 @@ describe('cache', () => {
     expect(calls).toBe(2);
   });
 
+  it('does not let an in-flight load repopulate stale data after invalidateUser', async () => {
+    let release: (() => void) | undefined;
+    const gate = new Promise<void>((resolve) => {
+      release = resolve;
+    });
+    let staleCalls = 0;
+    const staleLoader = async () => {
+      staleCalls += 1;
+      await gate;
+      return 'stale';
+    };
+
+    // Load starts before the mutation and is still in flight when
+    // invalidateUser deletes its key.
+    const pending = getOrLoad('user-1', 'race-scope', staleLoader);
+    await invalidateUser('user-1');
+    release?.();
+    expect(await pending).toBe('stale');
+    expect(staleCalls).toBe(1);
+
+    // A read that starts after the mutation must not be served the stale
+    // value the in-flight load wrote back.
+    let freshCalls = 0;
+    const fresh = await getOrLoad(
+      'user-1',
+      'race-scope',
+      async () => {
+        freshCalls += 1;
+        return 'fresh';
+      },
+    );
+    expect(fresh).toBe('fresh');
+    expect(freshCalls).toBe(1);
+  });
+
   it('does not invalidate other users', async () => {
     let calls = 0;
     const loader = async () => {

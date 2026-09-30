@@ -304,13 +304,13 @@ export async function get(id: string, userId: string): Promise<WalletResponse> {
   if (wallet.userId !== userId) {
     throw notFoundError('Wallet not found');
   }
-  const withBalance = await getWalletWithBalance(id);
-  if (!withBalance) {
-    throw notFoundError('Wallet not found');
-  }
-  return getOrLoad(userId, `wallet-get:${id}`, async () =>
-    formatWalletWithBalanceRow(withBalance),
-  );
+  return getOrLoad(userId, `wallet-get:${id}`, async () => {
+    const withBalance = await getWalletWithBalance(id);
+    if (!withBalance) {
+      throw notFoundError('Wallet not found');
+    }
+    return formatWalletWithBalanceRow(withBalance);
+  });
 }
 
 /**
