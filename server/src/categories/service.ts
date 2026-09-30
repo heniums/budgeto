@@ -7,6 +7,7 @@ import {
   deleteCategory,
 } from './repository';
 import { notFoundError } from '../errors';
+import { invalidateUser } from '../cache/cache';
 
 export const createCategorySchema = z.object({
   name: z.string().min(1).max(128),
@@ -54,6 +55,7 @@ export async function create(
     color: input.color,
     icon: input.icon,
   });
+  await invalidateUser(userId);
   return formatCategoryResponse(category);
 }
 
@@ -96,6 +98,7 @@ export async function update(
   if (!updated) {
     throw notFoundError('Category not found');
   }
+  await invalidateUser(userId);
   return formatCategoryResponse(updated);
 }
 
@@ -108,6 +111,7 @@ export async function remove(id: string, userId: string): Promise<void> {
     throw notFoundError('Category not found');
   }
   await deleteCategory(id);
+  await invalidateUser(userId);
 }
 
 function formatCategoryResponse(category: {

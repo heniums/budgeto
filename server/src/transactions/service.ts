@@ -11,6 +11,7 @@ import {
   type TransactionListFilters,
 } from './repository';
 import { findWalletById } from '../wallets/repository';
+import { invalidateUser } from '../cache/cache';
 import { findCategoryById } from '../categories/repository';
 import { db } from '../db/client';
 import { transactions } from '../db/schema';
@@ -145,6 +146,8 @@ export async function create(
     ...(input.date !== undefined && { date: input.date }),
   });
 
+  await invalidateUser(userId);
+
   return {
     id: tx.id,
     walletId: tx.walletId,
@@ -206,6 +209,8 @@ export async function update(
     ...(input.date !== undefined && { date: input.date }),
   });
 
+  await invalidateUser(userId);
+
   return {
     id: updated.id,
     walletId: updated.walletId,
@@ -224,6 +229,8 @@ export async function remove(userId: string, txId: string) {
   }
 
   const deleted = await deleteTransaction(txId);
+
+  await invalidateUser(userId);
 
   return {
     id: deleted.id,
@@ -356,6 +363,8 @@ export async function transfer(userId: string, input: TransferInput) {
 
     return { withdrawal, deposit };
   });
+
+  await invalidateUser(userId);
 
   return {
     sourceTransaction: {
