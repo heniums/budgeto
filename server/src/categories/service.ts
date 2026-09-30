@@ -7,7 +7,7 @@ import {
   deleteCategory,
 } from './repository';
 import { notFoundError } from '../errors';
-import { invalidateUser } from '../cache/cache';
+import { getOrLoad, invalidateUser } from '../cache/cache';
 
 export const createCategorySchema = z.object({
   name: z.string().min(1).max(128),
@@ -62,10 +62,12 @@ export async function create(
 export async function list(
   userId: string,
 ): Promise<{ categories: CategoryResponse[] }> {
-  const rows = await findCategoriesByUserId(userId);
-  return {
-    categories: rows.map(formatCategoryResponse),
-  };
+  return getOrLoad(userId, 'categories-list', async () => {
+    const rows = await findCategoriesByUserId(userId);
+    return {
+      categories: rows.map(formatCategoryResponse),
+    };
+  });
 }
 
 export async function get(

@@ -11,7 +11,7 @@ import {
   type TransactionListFilters,
 } from './repository';
 import { findWalletById } from '../wallets/repository';
-import { invalidateUser } from '../cache/cache';
+import { getOrLoad, invalidateUser } from '../cache/cache';
 import { findCategoryById } from '../categories/repository';
 import { db } from '../db/client';
 import { transactions } from '../db/schema';
@@ -79,6 +79,27 @@ export const summaryQuerySchema = z.object({
 });
 export type SummaryQuery = z.infer<typeof summaryQuerySchema>;
 
+/**
+ * Stable cache-key fragment for a parsed query object: fields in fixed
+ * order, undefined → null, search trimmed to match the query body.
+ */
+function paramsKey(
+  query: TransactionListQuery | SummaryQuery,
+): string {
+  return JSON.stringify([
+    query.from ?? null,
+    query.to ?? null,
+    query.walletId ?? null,
+    query.categoryId ?? null,
+    query.type ?? null,
+    query.search?.trim() || null,
+    'limit' in query ? query.limit : null,
+    'offset' in query ? query.offset : null,
+    'preset' in query ? query.preset : null,
+    'timezoneOffset' in query ? query.timezoneOffset : null,
+  ]);
+}
+
 export interface TransactionSummaryResult {
   groups: { key: string; net: { currency: string; amount: string }[] }[];
 }
@@ -109,13 +130,15 @@ export async function getSummaryByUser(
     search: query.search?.trim() || undefined,
   };
 
-  const rows = await sumTransactionsByUserId(
-    userId,
-    filters,
-    query.preset,
-    query.timezoneOffset,
-  );
-  return { groups: rows };
+  return getOrLoad(userId, `transactions-summary:${paramsKey(query)}`, async () => {
+    const rows = await sumTransactionsByUserId(
+      userId,
+      filters,
+      query.preset,
+      query.timezoneOffset,
+    );
+    return { groups: rows };
+  });
 }
 
 export async function create(
@@ -165,7 +188,7 @@ export async function getById(userId: string, txId: string) {
     throw notFoundError('Transaction not found');
   }
 
-  return {
+  return getOrLoad(userId, `transaction-get:${txId}`, async () => ({
     id: tx.id,
     walletId: tx.walletId,
     amount: tx.amount,
@@ -174,7 +197,7 @@ export async function getById(userId: string, txId: string) {
     categoryName: tx.categoryName ?? null,
     date: tx.date,
     createdAt: tx.createdAt,
-  };
+  }));
 }
 
 export async function update(
@@ -252,18 +275,20 @@ export async function list(userId: string, walletId: string) {
     throw notFoundError('Wallet not found');
   }
 
-  const rows = await findTransactionsByWalletId(walletId);
-  return {
-    transactions: rows.map((tx) => ({
-      id: tx.id,
-      walletId: tx.walletId,
-      amount: tx.amount,
-      description: tx.description ?? '',
-      categoryId: tx.categoryId ?? null,
-      date: tx.date,
-      createdAt: tx.createdAt,
-    })),
-  };
+  return getOrLoad(userId, `transactions-wallet:${walletId}`, async () => {
+    const walletRows = await findTransactionsByWalletId(walletId);
+    return {
+      transactions: walletRows.map((tx) => ({
+        id: tx.id,
+        walletId: tx.walletId,
+        amount: tx.amount,
+        description: tx.description ?? '',
+        categoryId: tx.categoryId ?? null,
+        date: tx.date,
+        createdAt: tx.createdAt,
+      })),
+    };
+  });
 }
 
 export type UserTransactionsResult = {
@@ -308,23 +333,29 @@ export async function listByUser(
     offset: query.offset,
   };
 
-  const [rows, total] = await Promise.all([
-    findTransactionsByUserId(userId, filters),
-    countTransactionsByUserId(userId, filters),
-  ]);
-  return {
-    transactions: rows.map((tx) => ({
-      id: tx.id,
-      walletId: tx.walletId,
-      amount: tx.amount,
-      description: tx.description ?? '',
-      categoryId: tx.categoryId ?? null,
-      categoryName: tx.categoryName ?? null,
-      createdAt: tx.createdAt,
-      date: tx.date,
-    })),
-    total,
-  };
+  return getOrLoad(
+    userId,
+    `transactions-list:${paramsKey(query)}`,
+    async () => {
+      const [rows, total] = await Promise.all([
+        findTransactionsByUserId(userId, filters),
+        countTransactionsByUserId(userId, filters),
+      ]);
+      return {
+        transactions: rows.map((tx) => ({
+          id: tx.id,
+          walletId: tx.walletId,
+          amount: tx.amount,
+          description: tx.description ?? '',
+          categoryId: tx.categoryId ?? null,
+          categoryName: tx.categoryName ?? null,
+          createdAt: tx.createdAt,
+          date: tx.date,
+        })),
+        total,
+      };
+    },
+  );
 }
 
 export async function transfer(userId: string, input: TransferInput) {

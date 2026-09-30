@@ -127,4 +127,102 @@ describe('server cache (enabled)', () => {
     expect(mine.body.summary.wallets[0].id).toBe(walletId);
     expect(userId).toBeDefined();
   });
+
+  it('serves paginated transaction pages correctly despite caching', async () => {
+    const walletId = await createWallet('Checking');
+    for (let i = 1; i <= 3; i += 1) {
+      await createTransaction(walletId, `${i}.00`, `Tx ${i}`);
+    }
+
+    async function getPage(offset: number) {
+      const response = await request(app)
+        .get('/transactions')
+        .query({ limit: 2, offset })
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).toBe(200);
+      return response.body as { transactions: { description: string }[] };
+    }
+
+    const page1 = await getPage(0);
+    expect(page1.transactions.map((t) => t.description)).toEqual([
+      'Tx 3',
+      'Tx 2',
+    ]);
+
+    // Page 2 must not be served page 1's cache entry.
+    const page2 = await getPage(2);
+    expect(page2.transactions.map((t) => t.description)).toEqual(['Tx 1']);
+
+    // Cached pages stay stable on repeat reads.
+    expect(await getPage(0)).toEqual(page1);
+    expect(await getPage(2)).toEqual(page2);
+  });
+
+  it('shows a new transaction in the list and summary after mutation', async () => {
+    const walletId = await createWallet('Checking');
+    await createTransaction(walletId, '10.00', 'First');
+
+    async function getList() {
+      const response = await request(app)
+        .get('/transactions')
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).toBe(200);
+      return response.body as {
+        transactions: { description: string }[];
+        total: number;
+      };
+    }
+
+    async function getTxSummary() {
+      const response = await request(app)
+        .get('/transactions/summary')
+        .query({ preset: 'month' })
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).toBe(200);
+      return response.body as {
+        summary: { groups: { net: { amount: string }[] }[] };
+      };
+    }
+
+    const listBefore = await getList();
+    expect(listBefore.total).toBe(1);
+    const summaryBefore = await getTxSummary();
+    const netAmounts = summaryBefore.summary.groups.flatMap((g) =>
+      g.net.map((n) => n.amount),
+    );
+    expect(netAmounts).toContain('10.00');
+
+    await createTransaction(walletId, '5.00', 'Second');
+
+    const listAfter = await getList();
+    expect(listAfter.total).toBe(2);
+    const summaryAfter = await getTxSummary();
+    const afterAmounts = summaryAfter.summary.groups.flatMap((g) =>
+      g.net.map((n) => n.amount),
+    );
+    expect(afterAmounts).toContain('15.00');
+  });
+
+  it('caches the categories list and invalidates on create', async () => {
+    async function getCategories() {
+      const response = await request(app)
+        .get('/categories')
+        .set('Authorization', `Bearer ${token}`);
+      expect(response.status).toBe(200);
+      return response.body as { categories: { name: string }[] };
+    }
+
+    const before = await getCategories();
+    const initialCount = before.categories.length;
+
+    const created = await request(app)
+      .post('/categories')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'Cached Cat', color: '#ff0000', icon: 'wallet' });
+    expect(created.status).toBe(201);
+
+    const after = await getCategories();
+    expect(after.categories).toHaveLength(initialCount + 1);
+    expect(after.categories.map((c) => c.name)).toContain('Cached Cat');
+  });
 });
