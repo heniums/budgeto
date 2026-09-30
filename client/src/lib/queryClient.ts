@@ -4,6 +4,7 @@ import {
   BUDGETS_KEY,
   CATEGORIES_KEY,
   DASHBOARD_KEY,
+  TRANSACTIONS_KEY,
   WALLETS_KEY,
 } from './queryKeys';
 
@@ -35,6 +36,7 @@ export function invalidateFinancialData(
     client.invalidateQueries({ queryKey: WALLETS_KEY }),
     client.invalidateQueries({ queryKey: CATEGORIES_KEY }),
     client.invalidateQueries({ queryKey: BUDGETS_KEY }),
+    client.invalidateQueries({ queryKey: TRANSACTIONS_KEY }),
     client.invalidateQueries({ queryKey: DASHBOARD_KEY }),
   ]).then(() => undefined);
 }

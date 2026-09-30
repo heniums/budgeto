@@ -1,18 +1,15 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import {
-  getTransactions,
-  getTransactionsSummary,
-  type TransactionData,
-  type TransactionQuery,
-  type TransactionSummary,
-  type TransactionSummaryQuery,
-  deleteTransaction,
-} from '../api/transactions';
+import { type TransactionData, deleteTransaction } from '../api/transactions';
 import type { CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { useWalletsQuery } from '@/hooks/use-wallets';
 import { useCategoriesQuery } from '@/hooks/use-categories';
+import {
+  useTransactionsInfiniteQuery,
+  useTransactionsSummaryQuery,
+  type TransactionsFilterState,
+} from '@/hooks/use-transactions';
 import { useQueryClient } from '@tanstack/react-query';
 import { invalidateFinancialData } from '@/lib/queryClient';
 import { Button } from '@/components/memphis/button';
@@ -52,8 +49,6 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
-const PAGE_SIZE = 20;
-
 interface LongPressHandlers {
   onTouchStart: () => void;
   onTouchEnd: () => void;
@@ -88,65 +83,12 @@ interface PeriodGroup {
   items: TransactionData[];
 }
 
-function matchesFilters(
-  tx: TransactionData,
-  filters: {
-    walletFilter: string;
-    categoryFilter: string;
-    typeFilter: 'all' | 'income' | 'expense';
-    datePreset: DatePreset;
-    fromDate: string;
-    toDate: string;
-    debouncedSearch: string;
-  },
-): boolean {
-  if (filters.walletFilter && tx.walletId !== filters.walletFilter)
-    return false;
-  if (filters.categoryFilter && tx.categoryId !== filters.categoryFilter)
-    return false;
-  if (filters.typeFilter === 'income' && Number(tx.amount) <= 0) return false;
-  if (filters.typeFilter === 'expense' && Number(tx.amount) >= 0) return false;
-  if (filters.datePreset === 'custom') {
-    if (
-      filters.fromDate &&
-      dayjs(tx.date).isBefore(dayjs(filters.fromDate), 'day')
-    )
-      return false;
-    if (filters.toDate && dayjs(tx.date).isAfter(dayjs(filters.toDate), 'day'))
-      return false;
-  }
-  if (
-    filters.debouncedSearch &&
-    !tx.description
-      ?.toLowerCase()
-      .includes(filters.debouncedSearch.toLowerCase())
-  )
-    return false;
-  return true;
-}
-
 export function Transactions(): JSX.Element {
   const queryClient = useQueryClient();
-  const [transactions, setTransactions] = useState<TransactionData[]>([]);
-  const [total, setTotal] = useState(0);
   const walletsQuery = useWalletsQuery();
   const categoriesQuery = useCategoriesQuery();
   const wallets = walletsQuery.data ?? [];
   const categories = categoriesQuery.data ?? [];
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const loadingMoreRef = useRef(false);
-  const [error, setError] = useState<string | null>(null);
-  const [summary, setSummary] = useState<TransactionSummary | null>(null);
-
-  const summaryMap = useMemo(() => {
-    const map = new Map<string, { currency: string; amount: string }[]>();
-    if (!summary) return map;
-    for (const group of summary.groups) {
-      map.set(group.key, group.net);
-    }
-    return map;
-  }, [summary]);
 
   const [datePreset, setDatePreset] = useState<DatePreset>('day');
   const [fromDate, setFromDate] = useState('');
@@ -158,6 +100,52 @@ export function Transactions(): JSX.Element {
   );
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
+
+  const filters = useMemo<TransactionsFilterState>(
+    () => ({
+      walletFilter,
+      categoryFilter,
+      typeFilter,
+      datePreset,
+      fromDate,
+      toDate,
+      search: debouncedSearch,
+    }),
+    [
+      walletFilter,
+      categoryFilter,
+      typeFilter,
+      datePreset,
+      fromDate,
+      toDate,
+      debouncedSearch,
+    ],
+  );
+  const listQuery = useTransactionsInfiniteQuery(filters);
+  const summaryQuery = useTransactionsSummaryQuery(filters);
+  const transactions = useMemo(
+    () => listQuery.data?.pages.flatMap((page) => page.transactions) ?? [],
+    [listQuery.data],
+  );
+  const total = listQuery.data?.pages.at(-1)?.total ?? 0;
+  const hasMore = listQuery.hasNextPage;
+  const initialLoading = listQuery.isPending;
+  const loadingMore = listQuery.isFetchingNextPage;
+  const summary = summaryQuery.data ?? null;
+  const error = listQuery.error
+    ? listQuery.error instanceof ApiError
+      ? listQuery.error.message
+      : 'Failed to load transactions.'
+    : null;
+
+  const summaryMap = useMemo(() => {
+    const map = new Map<string, { currency: string; amount: string }[]>();
+    if (!summary) return map;
+    for (const group of summary.groups) {
+      map.set(group.key, group.net);
+    }
+    return map;
+  }, [summary]);
 
   const [txOpen, setTxOpen] = useState(false);
   const [transferOpen, setTransferOpen] = useState(false);
@@ -186,108 +174,9 @@ export function Transactions(): JSX.Element {
     return () => clearTimeout(handle);
   }, [search]);
 
-  const buildQuery = useCallback(
-    (offset: number): TransactionQuery => {
-      const query: TransactionQuery = { limit: PAGE_SIZE, offset };
-      if (datePreset === 'custom') {
-        if (fromDate) {
-          query.from = dayjs(`${fromDate}T00:00:00`).toISOString();
-        }
-        if (toDate) {
-          query.to = dayjs(`${toDate}T23:59:59.999`).toISOString();
-        }
-      }
-      if (walletFilter) query.walletId = walletFilter;
-      if (categoryFilter) query.categoryId = categoryFilter;
-      if (typeFilter !== 'all') query.type = typeFilter;
-      if (debouncedSearch) query.search = debouncedSearch;
-      return query;
-    },
-    [
-      datePreset,
-      fromDate,
-      toDate,
-      walletFilter,
-      categoryFilter,
-      typeFilter,
-      debouncedSearch,
-    ],
-  );
-
-  const buildSummaryQuery = useCallback((): TransactionSummaryQuery => {
-    const query: TransactionSummaryQuery = {};
-    if (datePreset === 'custom') {
-      if (fromDate) query.from = dayjs(`${fromDate}T00:00:00`).toISOString();
-      if (toDate) query.to = dayjs(`${toDate}T23:59:59.999`).toISOString();
-    }
-    if (walletFilter) query.walletId = walletFilter;
-    if (categoryFilter) query.categoryId = categoryFilter;
-    if (typeFilter !== 'all') query.type = typeFilter;
-    if (debouncedSearch) query.search = debouncedSearch;
-    query.preset = datePreset;
-    return query;
-  }, [datePreset, fromDate, toDate, walletFilter, categoryFilter, typeFilter, debouncedSearch]);
-
-  const loadSummary = useCallback(() => {
-    getTransactionsSummary(buildSummaryQuery())
-      .then(setSummary)
-      .catch(() => setSummary(null));
-  }, [buildSummaryQuery]);
-
-  const loadInitial = useCallback(() => {
-    setInitialLoading(true);
-    setError(null);
-    getTransactions(buildQuery(0))
-      .then((result) => {
-        setTransactions(result.transactions);
-        setTotal(result.total);
-      })
-      .catch((err: unknown) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : 'Failed to load transactions.',
-        );
-      })
-      .finally(() => setInitialLoading(false));
-  }, [buildQuery]);
-
-  // Guard concurrent loads with a ref (not just state): two synchronous
-  // observer fires can otherwise both slip past the `loadingMore` state guard
-  // (state updates are async) and append a duplicate page.
   const loadMore = useCallback(() => {
-    if (loadingMoreRef.current || transactions.length >= total) return;
-    loadingMoreRef.current = true;
-    setLoadingMore(true);
-    getTransactions(buildQuery(transactions.length))
-      .then((result) => {
-        setTransactions((prev) => [...prev, ...result.transactions]);
-      })
-      .catch((err: unknown) => {
-        setError(
-          err instanceof ApiError
-            ? err.message
-            : 'Failed to load transactions.',
-        );
-      })
-      .finally(() => {
-        loadingMoreRef.current = false;
-        setLoadingMore(false);
-      });
-  }, [transactions.length, total, buildQuery]);
-
-  // Reload cached reference data (and anything money-adjacent) plus the
-  // transaction list together.
-  const reload = useCallback(() => {
-    void invalidateFinancialData(queryClient);
-    loadInitial();
-  }, [loadInitial]);
-
-  // Refresh cached reference data (wallets/categories) without reloading the
-  // transaction list.
-  const refreshReferenceData = useCallback(() => {
-    void invalidateFinancialData(queryClient);
-  }, []);
+    void listQuery.fetchNextPage();
+  }, [listQuery.fetchNextPage]);
 
   // Open the onboarding wizard once, only if the first wallets load comes
   // back empty and the user hasn't dismissed the wizard before.
@@ -302,14 +191,6 @@ export function Transactions(): JSX.Element {
       setWizardOpen(true);
     }
   }, [walletsQuery.isSuccess, walletsQuery.data]);
-
-  useEffect(() => {
-    loadInitial();
-  }, [loadInitial]);
-
-  useEffect(() => {
-    loadSummary();
-  }, [loadSummary]);
 
   const loadMoreRef = useRef(loadMore);
   useEffect(() => {
@@ -333,8 +214,6 @@ export function Transactions(): JSX.Element {
       observerRef.current = observer;
     }
   }, []);
-
-
 
   const walletName = (walletId: string): string =>
     wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
@@ -368,8 +247,6 @@ export function Transactions(): JSX.Element {
     );
   }, [transactions, datePreset]);
 
-  const hasMore = transactions.length < total;
-
   return (
     <div className="space-y-6 pb-24">
       <OnboardingWizard
@@ -377,7 +254,7 @@ export function Transactions(): JSX.Element {
         onOpenChange={setWizardOpen}
         onComplete={() => {
           setWizardOpen(false);
-          reload();
+          void invalidateFinancialData(queryClient);
         }}
       />
 
@@ -408,29 +285,18 @@ export function Transactions(): JSX.Element {
                   autoSelectCategoryId={
                     pendingCategoryId ?? categories[0]?.id ?? undefined
                   }
-                  onSuccess={(newTx) => {
+                  onSuccess={() => {
                     setTxOpen(false);
                     setPendingWalletId(null);
                     setPendingCategoryId(null);
                     void invalidateFinancialData(queryClient);
-                    if (
-                      newTx &&
-                      matchesFilters(newTx, {
-                        walletFilter,
-                        categoryFilter,
-                        typeFilter,
-                        datePreset,
-                        fromDate,
-                        toDate,
-                        debouncedSearch,
-                      })
-                    ) {
-                      setTransactions((prev) => [newTx, ...prev]);
-                      setTotal((t) => t + 1);
-                    }
                   }}
-                  onRefreshWallets={refreshReferenceData}
-                  onRefreshCategories={refreshReferenceData}
+                  onRefreshWallets={() =>
+                    void invalidateFinancialData(queryClient)
+                  }
+                  onRefreshCategories={() =>
+                    void invalidateFinancialData(queryClient)
+                  }
                   onClose={() => setTxOpen(false)}
                   onCreateWallet={() => {
                     setCreateWalletOpen(true);
@@ -471,7 +337,7 @@ export function Transactions(): JSX.Element {
                 wallets={wallets}
                 onSuccess={() => {
                   setTransferOpen(false);
-                  reload();
+                  void invalidateFinancialData(queryClient);
                 }}
               />
             </DialogContent>
@@ -612,31 +478,34 @@ export function Transactions(): JSX.Element {
         <>
           <div className="space-y-6">
             {groups.map((group) => (
-            <div key={group.key} className="mb-4">
-              <div className="sticky top-[70px] z-10 mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-2 border-border bg-card rounded-lg px-3 py-2 md:top-8 md:flex-nowrap md:gap-3 shadow-md transition-shadow duration-200 hover:shadow-lg">
-                <h2
-                  data-testid="period-header"
-                  className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
-                >
-                  {group.label}
-                </h2>
-                {summaryMap.get(group.key) && (
-                  <div className="flex flex-wrap items-baseline gap-3">
-                    {summaryMap.get(group.key)?.map((item) => (
-                      <div key={item.currency} className="flex items-baseline gap-1">
-                        <Money
-                          amount={item.amount}
-                          currency={item.currency}
-                          className="font-semibold"
-                        />
-                        <span className="text-xs text-muted-foreground uppercase">
-                          {item.currency}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+              <div key={group.key} className="mb-4">
+                <div className="sticky top-[70px] z-10 mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-2 border-border bg-card rounded-lg px-3 py-2 md:top-8 md:flex-nowrap md:gap-3 shadow-md transition-shadow duration-200 hover:shadow-lg">
+                  <h2
+                    data-testid="period-header"
+                    className="text-sm font-semibold uppercase tracking-wide text-muted-foreground"
+                  >
+                    {group.label}
+                  </h2>
+                  {summaryMap.get(group.key) && (
+                    <div className="flex flex-wrap items-baseline gap-3">
+                      {summaryMap.get(group.key)?.map((item) => (
+                        <div
+                          key={item.currency}
+                          className="flex items-baseline gap-1"
+                        >
+                          <Money
+                            amount={item.amount}
+                            currency={item.currency}
+                            className="font-semibold"
+                          />
+                          <span className="text-xs text-muted-foreground uppercase">
+                            {item.currency}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
                 <div className="memphis-card rounded-2xl overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -769,34 +638,14 @@ export function Transactions(): JSX.Element {
                 color: c.color,
                 icon: c.icon,
               }))}
-              onSuccess={(updatedTx) => {
+              onSuccess={() => {
                 setEditTx(null);
-                if (updatedTx) {
-                  void invalidateFinancialData(queryClient);
-                  if (
-                    matchesFilters(updatedTx, {
-                      walletFilter,
-                      categoryFilter,
-                      typeFilter,
-                      datePreset,
-                      fromDate,
-                      toDate,
-                      debouncedSearch,
-                    })
-                  ) {
-                    setTransactions((prev) =>
-                      prev.map((t) => (t.id === updatedTx.id ? updatedTx : t)),
-                    );
-                  } else {
-                    setTransactions((prev) =>
-                      prev.filter((t) => t.id !== updatedTx.id),
-                    );
-                    setTotal((t) => t - 1);
-                  }
-                }
+                void invalidateFinancialData(queryClient);
               }}
-              onRefreshWallets={refreshReferenceData}
-              onRefreshCategories={refreshReferenceData}
+              onRefreshWallets={() => void invalidateFinancialData(queryClient)}
+              onRefreshCategories={() =>
+                void invalidateFinancialData(queryClient)
+              }
               onViewWallet={(id) => {
                 setDetailWalletId(id);
               }}
@@ -860,10 +709,6 @@ export function Transactions(): JSX.Element {
                 if (deleteConfirm) {
                   try {
                     await deleteTransaction(deleteConfirm.id);
-                    setTransactions((prev) =>
-                      prev.filter((t) => t.id !== deleteConfirm.id),
-                    );
-                    setTotal((t) => t - 1);
                     setDeleteConfirm(null);
                     void invalidateFinancialData(queryClient);
                   } catch (err) {
@@ -907,10 +752,6 @@ export function Transactions(): JSX.Element {
                 if (cascadeTx.action === 'delete') {
                   try {
                     await deleteTransaction(cascadeTx.tx.id);
-                    setTransactions((prev) =>
-                      prev.filter((t) => t.id !== cascadeTx.tx.id),
-                    );
-                    setTotal((t) => t - 1);
                     void invalidateFinancialData(queryClient);
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
@@ -929,14 +770,6 @@ export function Transactions(): JSX.Element {
                   try {
                     await deleteTransaction(cascadeTx.tx.id);
                     await deleteTransaction(cascadeTx.pair.id);
-                    setTransactions((prev) =>
-                      prev.filter(
-                        (t) =>
-                          t.id !== cascadeTx.tx.id &&
-                          t.id !== cascadeTx.pair.id,
-                      ),
-                    );
-                    setTotal((t) => Math.max(0, t - 2));
                     void invalidateFinancialData(queryClient);
                   } catch (err) {
                     console.error('Failed to delete transaction:', err);
@@ -960,11 +793,11 @@ export function Transactions(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailWalletId(null);
-          refreshReferenceData();
+          void invalidateFinancialData(queryClient);
         }}
         onDelete={() => {
           setDetailWalletId(null);
-          refreshReferenceData();
+          void invalidateFinancialData(queryClient);
         }}
       />
 
@@ -988,11 +821,11 @@ export function Transactions(): JSX.Element {
         }}
         onSuccess={() => {
           setDetailCategoryId(null);
-          refreshReferenceData();
+          void invalidateFinancialData(queryClient);
         }}
         onDelete={() => {
           setDetailCategoryId(null);
-          refreshReferenceData();
+          void invalidateFinancialData(queryClient);
         }}
       />
 
