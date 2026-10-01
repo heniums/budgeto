@@ -3,6 +3,7 @@ import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 dayjs.extend(utc);
 import { findWalletsByUserIdWithBalance } from '../wallets/repository';
+import { getOrLoad } from '../cache/cache';
 import { list as listBudgets } from '../budgets/service';
 import type { BudgetResponse } from '../budgets/helpers';
 import {
@@ -73,7 +74,8 @@ export async function getSummary(
   userId: string,
   referenceDate?: Date,
 ): Promise<DashboardSummary> {
-  const now = referenceDate ? dayjs(referenceDate).utc() : dayjs().utc();
+  return getOrLoad(userId, 'dashboard-summary', async () => {
+    const now = referenceDate ? dayjs(referenceDate).utc() : dayjs().utc();
   const monthStart = now.startOf('month').toISOString();
   const monthEnd = now.endOf('month').toISOString();
   const sixMonthsAgo = now.subtract(5, 'month').startOf('month').toISOString();
@@ -113,6 +115,7 @@ export async function getSummary(
     recentTransactions,
     budgets: budgetResult.budgets,
   };
+  });
 }
 
 export interface WidgetConfigInput {

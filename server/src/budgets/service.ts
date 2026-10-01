@@ -16,6 +16,7 @@ import {
   parsePeriodReference,
 } from './period';
 import { formatBudgetResponse, applyCategoryChanges } from './helpers';
+import { invalidateUser } from '../cache/cache';
 import type { BudgetResponse } from './helpers';
 import dayjs from 'dayjs';
 
@@ -161,6 +162,7 @@ export async function create(
     categoryId: c.categoryId,
     limitAmount: c.limitAmount,
   }));
+  await invalidateUser(userId);
   return formatBudgetResponse(
     {
       ...budget,
@@ -291,6 +293,7 @@ export async function update(
     categoryId: c.categoryId,
     limitAmount: c.limitAmount,
   }));
+  await invalidateUser(userId);
   return formatBudgetResponse(
     {
       ...updated,
@@ -307,4 +310,5 @@ export async function remove(id: string, userId: string): Promise<void> {
     throw notFoundError('Budget not found');
   }
   await deleteBudget(id);
+  await invalidateUser(userId);
 }

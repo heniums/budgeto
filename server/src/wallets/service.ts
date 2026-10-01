@@ -17,6 +17,7 @@ import {
 } from '../categories/repository';
 import { db } from '../db/client';
 import { notFoundError } from '../errors';
+import { getOrLoad, invalidateUser } from '../cache/cache';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 
@@ -268,6 +269,8 @@ export async function create(
     return w;
   });
 
+  await invalidateUser(userId);
+
   const withBalance = await getWalletWithBalance(wallet.id);
   if (!withBalance) {
     throw notFoundError('Wallet not found');
@@ -281,10 +284,12 @@ export async function create(
 export async function list(
   userId: string,
 ): Promise<{ wallets: WalletResponse[] }> {
-  const rows = await findWalletsByUserIdWithBalance(userId);
-  return {
-    wallets: rows.map(formatWalletWithBalanceRow),
-  };
+  return getOrLoad(userId, 'wallets-list', async () => {
+    const rows = await findWalletsByUserIdWithBalance(userId);
+    return {
+      wallets: rows.map(formatWalletWithBalanceRow),
+    };
+  });
 }
 
 /**
@@ -299,11 +304,13 @@ export async function get(id: string, userId: string): Promise<WalletResponse> {
   if (wallet.userId !== userId) {
     throw notFoundError('Wallet not found');
   }
-  const withBalance = await getWalletWithBalance(id);
-  if (!withBalance) {
-    throw notFoundError('Wallet not found');
-  }
-  return formatWalletWithBalanceRow(withBalance);
+  return getOrLoad(userId, `wallet-get:${id}`, async () => {
+    const withBalance = await getWalletWithBalance(id);
+    if (!withBalance) {
+      throw notFoundError('Wallet not found');
+    }
+    return formatWalletWithBalanceRow(withBalance);
+  });
 }
 
 /**
@@ -349,6 +356,8 @@ export async function update(
     mapWalletNotFoundError(err);
   }
 
+  await invalidateUser(userId);
+
   const withBalance = await getWalletWithBalance(id);
   if (!withBalance) {
     throw notFoundError('Wallet not found');
@@ -369,6 +378,7 @@ export async function remove(id: string, userId: string): Promise<void> {
     throw notFoundError('Wallet not found');
   }
   await deleteWallet(id);
+  await invalidateUser(userId);
 }
 
 const ADJUSTMENT_CATEGORY_NAME = 'Balance Adjustment';
@@ -449,6 +459,8 @@ export async function adjustBalance(
   } catch (err: unknown) {
     mapWalletNotFoundError(err);
   }
+
+  await invalidateUser(userId);
 
   // Return the updated wallet with new balance
   const updated = await getWalletWithBalance(id);

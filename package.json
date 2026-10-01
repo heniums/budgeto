@@ -42,6 +42,7 @@
     "@types/cookie-parser": "^1.4.10",
     "axios": "^1.18.1",
     "bcryptjs": "^2.4.3",
+    "cache-manager": "^7.2.9",
     "chart.js": "^4.5.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
