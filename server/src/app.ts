@@ -57,9 +57,10 @@ export function createApp(): Express {
         });
         return;
       }
-      const message =
-        error instanceof Error ? error.message : 'Internal Server Error';
-      res.status(500).json({ code: 'INTERNAL_ERROR', message });
+      console.error('[unhandled error]', error);
+      res
+        .status(500)
+        .json({ code: 'INTERNAL_ERROR', message: 'Internal Server Error' });
     },
   );
 

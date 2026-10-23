@@ -11,7 +11,7 @@ import {
   deleteRefreshToken,
   deleteAllRefreshTokensForUser,
 } from './repository';
-import { hashPassword, verifyPassword } from './password';
+import { DUMMY_HASH, hashPassword, verifyPassword } from './password';
 import { signToken, type TokenPayload } from './token';
 import { conflictError, unauthorizedError } from '../errors';
 import { getConfig } from '../config';
@@ -87,6 +87,9 @@ export async function register(input: RegisterInput): Promise<AuthResult> {
 export async function login(input: LoginInput): Promise<AuthResult> {
   const user = await findUserByEmail(input.email);
   if (!user) {
+    // Equalize timing with the compare below so unknown emails are not
+    // distinguishable by response time.
+    await verifyPassword(input.password, DUMMY_HASH);
     throw unauthorizedError('Invalid credentials');
   }
   const valid = await verifyPassword(input.password, user.passwordHash);
