@@ -9,6 +9,10 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Rate limiting on the register, login, refresh, and logout endpoints via express-rate-limit
+- Production startup validation requiring a JWT_SECRET of at least 32 characters
+
 ### Changed
 - Migrate client data fetching from manual effects to TanStack Query with shared hooks and a central query-key registry
 
@@ -19,6 +23,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Clear the refresh cookie in the change-password response after token revocation
 - Accept case-insensitive Bearer auth schemes per RFC 7235 in the auth middleware
 - Clear the client query cache on sign out so a re-login never renders the previous session's data
+- Backed the server cache with Keyv over lru-cache via a TTL adapter so entries are no longer silently dropped
+- Switched cache invalidation to per-user key versions
+- Moved budget and category writes into database transactions so partial writes roll back on failure
+- Surfaced delete failures in the transaction cascade dialog and disabled the action while in flight
+- Added a retry button to the dashboard error state
 ## [1.6.0] — 2026-08-13
 
 ### Added

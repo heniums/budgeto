@@ -167,6 +167,8 @@ export function Transactions(): JSX.Element {
   const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(
     null,
   );
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   // Debounce the free-text search so we don't hit the API on every keystroke.
   useEffect(() => {
@@ -688,7 +690,10 @@ export function Transactions(): JSX.Element {
       <Dialog
         open={deleteConfirm !== null}
         onOpenChange={(open) => {
-          if (!open) setDeleteConfirm(null);
+          if (!open) {
+            setDeleteConfirm(null);
+            setDeleteError(null);
+          }
         }}
       >
         <DialogContent>
@@ -699,21 +704,36 @@ export function Transactions(): JSX.Element {
             Are you sure you want to delete this transaction? This action cannot
             be undone.
           </p>
+          <FormAlert message={deleteError} />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setDeleteConfirm(null);
+                setDeleteError(null);
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
+              disabled={deleting}
               onClick={async () => {
-                if (deleteConfirm) {
-                  try {
-                    await deleteTransaction(deleteConfirm.id);
-                    setDeleteConfirm(null);
-                    void invalidateFinancialData(queryClient);
-                  } catch (err) {
-                    console.error('Failed to delete transaction:', err);
-                  }
+                if (!deleteConfirm) return;
+                setDeleteError(null);
+                setDeleting(true);
+                try {
+                  await deleteTransaction(deleteConfirm.id);
+                  setDeleteConfirm(null);
+                  void invalidateFinancialData(queryClient);
+                } catch (err) {
+                  setDeleteError(
+                    err instanceof ApiError
+                      ? err.message
+                      : 'Failed to delete transaction.',
+                  );
+                } finally {
+                  setDeleting(false);
                 }
               }}
             >
@@ -726,7 +746,10 @@ export function Transactions(): JSX.Element {
       <Dialog
         open={cascadeTx !== null}
         onOpenChange={(open) => {
-          if (!open) setCascadeTx(null);
+          if (!open) {
+            setCascadeTx(null);
+            setDeleteError(null);
+          }
         }}
       >
         <DialogContent>
@@ -744,18 +767,28 @@ export function Transactions(): JSX.Element {
             {Number(cascadeTx?.pair.amount) > 0 ? '+' : ''}
             {cascadeTx?.pair.amount})?
           </p>
+          <FormAlert message={deleteError} />
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
+              disabled={deleting}
               onClick={async () => {
                 if (!cascadeTx) return;
                 if (cascadeTx.action === 'delete') {
+                  setDeleteError(null);
+                  setDeleting(true);
                   try {
                     await deleteTransaction(cascadeTx.tx.id);
                     void invalidateFinancialData(queryClient);
                   } catch (err) {
-                    console.error('Failed to delete transaction:', err);
+                    setDeleteError(
+                      err instanceof ApiError
+                        ? err.message
+                        : 'Failed to delete transaction.',
+                    );
                     return;
+                  } finally {
+                    setDeleting(false);
                   }
                 }
                 setCascadeTx(null);
@@ -764,16 +797,25 @@ export function Transactions(): JSX.Element {
               No, just this one
             </Button>
             <Button
+              disabled={deleting}
               onClick={async () => {
                 if (!cascadeTx) return;
                 if (cascadeTx.action === 'delete') {
+                  setDeleteError(null);
+                  setDeleting(true);
                   try {
                     await deleteTransaction(cascadeTx.tx.id);
                     await deleteTransaction(cascadeTx.pair.id);
                     void invalidateFinancialData(queryClient);
                   } catch (err) {
-                    console.error('Failed to delete transaction:', err);
+                    setDeleteError(
+                      err instanceof ApiError
+                        ? err.message
+                        : 'Failed to delete transaction.',
+                    );
                     return;
+                  } finally {
+                    setDeleting(false);
                   }
                 }
                 setCascadeTx(null);

@@ -632,6 +632,41 @@ describe('Home delete refetch', () => {
     });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
+
+  it('shows an error alert and keeps the dialog open when delete fails', async () => {
+    const user = userEvent.setup();
+    vi.mocked(deleteTransaction).mockRejectedValue(new Error('network down'));
+    renderHome();
+    await screen.findByText('Salary');
+
+    await user.click(screen.getByText('Salary'));
+    await user.click(await screen.findByText('Delete this transaction'));
+    await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Failed to delete transaction.',
+    );
+    expect(screen.getByText('Delete transaction')).toBeInTheDocument();
+
+    // A subsequent successful delete still closes the dialog.
+    vi.mocked(deleteTransaction).mockResolvedValue({
+      id: 't1',
+      walletId: 'w1',
+      amount: '50.00',
+      description: 'Salary',
+      categoryId: 'c1',
+      categoryName: 'Food',
+      date: '2026-01-15T10:00:00.000Z',
+      createdAt: '2026-01-15T10:00:00Z',
+    });
+    await user.click(await screen.findByRole('button', { name: 'Delete' }));
+    await waitFor(() => {
+      expect(deleteTransaction).toHaveBeenCalledTimes(2);
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
 });
 
 describe('Home transaction summary', () => {
