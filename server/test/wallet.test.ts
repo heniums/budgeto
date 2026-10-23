@@ -222,6 +222,14 @@ describe('GET /wallets/:id', () => {
     expect(response.status).toBe(404);
   });
 
+  it('returns 400 for a malformed wallet id', async () => {
+    const response = await request(app)
+      .get('/wallets/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('returns 404 when wallet belongs to a different user', async () => {
     const wallet = await request(app)
       .post('/wallets')

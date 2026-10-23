@@ -1,13 +1,30 @@
 import { createCache } from 'cache-manager';
+import { Keyv } from 'keyv';
+import { LRUCache } from 'lru-cache';
 
 export const DEFAULT_TTL_MS = 60_000;
 
-const cache = createCache({ ttl: DEFAULT_TTL_MS });
+// lru-cache's set() takes `(key, value, { ttl })` while Keyv calls its
+// store with `(key, value, ttl)`; without this adapter every Keyv set()
+// throws inside lru-cache and Keyv silently drops the entry.
+const lruStore = new LRUCache<string, string>({ max: 5_000 });
+
+const cache = createCache({
+  ttl: DEFAULT_TTL_MS,
+  stores: [
+    new Keyv({
+      store: {
+        get: (key: string) => lruStore.get(key),
+        set: (key: string, value: string, ttl?: number) =>
+          lruStore.set(key, value, ttl === undefined ? undefined : { ttl }),
+        delete: (key: string) => lruStore.delete(key),
+        clear: () => lruStore.clear(),
+      },
+    }),
+  ],
+});
 
 let enabledOverride: boolean | null = null;
-
-/** userId -> set of live cache keys registered for that user. */
-const userKeys = new Map<string, Set<string>>();
 
 /**
  * userId -> current version of that user's cache-key namespace. Bumped on
@@ -41,32 +58,21 @@ export function getOrLoad<T>(
   }
   const keyVersion = userKeyVersions.get(userId) ?? 0;
   const key = `${userId}:v${keyVersion}:${scope}`;
-  let keys = userKeys.get(userId);
-  if (!keys) {
-    keys = new Set<string>();
-    userKeys.set(userId, keys);
-  }
-  keys.add(key);
   return cache.wrap(key, loader, DEFAULT_TTL_MS);
 }
 
 /**
  * Drops every cached read belonging to `userId`. Coarse by design: one
- * mutation invalidates all of the user's cached scopes.
+ * mutation invalidates all of the user's cached scopes. The version bump
+ * orphans all prior keys; unreachable entries age out via TTL and LRU
+ * eviction (max 5,000 entries per process).
  */
 export async function invalidateUser(userId: string): Promise<void> {
   userKeyVersions.set(userId, (userKeyVersions.get(userId) ?? 0) + 1);
-  const keys = userKeys.get(userId);
-  if (!keys) {
-    return;
-  }
-  userKeys.delete(userId);
-  await Promise.all([...keys].map((key) => cache.del(key)));
 }
 
-/** Clears the entire cache and the per-user key registry. */
+/** Clears the entire cache and the per-user key versions. */
 export async function clearCache(): Promise<void> {
-  userKeys.clear();
   userKeyVersions.clear();
   await cache.clear();
 }

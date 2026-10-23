@@ -436,6 +436,14 @@ describe('GET /transactions/:id', () => {
     expect(response.status).toBe(404);
   });
 
+  it('returns 400 for a malformed transaction id', async () => {
+    const response = await request(app)
+      .get('/transactions/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('rejects unauthenticated requests (401)', async () => {
     const response = await request(app).get(
       '/transactions/00000000-0000-0000-0000-000000000000',
@@ -682,6 +690,14 @@ describe('DELETE /transactions/:id', () => {
       .delete('/transactions/00000000-0000-0000-0000-000000000000')
       .set('Authorization', `Bearer ${token}`);
     expect(response.status).toBe(404);
+  });
+
+  it('returns 400 for a malformed transaction id', async () => {
+    const response = await request(app)
+      .delete('/transactions/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
   it('rejects unauthenticated requests (401)', async () => {

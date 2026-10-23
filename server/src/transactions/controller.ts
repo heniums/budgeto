@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { getUser } from '../auth/middleware';
+import { z } from 'zod';
 import {
   createTransactionSchema,
   updateTransactionSchema,
@@ -16,6 +17,8 @@ import {
   transfer,
 } from './service';
 
+const idParamSchema = z.string().uuid();
+
 export async function createTransactionHandler(
   req: Request,
   res: Response,
@@ -24,7 +27,11 @@ export async function createTransactionHandler(
   try {
     const input = createTransactionSchema.parse(req.body);
     const user = getUser(req);
-    const tx = await create(user.sub, req.params.id, input);
+    const tx = await create(
+      user.sub,
+      idParamSchema.parse(req.params.id),
+      input,
+    );
     res.status(201).json(tx);
   } catch (error) {
     next(error);
@@ -38,7 +45,7 @@ export async function listTransactionsHandler(
 ): Promise<void> {
   try {
     const user = getUser(req);
-    const result = await list(user.sub, req.params.id);
+    const result = await list(user.sub, idParamSchema.parse(req.params.id));
     res.status(200).json(result);
   } catch (error) {
     next(error);
@@ -82,7 +89,7 @@ export async function getTransactionHandler(
 ): Promise<void> {
   try {
     const user = getUser(req);
-    const tx = await getById(user.sub, req.params.id);
+    const tx = await getById(user.sub, idParamSchema.parse(req.params.id));
     res.status(200).json(tx);
   } catch (error) {
     next(error);
@@ -97,7 +104,11 @@ export async function updateTransactionHandler(
   try {
     const input = updateTransactionSchema.parse(req.body);
     const user = getUser(req);
-    const tx = await update(user.sub, req.params.id, input);
+    const tx = await update(
+      user.sub,
+      idParamSchema.parse(req.params.id),
+      input,
+    );
     res.status(200).json(tx);
   } catch (error) {
     next(error);
@@ -111,7 +122,7 @@ export async function deleteTransactionHandler(
 ): Promise<void> {
   try {
     const user = getUser(req);
-    const tx = await remove(user.sub, req.params.id);
+    const tx = await remove(user.sub, idParamSchema.parse(req.params.id));
     res.status(200).json(tx);
   } catch (error) {
     next(error);
