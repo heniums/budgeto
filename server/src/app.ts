@@ -15,6 +15,12 @@ import { isAppError } from './errors';
 export function createApp(): Express {
   const app = express();
   const config = getConfig();
+  // Production runs behind a reverse proxy (TLS terminator), so trust exactly
+  // one hop: req.ip then reflects the client address from X-Forwarded-For.
+  // Without this, express-rate-limit's default keyGenerator throws
+  // ERR_ERL_UNEXPECTED_X_FORWARDED_FOR on proxied requests (500s) or, with the
+  // header stripped, would bucket all clients under the proxy's IP.
+  app.set('trust proxy', 1);
   app.use(
     cors({
       origin: config.corsOrigins,
