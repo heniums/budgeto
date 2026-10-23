@@ -77,6 +77,20 @@ function formatDate(iso: string): string {
   return dayjs(iso).format('M/D/YYYY h:mm A');
 }
 
+/**
+ * Deletes one transfer leg, treating "already deleted" (404) as success so a
+ * retry after a partial cascade failure can still finish the remaining leg.
+ */
+async function deleteLegIgnoringNotFound(id: string): Promise<void> {
+  try {
+    await deleteTransaction(id);
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 404)) {
+      throw err;
+    }
+  }
+}
+
 interface PeriodGroup {
   key: string;
   label: string;
@@ -168,7 +182,10 @@ export function Transactions(): JSX.Element {
     null,
   );
   const [deleting, setDeleting] = useState(false);
-  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [deleteError, setDeleteError] = useState<{
+    id: string;
+    message: string;
+  } | null>(null);
 
   // Debounce the free-text search so we don't hit the API on every keystroke.
   useEffect(() => {
@@ -665,6 +682,7 @@ export function Transactions(): JSX.Element {
               }}
               onDelete={() => {
                 setEditTx(null);
+                setDeleteError(null);
                 const pair = findTransferPair(editTx, transactions);
                 if (pair) {
                   setCascadeTx({ action: 'delete', tx: editTx, pair });
@@ -704,7 +722,13 @@ export function Transactions(): JSX.Element {
             Are you sure you want to delete this transaction? This action cannot
             be undone.
           </p>
-          <FormAlert message={deleteError} />
+          <FormAlert
+            message={
+              deleteConfirm && deleteError?.id === deleteConfirm.id
+                ? deleteError.message
+                : null
+            }
+          />
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
@@ -720,18 +744,21 @@ export function Transactions(): JSX.Element {
               disabled={deleting}
               onClick={async () => {
                 if (!deleteConfirm) return;
+                const { id } = deleteConfirm;
                 setDeleteError(null);
                 setDeleting(true);
                 try {
-                  await deleteTransaction(deleteConfirm.id);
+                  await deleteTransaction(id);
                   setDeleteConfirm(null);
                   void invalidateFinancialData(queryClient);
                 } catch (err) {
-                  setDeleteError(
-                    err instanceof ApiError
-                      ? err.message
-                      : 'Failed to delete transaction.',
-                  );
+                  setDeleteError({
+                    id,
+                    message:
+                      err instanceof ApiError
+                        ? err.message
+                        : 'Failed to delete transaction.',
+                  });
                 } finally {
                   setDeleting(false);
                 }
@@ -767,28 +794,39 @@ export function Transactions(): JSX.Element {
             {Number(cascadeTx?.pair.amount) > 0 ? '+' : ''}
             {cascadeTx?.pair.amount})?
           </p>
-          <FormAlert message={deleteError} />
+          <FormAlert
+            message={
+              cascadeTx && deleteError?.id === cascadeTx.tx.id
+                ? deleteError.message
+                : null
+            }
+          />
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
               disabled={deleting}
               onClick={async () => {
                 if (!cascadeTx) return;
+                const { tx } = cascadeTx;
                 if (cascadeTx.action === 'delete') {
                   setDeleteError(null);
                   setDeleting(true);
                   try {
-                    await deleteTransaction(cascadeTx.tx.id);
-                    void invalidateFinancialData(queryClient);
+                    await deleteLegIgnoringNotFound(tx.id);
                   } catch (err) {
-                    setDeleteError(
-                      err instanceof ApiError
-                        ? err.message
-                        : 'Failed to delete transaction.',
-                    );
+                    setDeleteError({
+                      id: tx.id,
+                      message:
+                        err instanceof ApiError
+                          ? err.message
+                          : 'Failed to delete transaction.',
+                    });
                     return;
                   } finally {
                     setDeleting(false);
+                    // Refresh even on failure so the list drops any leg that
+                    // did get deleted before the error.
+                    void invalidateFinancialData(queryClient);
                   }
                 }
                 setCascadeTx(null);
@@ -800,22 +838,27 @@ export function Transactions(): JSX.Element {
               disabled={deleting}
               onClick={async () => {
                 if (!cascadeTx) return;
+                const { tx, pair } = cascadeTx;
                 if (cascadeTx.action === 'delete') {
                   setDeleteError(null);
                   setDeleting(true);
                   try {
-                    await deleteTransaction(cascadeTx.tx.id);
-                    await deleteTransaction(cascadeTx.pair.id);
-                    void invalidateFinancialData(queryClient);
+                    await deleteLegIgnoringNotFound(tx.id);
+                    await deleteLegIgnoringNotFound(pair.id);
                   } catch (err) {
-                    setDeleteError(
-                      err instanceof ApiError
-                        ? err.message
-                        : 'Failed to delete transaction.',
-                    );
+                    setDeleteError({
+                      id: tx.id,
+                      message:
+                        err instanceof ApiError
+                          ? err.message
+                          : 'Failed to delete transaction.',
+                    });
                     return;
                   } finally {
                     setDeleting(false);
+                    // Refresh even on failure so the list drops any leg that
+                    // did get deleted before the error.
+                    void invalidateFinancialData(queryClient);
                   }
                 }
                 setCascadeTx(null);
