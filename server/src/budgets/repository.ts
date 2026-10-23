@@ -19,15 +19,21 @@ export interface BudgetWithCategories {
   }>;
 }
 
-export async function createBudget(input: NewBudget): Promise<Budget> {
-  const [budget] = await db.insert(budgets).values(input).returning();
+export type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+export async function createBudgetInTx(
+  tx: Tx,
+  input: NewBudget,
+): Promise<Budget> {
+  const [budget] = await tx.insert(budgets).values(input).returning();
   return budget;
 }
 
-export async function createBudgetCategory(
+export async function createBudgetCategoryInTx(
+  tx: Tx,
   input: NewBudgetCategory,
 ): Promise<BudgetCategory> {
-  const [row] = await db.insert(budgetCategories).values(input).returning();
+  const [row] = await tx.insert(budgetCategories).values(input).returning();
   return row;
 }
 
@@ -69,8 +75,11 @@ export async function findBudgetCategory(
   return row;
 }
 
-export async function deleteBudgetCategories(budgetId: string): Promise<void> {
-  await db
+export async function deleteBudgetCategoriesInTx(
+  tx: Tx,
+  budgetId: string,
+): Promise<void> {
+  await tx
     .delete(budgetCategories)
     .where(eq(budgetCategories.budgetId, budgetId));
 }
@@ -98,7 +107,8 @@ export async function sumTransactionsByUserAndCategoryAndRange(
   return row?.total ?? '0';
 }
 
-export async function updateBudget(
+export async function updateBudgetInTx(
+  tx: Tx,
   id: string,
   input: Partial<
     Pick<
@@ -114,7 +124,7 @@ export async function updateBudget(
     >
   >,
 ): Promise<Budget | undefined> {
-  const [budget] = await db
+  const [budget] = await tx
     .update(budgets)
     .set({ ...input, updatedAt: new Date() })
     .where(eq(budgets.id, id))

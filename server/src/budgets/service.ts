@@ -1,11 +1,12 @@
 import { z } from 'zod';
+import { db } from '../db/client';
 import {
-  createBudget,
-  createBudgetCategory,
+  createBudgetInTx,
+  createBudgetCategoryInTx,
   findBudgetsByUserId,
   findBudgetById,
   findBudgetCategories,
-  updateBudget,
+  updateBudgetInTx,
   deleteBudget,
 } from './repository';
 import { findCategoryById } from '../categories/repository';
@@ -62,6 +63,12 @@ export const createBudgetSchema = z
       message: 'Start date and end date are required for custom periods',
       path: ['startDate'],
     },
+  )
+  .refine(
+    (data) =>
+      new Set(data.categories?.map((c) => c.categoryId) ?? []).size ===
+      (data.categories?.length ?? 0),
+    { message: 'Duplicate categoryId in categories', path: ['categories'] },
   );
 
 export const updateBudgetSchema = z
@@ -94,6 +101,12 @@ export const updateBudgetSchema = z
         'Start date and end date must both be provided for custom periods',
       path: ['startDate'],
     },
+  )
+  .refine(
+    (data) =>
+      new Set(data.categories?.map((c) => c.categoryId) ?? []).size ===
+      (data.categories?.length ?? 0),
+    { message: 'Duplicate categoryId in categories', path: ['categories'] },
   );
 
 export type CreateBudgetInput = z.infer<typeof createBudgetSchema>;
@@ -138,25 +151,28 @@ export async function create(
     input.endDate,
   );
 
-  const budget = await createBudget({
-    userId,
-    name: input.name,
-    icon: input.icon,
-    color: input.color,
-    type: input.type,
-    period: input.period,
-    startDate: storedDates.startDate,
-    endDate: storedDates.endDate,
-    totalAmount: input.totalAmount,
-  });
-
-  for (const cat of input.categories) {
-    await createBudgetCategory({
-      budgetId: budget.id,
-      categoryId: cat.categoryId,
-      limitAmount: cat.limitAmount,
+  const budget = await db.transaction(async (tx) => {
+    const row = await createBudgetInTx(tx, {
+      userId,
+      name: input.name,
+      icon: input.icon,
+      color: input.color,
+      type: input.type,
+      period: input.period,
+      startDate: storedDates.startDate,
+      endDate: storedDates.endDate,
+      totalAmount: input.totalAmount,
     });
-  }
+
+    for (const cat of input.categories) {
+      await createBudgetCategoryInTx(tx, {
+        budgetId: row.id,
+        categoryId: cat.categoryId,
+        limitAmount: cat.limitAmount,
+      });
+    }
+    return row;
+  });
 
   const limitMap = input.categories.map((c) => ({
     categoryId: c.categoryId,
@@ -269,24 +285,27 @@ export async function update(
     dayjs(existing.endDate).format('YYYY-MM-DD'),
   );
 
-  const updated = await updateBudget(id, {
-    name: input.name,
-    icon: input.icon,
-    color: input.color,
-    type: input.type,
-    period: input.period,
-    startDate:
-      input.period || input.startDate ? storedDates.startDate : undefined,
-    endDate: input.period || input.endDate ? storedDates.endDate : undefined,
-    totalAmount: input.totalAmount,
-  });
-  if (!updated) {
-    throw notFoundError('Budget not found');
-  }
+  const updated = await db.transaction(async (tx) => {
+    const row = await updateBudgetInTx(tx, id, {
+      name: input.name,
+      icon: input.icon,
+      color: input.color,
+      type: input.type,
+      period: input.period,
+      startDate:
+        input.period || input.startDate ? storedDates.startDate : undefined,
+      endDate: input.period || input.endDate ? storedDates.endDate : undefined,
+      totalAmount: input.totalAmount,
+    });
+    if (!row) {
+      throw notFoundError('Budget not found');
+    }
 
-  if (input.categories) {
-    await applyCategoryChanges(existing.id, input.categories);
-  }
+    if (input.categories) {
+      await applyCategoryChanges(tx, existing.id, input.categories);
+    }
+    return row;
+  });
 
   const finalCategories = await findBudgetCategories(existing.id);
   const limitMap = finalCategories.map((c) => ({

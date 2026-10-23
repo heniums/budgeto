@@ -1,9 +1,10 @@
 import { findCategoryById } from '../categories/repository';
 import {
-  createBudgetCategory,
-  deleteBudgetCategories,
+  createBudgetCategoryInTx,
+  deleteBudgetCategoriesInTx,
   sumTransactionsByUserAndCategoryAndRange,
 } from './repository';
+import type { Tx } from './repository';
 import { resolveStoredDates } from './period';
 import type { PeriodType } from './period';
 
@@ -83,12 +84,13 @@ async function buildBudgetResponseData(
 }
 
 export async function applyCategoryChanges(
+  tx: Tx,
   budgetId: string,
   categories: { categoryId: string; limitAmount: string }[],
 ): Promise<void> {
-  await deleteBudgetCategories(budgetId);
+  await deleteBudgetCategoriesInTx(tx, budgetId);
   for (const cat of categories) {
-    await createBudgetCategory({
+    await createBudgetCategoryInTx(tx, {
       budgetId,
       categoryId: cat.categoryId,
       limitAmount: cat.limitAmount,
