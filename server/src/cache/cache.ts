@@ -29,7 +29,7 @@ let enabledOverride: boolean | null = null;
 /**
  * userId -> current version of that user's cache-key namespace. Bumped on
  * every invalidateUser so an in-flight loader whose set() lands after the
- * deletion writes to an orphaned key instead of repopulating pre-mutation
+ * bump writes to an orphaned key instead of repopulating pre-mutation
  * data (cache-manager's wrap runs get → loader → set with no invalidation
  * re-check).
  */
@@ -47,6 +47,12 @@ function isEnabled(): boolean {
  * `loader` and caches the result for DEFAULT_TTL_MS. Concurrent calls with
  * the same key share a single load (cache-manager `wrap` coalescing).
  * Loader errors are never cached — a rejected load leaves no entry.
+ *
+ * Values are JSON-serialized by Keyv before storage, so `T` must be
+ * JSON-serializable: on a cache hit a `Date` field comes back as an ISO
+ * string. The declared `Promise<T>` is only exact for JSON-safe payloads;
+ * every current caller caches API response objects that are re-serialized
+ * to JSON verbatim, so the round-trip is invisible to clients.
  */
 export function getOrLoad<T>(
   userId: string,
@@ -62,10 +68,10 @@ export function getOrLoad<T>(
 }
 
 /**
- * Drops every cached read belonging to `userId`. Coarse by design: one
- * mutation invalidates all of the user's cached scopes. The version bump
- * orphans all prior keys; unreachable entries age out via TTL and LRU
- * eviction (max 5,000 entries per process).
+ * Orphans every cached read belonging to `userId` by bumping its key-version
+ * namespace — nothing is dropped eagerly. Coarse by design: one mutation
+ * invalidates all of the user's cached scopes; unreachable entries age out
+ * via TTL and LRU eviction (max 5,000 entries per process).
  */
 export async function invalidateUser(userId: string): Promise<void> {
   userKeyVersions.set(userId, (userKeyVersions.get(userId) ?? 0) + 1);

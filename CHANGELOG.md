@@ -12,9 +12,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 ### Added
 - Rate limiting on the register, login, refresh, and logout endpoints via express-rate-limit
 - Production startup validation requiring a JWT_SECRET of at least 32 characters
+- Validate id path parameters on wallet and transaction routes so malformed ids return 400 instead of a database error
 
 ### Changed
 - Migrate client data fetching from manual effects to TanStack Query with shared hooks and a central query-key registry
+- Return a generic body for unhandled server errors; error details are logged server-side and no longer echoed to clients
 
 ### Fixed
 - Dispatch unauthorized event exactly once when a shared token refresh fails
@@ -28,6 +30,8 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Moved budget and category writes into database transactions so partial writes roll back on failure
 - Surfaced delete failures in the transaction cascade dialog and disabled the action while in flight
 - Added a retry button to the dashboard error state
+- Made transfer cascade deletes retryable by treating already-deleted legs as success and refreshing the list even when a leg fails
+- Set `trust proxy` to one hop so rate limiting keys on real client IPs behind the production reverse proxy instead of throwing on X-Forwarded-For
 ## [1.6.0] — 2026-08-13
 
 ### Added
