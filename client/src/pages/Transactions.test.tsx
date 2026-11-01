@@ -59,6 +59,7 @@ vi.mock('../api/transactions', async (importOriginal) => {
     ...actual,
     getTransactions: vi.fn(),
     getTransactionsSummary: vi.fn(),
+    getTransaction: vi.fn(),
     deleteTransaction: vi.fn(),
   };
 });
@@ -79,6 +80,7 @@ vi.mock('../api/categories', async (importOriginal) => {
 import {
   getTransactions,
   getTransactionsSummary,
+  getTransaction,
   deleteTransaction,
   type TransactionData,
 } from '../api/transactions';
@@ -119,6 +121,15 @@ vi.mocked(getTransactions).mockImplementation(async (params) => {
 
 vi.mocked(getTransactionsSummary).mockResolvedValue({ groups: [] });
 
+// Row clicks deep-link via '?tx=<id>'; serve the clicked row from the fixture.
+vi.mocked(getTransaction).mockImplementation(async (id) => {
+  const tx = transactionsFixture.find((t) => t.id === id);
+  if (!tx) {
+    throw new ApiError('Transaction not found', 404, 'NOT_FOUND');
+  }
+  return tx;
+});
+
 const mockCategories = [
   {
     id: 'c1',
@@ -154,9 +165,9 @@ const wallets = [
   },
 ];
 
-function renderHome(): void {
+function renderHome(initialEntry = '/'): void {
   render(
-    <MemoryRouter>
+    <MemoryRouter initialEntries={[initialEntry]}>
       <QueryClientProvider client={createTestQueryClient()}>
         <Transactions />
       </QueryClientProvider>
@@ -775,7 +786,8 @@ describe('Home delete refetch', () => {
       description: 'Transfer to Savings',
       categoryId: null,
       categoryName: null,
-      date: id === 'p1' ? '2026-01-15T10:00:00.000Z' : '2026-01-15T10:00:01.000Z',
+      date:
+        id === 'p1' ? '2026-01-15T10:00:00.000Z' : '2026-01-15T10:00:01.000Z',
       createdAt: id === 'p1' ? '2026-01-15T10:00:00Z' : '2026-01-15T10:00:01Z',
     });
     vi.mocked(deleteTransaction)
@@ -916,6 +928,64 @@ describe('Home transaction summary', () => {
 
     await waitFor(() => {
       expect(getTransactionsSummary).toHaveBeenCalledTimes(2);
+    });
+  });
+});
+
+describe('Transaction deep links', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    transactionsFixture = [
+      {
+        id: 't1',
+        walletId: 'w1',
+        amount: '50.00',
+        description: 'Salary',
+        categoryId: 'c1',
+        categoryName: 'Food',
+        createdAt: '2026-01-15T10:00:00Z',
+        date: '2026-01-15T10:00:00.000Z',
+      },
+    ];
+    vi.mocked(getWallets).mockResolvedValue({ wallets });
+    vi.mocked(getCategories).mockResolvedValue({ categories: mockCategories });
+    cleanup();
+  });
+
+  it('opens the edit dialog for a deep-linked transaction', async () => {
+    renderHome('/transactions?tx=t1');
+
+    await waitFor(() => {
+      expect(vi.mocked(getTransaction)).toHaveBeenCalledWith('t1');
+    });
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      within(dialog).getByRole('heading', { name: 'Edit transaction' }),
+    ).toBeInTheDocument();
+    // The form loads the deep-linked transaction's data.
+    expect(
+      await within(dialog).findByDisplayValue('Salary'),
+    ).toBeInTheDocument();
+  });
+
+  it('opens the add dialog for ?tx=new', async () => {
+    renderHome('/transactions?tx=new');
+
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      await within(dialog).findByRole('heading', {
+        name: 'Add transaction',
+      }),
+    ).toBeInTheDocument();
+    expect(vi.mocked(getTransaction)).not.toHaveBeenCalled();
+  });
+
+  it('closes the dialog when a deep-linked transaction does not exist', async () => {
+    renderHome('/transactions?tx=missing');
+
+    // The stale link must not wedge the edit dialog open.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     });
   });
 });

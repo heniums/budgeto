@@ -20,11 +20,12 @@ vi.mock('../api/categories', async (importOriginal) => {
   return {
     ...actual,
     getCategories: vi.fn(),
+    getCategory: vi.fn(),
   };
 });
 
 import { refreshSession } from '../api/auth';
-import { getCategories } from '../api/categories';
+import { getCategories, getCategory } from '../api/categories';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
@@ -49,10 +50,19 @@ const mockCategories = [
   },
 ];
 
-function renderList(): void {
+// CategoryModal fetches the opened category by id (row clicks deep-link).
+vi.mocked(getCategory).mockImplementation(async (id) => {
+  const category = mockCategories.find((c) => c.id === id);
+  if (!category) {
+    throw new Error(`Category ${id} not found`);
+  }
+  return category;
+});
+
+function renderList(initialEntry = '/categories'): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/categories']}>
+      <MemoryRouter initialEntries={[initialEntry]}>
         <QueryClientProvider client={createTestQueryClient()}>
           <Categories />
         </QueryClientProvider>
@@ -175,5 +185,29 @@ describe('Categories page', () => {
       const titles = screen.getAllByText('New Category');
       expect(titles.length).toBeGreaterThanOrEqual(2);
     });
+  });
+
+  it('opens the edit modal for a deep-linked category', async () => {
+    renderList('/categories?category=c1');
+
+    await waitFor(() => {
+      expect(vi.mocked(getCategory)).toHaveBeenCalledWith('c1');
+    });
+    await waitFor(() => {
+      const titles = screen.getAllByText('Edit Category');
+      expect(titles.length).toBeGreaterThanOrEqual(1);
+    });
+    // The form loads the deep-linked category's data.
+    expect(await screen.findByDisplayValue('Groceries')).toBeInTheDocument();
+  });
+
+  it('opens the create modal for ?category=new', async () => {
+    renderList('/categories?category=new');
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('New Category');
+      expect(titles.length).toBeGreaterThanOrEqual(2);
+    });
+    expect(vi.mocked(getCategory)).not.toHaveBeenCalled();
   });
 });

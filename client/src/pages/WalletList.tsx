@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useDialogParam } from '@/hooks/use-dialog-param';
 import { useWalletsQuery } from '@/hooks/use-wallets';
 import { useQueryClient } from '@tanstack/react-query';
 import { invalidateFinancialData } from '@/lib/queryClient';
@@ -23,8 +24,8 @@ export function WalletList(): JSX.Element {
   const queryClient = useQueryClient();
   const { data: wallets = [], isPending, error } = useWalletsQuery();
   const [search, setSearch] = useState('');
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
-  const [selectedWalletId, setSelectedWalletId] = useState<string | null>(null);
+  const walletDialog = useDialogParam('wallet');
+  const walletParam = walletDialog.value;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -52,7 +53,12 @@ export function WalletList(): JSX.Element {
       <FormAlert message={error?.message ?? null} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button data-testid="header-add-button" onClick={() => setModalMode('create')}>New Wallet</Button>
+        <Button
+          data-testid="header-add-button"
+          onClick={() => walletDialog.open()}
+        >
+          New Wallet
+        </Button>
         <Input
           type="search"
           placeholder="Search wallets…"
@@ -137,18 +143,23 @@ export function WalletList(): JSX.Element {
                 filtered.map((wallet) => (
                   <TableRow
                     key={wallet.id}
-                    style={selectedWalletId === wallet.id ? { backgroundColor: wallet.color } : undefined}
+                    style={
+                      walletParam === wallet.id
+                        ? { backgroundColor: wallet.color }
+                        : undefined
+                    }
                     className={cn(
                       'cursor-pointer',
-                      selectedWalletId === wallet.id ? '' : 'hover:bg-muted/50',
+                      walletParam === wallet.id ? '' : 'hover:bg-muted/50',
                     )}
-                    onClick={() => {
-                      setSelectedWalletId(wallet.id);
-                      setModalMode('edit');
-                    }}
+                    onClick={() => walletDialog.open(wallet.id)}
                   >
                     <TableCell
-                      style={selectedWalletId === wallet.id ? { color: '#ffffff' } : undefined}
+                      style={
+                        walletParam === wallet.id
+                          ? { color: '#ffffff' }
+                          : undefined
+                      }
                     >
                       <div
                         style={{
@@ -170,10 +181,7 @@ export function WalletList(): JSX.Element {
                         />
                         <button
                           type="button"
-                          onClick={() => {
-                            setSelectedWalletId(wallet.id);
-                            setModalMode('edit');
-                          }}
+                          onClick={() => walletDialog.open(wallet.id)}
                           style={{
                             background: 'none',
                             border: 'none',
@@ -212,30 +220,27 @@ export function WalletList(): JSX.Element {
       )}
 
       <WalletModal
-        open={modalMode !== null}
+        open={walletParam !== null}
         onOpenChange={(open) => {
           if (!open) {
-            setModalMode(null);
-            setSelectedWalletId(null);
+            walletDialog.close();
           }
         }}
         walletId={
-          modalMode === 'create' ? undefined : (selectedWalletId ?? undefined)
+          walletParam === 'new' ? undefined : (walletParam ?? undefined)
         }
         onSuccess={() => {
-          setModalMode(null);
-          setSelectedWalletId(null);
+          walletDialog.close();
           void invalidateFinancialData(queryClient);
         }}
         onDelete={() => {
-          setModalMode(null);
-          setSelectedWalletId(null);
+          walletDialog.close();
           void invalidateFinancialData(queryClient);
         }}
       />
 
       <FloatingActionButton
-        onClick={() => setModalMode('create')}
+        onClick={() => walletDialog.open()}
         label="New Wallet"
       />
     </div>
