@@ -7,6 +7,12 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.7.1] — 2026-11-01
+
+### Fixed
+- Show the Wallet column in the transactions table on mobile and render the wallet name as a colored pill matching the category pill
+- Compact transaction date cells: time only on day/custom presets, `MMM D, h:mm A` on week/month/year, with the month/year left to the sticky period header
+
 ## [1.7.0] — 2026-11-01
 
 ### Added
