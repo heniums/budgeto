@@ -151,6 +151,31 @@ describe('POST /budgets', () => {
     expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
+  it('rejects duplicate categoryId in categories (400)', async () => {
+    const groceries = await createCategory(token, 'Groceries');
+    const response = await request(app)
+      .post('/budgets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Duplicate Categories',
+        period: 'monthly',
+        totalAmount: '1000.00',
+        categories: [
+          { categoryId: groceries.id, limitAmount: '50.00' },
+          { categoryId: groceries.id, limitAmount: '60.00' },
+        ],
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+    expect(JSON.stringify(response.body.details)).toContain(
+      'Duplicate categoryId in categories',
+    );
+    const listRes = await request(app)
+      .get('/budgets')
+      .set('Authorization', `Bearer ${token}`);
+    expect(listRes.body.budgets).toHaveLength(0);
+  });
+
   it('accepts any category in budget (201)', async () => {
     const salary = await createCategory(token, 'Salary');
     const response = await request(app)
@@ -522,6 +547,46 @@ describe('PUT /budgets/:id', () => {
       .send({ totalAmount: '100.00' });
     expect(response.status).toBe(400);
     expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
+  it('rejects duplicate categoryId and keeps saved limits (400)', async () => {
+    const category = await createCategory(token, 'Groceries');
+    const created = await request(app)
+      .post('/budgets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Monthly',
+        period: 'monthly',
+        totalAmount: '500.00',
+        categories: [{ categoryId: category.id, limitAmount: '200.00' }],
+      });
+
+    const response = await request(app)
+      .put(`/budgets/${created.body.id}`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Monthly',
+        period: 'monthly',
+        totalAmount: '500.00',
+        categories: [
+          { categoryId: category.id, limitAmount: '50.00' },
+          { categoryId: category.id, limitAmount: '60.00' },
+        ],
+      });
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+    expect(JSON.stringify(response.body.details)).toContain(
+      'Duplicate categoryId in categories',
+    );
+
+    // Saved category limits must be untouched — no wipe.
+    const getRes = await request(app)
+      .get(`/budgets/${created.body.id}`)
+      .set('Authorization', `Bearer ${token}`);
+    expect(getRes.status).toBe(200);
+    expect(getRes.body.categories).toHaveLength(1);
+    expect(getRes.body.categories[0].categoryId).toBe(category.id);
+    expect(getRes.body.categories[0].limitAmount).toBe('200.00');
   });
 });
 

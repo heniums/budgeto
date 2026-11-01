@@ -77,6 +77,20 @@ function formatDate(iso: string): string {
   return dayjs(iso).format('M/D/YYYY h:mm A');
 }
 
+/**
+ * Deletes one transfer leg, treating "already deleted" (404) as success so a
+ * retry after a partial cascade failure can still finish the remaining leg.
+ */
+async function deleteLegIgnoringNotFound(id: string): Promise<void> {
+  try {
+    await deleteTransaction(id);
+  } catch (err) {
+    if (!(err instanceof ApiError && err.status === 404)) {
+      throw err;
+    }
+  }
+}
+
 interface PeriodGroup {
   key: string;
   label: string;
@@ -167,6 +181,11 @@ export function Transactions(): JSX.Element {
   const [pendingCategoryId, setPendingCategoryId] = useState<string | null>(
     null,
   );
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState<{
+    id: string;
+    message: string;
+  } | null>(null);
 
   // Debounce the free-text search so we don't hit the API on every keystroke.
   useEffect(() => {
@@ -663,6 +682,7 @@ export function Transactions(): JSX.Element {
               }}
               onDelete={() => {
                 setEditTx(null);
+                setDeleteError(null);
                 const pair = findTransferPair(editTx, transactions);
                 if (pair) {
                   setCascadeTx({ action: 'delete', tx: editTx, pair });
@@ -688,7 +708,12 @@ export function Transactions(): JSX.Element {
       <Dialog
         open={deleteConfirm !== null}
         onOpenChange={(open) => {
-          if (!open) setDeleteConfirm(null);
+          // Keep the dialog open while the delete is in flight: closing it
+          // would unmount the FormAlert and swallow the failure error.
+          if (!open && !deleting) {
+            setDeleteConfirm(null);
+            setDeleteError(null);
+          }
         }}
       >
         <DialogContent>
@@ -699,21 +724,46 @@ export function Transactions(): JSX.Element {
             Are you sure you want to delete this transaction? This action cannot
             be undone.
           </p>
+          <FormAlert
+            message={
+              deleteConfirm && deleteError?.id === deleteConfirm.id
+                ? deleteError.message
+                : null
+            }
+          />
           <div className="flex justify-end gap-2">
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
+            <Button
+              variant="outline"
+              disabled={deleting}
+              onClick={() => {
+                setDeleteConfirm(null);
+                setDeleteError(null);
+              }}
+            >
               Cancel
             </Button>
             <Button
               variant="destructive"
+              disabled={deleting}
               onClick={async () => {
-                if (deleteConfirm) {
-                  try {
-                    await deleteTransaction(deleteConfirm.id);
-                    setDeleteConfirm(null);
-                    void invalidateFinancialData(queryClient);
-                  } catch (err) {
-                    console.error('Failed to delete transaction:', err);
-                  }
+                if (!deleteConfirm) return;
+                const { id } = deleteConfirm;
+                setDeleteError(null);
+                setDeleting(true);
+                try {
+                  await deleteTransaction(id);
+                  setDeleteConfirm(null);
+                  void invalidateFinancialData(queryClient);
+                } catch (err) {
+                  setDeleteError({
+                    id,
+                    message:
+                      err instanceof ApiError
+                        ? err.message
+                        : 'Failed to delete transaction.',
+                  });
+                } finally {
+                  setDeleting(false);
                 }
               }}
             >
@@ -726,7 +776,12 @@ export function Transactions(): JSX.Element {
       <Dialog
         open={cascadeTx !== null}
         onOpenChange={(open) => {
-          if (!open) setCascadeTx(null);
+          // Keep the dialog open while a leg delete is in flight: closing it
+          // would unmount the FormAlert and swallow the partial-failure error.
+          if (!open && !deleting) {
+            setCascadeTx(null);
+            setDeleteError(null);
+          }
         }}
       >
         <DialogContent>
@@ -744,18 +799,39 @@ export function Transactions(): JSX.Element {
             {Number(cascadeTx?.pair.amount) > 0 ? '+' : ''}
             {cascadeTx?.pair.amount})?
           </p>
+          <FormAlert
+            message={
+              cascadeTx && deleteError?.id === cascadeTx.tx.id
+                ? deleteError.message
+                : null
+            }
+          />
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
+              disabled={deleting}
               onClick={async () => {
                 if (!cascadeTx) return;
+                const { tx } = cascadeTx;
                 if (cascadeTx.action === 'delete') {
+                  setDeleteError(null);
+                  setDeleting(true);
                   try {
-                    await deleteTransaction(cascadeTx.tx.id);
-                    void invalidateFinancialData(queryClient);
+                    await deleteLegIgnoringNotFound(tx.id);
                   } catch (err) {
-                    console.error('Failed to delete transaction:', err);
+                    setDeleteError({
+                      id: tx.id,
+                      message:
+                        err instanceof ApiError
+                          ? err.message
+                          : 'Failed to delete transaction.',
+                    });
                     return;
+                  } finally {
+                    setDeleting(false);
+                    // Refresh even on failure so the list drops any leg that
+                    // did get deleted before the error.
+                    void invalidateFinancialData(queryClient);
                   }
                 }
                 setCascadeTx(null);
@@ -764,16 +840,30 @@ export function Transactions(): JSX.Element {
               No, just this one
             </Button>
             <Button
+              disabled={deleting}
               onClick={async () => {
                 if (!cascadeTx) return;
+                const { tx, pair } = cascadeTx;
                 if (cascadeTx.action === 'delete') {
+                  setDeleteError(null);
+                  setDeleting(true);
                   try {
-                    await deleteTransaction(cascadeTx.tx.id);
-                    await deleteTransaction(cascadeTx.pair.id);
-                    void invalidateFinancialData(queryClient);
+                    await deleteLegIgnoringNotFound(tx.id);
+                    await deleteLegIgnoringNotFound(pair.id);
                   } catch (err) {
-                    console.error('Failed to delete transaction:', err);
+                    setDeleteError({
+                      id: tx.id,
+                      message:
+                        err instanceof ApiError
+                          ? err.message
+                          : 'Failed to delete transaction.',
+                    });
                     return;
+                  } finally {
+                    setDeleting(false);
+                    // Refresh even on failure so the list drops any leg that
+                    // did get deleted before the error.
+                    void invalidateFinancialData(queryClient);
                   }
                 }
                 setCascadeTx(null);

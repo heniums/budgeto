@@ -1,8 +1,13 @@
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, afterEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Home } from './Home';
 import type { WidgetConfig } from '@/dashboard/types';
+
+const dashboardMock = vi.hoisted(() => ({
+  error: null as { message: string } | null,
+  refresh: vi.fn(),
+}));
 
 const sampleWidgets: WidgetConfig[] = [
   { id: 'net-worth', visible: true, order: 0, colSpan: 1, rowSpan: 1, config: {} },
@@ -27,8 +32,8 @@ vi.mock('@/dashboard/DashboardDataProvider', () => ({
     widgets: sampleWidgets,
     categories: [],
     loading: false,
-    error: null,
-    refresh: vi.fn(),
+    error: dashboardMock.error,
+    refresh: dashboardMock.refresh,
     saveWidgets: vi.fn(),
   }),
 }));
@@ -70,6 +75,11 @@ vi.mock('@/dashboard/registry', () => ({
 }));
 
 describe('Home page', () => {
+  afterEach(() => {
+    dashboardMock.error = null;
+    dashboardMock.refresh.mockClear();
+  });
+
   it('renders the Home heading and Customize button', () => {
     render(<Home />);
     expect(screen.getByRole('heading', { name: /home/i })).toBeInTheDocument();
@@ -92,5 +102,17 @@ describe('Home page', () => {
     expect(screen.queryByTestId('settings-dialog')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: /customize/i }));
     expect(screen.getByTestId('settings-dialog')).toBeInTheDocument();
+  });
+
+  it('shows a dashboard error with retry instead of widgets', async () => {
+    dashboardMock.error = { message: 'Failed to load dashboard.' };
+    const user = userEvent.setup();
+    render(<Home />);
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Failed to load dashboard.',
+    );
+    expect(screen.queryByTestId('widget-net-worth')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: /retry/i }));
+    expect(dashboardMock.refresh).toHaveBeenCalled();
   });
 });

@@ -222,6 +222,14 @@ describe('GET /wallets/:id', () => {
     expect(response.status).toBe(404);
   });
 
+  it('returns 400 for a malformed wallet id', async () => {
+    const response = await request(app)
+      .get('/wallets/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(400);
+    expect(response.body.code).toBe('VALIDATION_ERROR');
+  });
+
   it('returns 404 when wallet belongs to a different user', async () => {
     const wallet = await request(app)
       .post('/wallets')
@@ -244,6 +252,33 @@ describe('GET /wallets/:id', () => {
       .get(`/wallets/${walletId}`)
       .set('Authorization', `Bearer ${otherToken}`);
     expect(response.status).toBe(404);
+  });
+});
+
+describe('wallet id params', () => {
+  let token: string;
+
+  beforeEach(async () => {
+    await deleteAllUsers();
+    token = await createTestUser();
+  });
+
+  it('returns 400 for a malformed wallet id on mutation routes', async () => {
+    const put = await request(app)
+      .put('/wallets/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ name: 'X' });
+    const del = await request(app)
+      .delete('/wallets/not-a-uuid')
+      .set('Authorization', `Bearer ${token}`);
+    const adjust = await request(app)
+      .post('/wallets/not-a-uuid/adjust')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ targetBalance: '1.00' });
+    for (const response of [put, del, adjust]) {
+      expect(response.status).toBe(400);
+      expect(response.body.code).toBe('VALIDATION_ERROR');
+    }
   });
 });
 

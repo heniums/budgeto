@@ -9,16 +9,31 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
 
+### Added
+- Rate limiting on the register, login, refresh, and logout endpoints via express-rate-limit
+- Production startup validation requiring a JWT_SECRET of at least 32 characters
+- Validate id path parameters on wallet and transaction routes so malformed ids return 400 instead of a database error
+
 ### Changed
 - Migrate client data fetching from manual effects to TanStack Query with shared hooks and a central query-key registry
+- Return a generic body for unhandled server errors; error details are logged server-side and no longer echoed to clients
 
 ### Fixed
+- A rate-limited token refresh (429) no longer signs the user out; the session is kept for a retry after the window passes
+- Block dismissing the transaction delete dialogs while a delete is in flight so the failure error is never swallowed
 - Dispatch unauthorized event exactly once when a shared token refresh fails
 - Stop infinite 401 refresh retries by marking retried requests with `skipRefresh`
 - Keep an explicit login from being overwritten by a racing mount-time refresh
 - Clear the refresh cookie in the change-password response after token revocation
 - Accept case-insensitive Bearer auth schemes per RFC 7235 in the auth middleware
 - Clear the client query cache on sign out so a re-login never renders the previous session's data
+- Backed the server cache with Keyv over lru-cache via a TTL adapter, bounding it to 5,000 entries instead of unbounded in-memory growth
+- Switched cache invalidation to per-user key versions
+- Moved budget and category writes into database transactions so partial writes roll back on failure
+- Surfaced delete failures in the transaction cascade dialog and disabled the action while in flight
+- Added a retry button to the dashboard error state
+- Made transfer cascade deletes retryable by treating already-deleted legs as success and refreshing the list even when a leg fails
+- Set `trust proxy` to one hop so rate limiting keys on real client IPs behind the production reverse proxy instead of throwing on X-Forwarded-For
 ## [1.6.0] — 2026-08-13
 
 ### Added

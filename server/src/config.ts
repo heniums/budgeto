@@ -35,6 +35,14 @@ export function getConfig(): Config {
   );
   const port = Number(process.env.PORT ?? '3000');
   const nodeEnv = process.env.NODE_ENV ?? 'development';
+  if (nodeEnv === 'production') {
+    const secret = process.env.JWT_SECRET;
+    if (!secret || secret.length < 32) {
+      throw new Error(
+        'JWT_SECRET must be set to a random string of at least 32 characters in production',
+      );
+    }
+  }
   const cookieSecure =
     process.env.COOKIE_SECURE === 'true' || nodeEnv === 'production';
   // Browsers REQUIRE the Secure flag when SameSite=None. If the caller

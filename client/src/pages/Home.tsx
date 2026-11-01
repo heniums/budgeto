@@ -20,6 +20,7 @@ import {
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/memphis/button';
 import { Badge } from '@/components/memphis/badge';
+import { FormAlert } from '@/components/FormAlert';
 import { Settings, GripVertical, Wallet } from 'lucide-react';
 import {
   DashboardDataProvider,
@@ -42,7 +43,8 @@ export function Home(): JSX.Element {
 }
 
 function HomeContent(): JSX.Element {
-  const { widgets, loading, saveWidgets } = useDashboardData();
+  const { widgets, loading, error, refresh, saveWidgets } =
+    useDashboardData();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeWidget, setActiveWidget] = useState<{
     id: string;
@@ -138,6 +140,18 @@ function HomeContent(): JSX.Element {
           {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key={i} className="h-full w-full" />
           ))}
+        </div>
+      ) : error ? (
+        <div className="mt-6">
+          <FormAlert message={error.message} />
+          <Button
+            variant="outline"
+            size="sm"
+            className="mt-2"
+            onClick={refresh}
+          >
+            Retry
+          </Button>
         </div>
       ) : (
         <DndContext

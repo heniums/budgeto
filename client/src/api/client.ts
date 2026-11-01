@@ -100,6 +100,12 @@ apiClient.interceptors.response.use(
           })
           .catch((err) => {
             refreshing = null;
+            // A rate-limited refresh (429) is transient: the cookie is still
+            // valid, so keep the token and stay signed in — a retry after the
+            // window passes succeeds. Only a real auth failure logs out.
+            if (err instanceof ApiError && err.status === 429) {
+              throw err;
+            }
             setAccessToken(null);
             window.dispatchEvent(new CustomEvent(UNAUTHORIZED_EVENT));
             throw err;

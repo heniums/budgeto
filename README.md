@@ -91,6 +91,21 @@ budgeto/
 └── specs/               # Product specs and epics
 ```
 
+## Deployment notes
+
+The server's rate limiting (`express-rate-limit`) makes assumptions about the
+production topology that must hold for limits to be correct:
+
+- **Behind one reverse proxy** that terminates TLS and appends to
+  `X-Forwarded-For` (`trust proxy` is set to exactly one hop in
+  `server/src/app.ts`). The proxy must not pass client-supplied
+  `X-Forwarded-For` through untouched, or clients can spoof their rate-limit
+  bucket.
+- **The app port is not directly reachable** from the internet. If clients can
+  bypass the proxy, they control `req.ip` and get unlimited buckets.
+- **Single server instance**. Limiter stores are in-memory per process; running
+  multiple instances multiplies every limit by the instance count.
+
 ## License
 
 MIT

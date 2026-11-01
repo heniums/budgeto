@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from 'express';
 import { getUser } from '../auth/middleware';
+import { z } from 'zod';
 import {
   createWalletSchema,
   updateWalletSchema,
@@ -11,6 +12,8 @@ import {
   remove,
   adjustBalance,
 } from './service';
+
+const idParamSchema = z.string().uuid();
 
 export async function createHandler(
   req: Request,
@@ -48,7 +51,7 @@ export async function getHandler(
 ): Promise<void> {
   try {
     const user = getUser(req);
-    const wallet = await get(req.params.id, user.sub);
+    const wallet = await get(idParamSchema.parse(req.params.id), user.sub);
     res.status(200).json(wallet);
   } catch (error) {
     next(error);
@@ -63,7 +66,11 @@ export async function updateHandler(
   try {
     const input = updateWalletSchema.parse(req.body);
     const user = getUser(req);
-    const wallet = await update(req.params.id, user.sub, input);
+    const wallet = await update(
+      idParamSchema.parse(req.params.id),
+      user.sub,
+      input,
+    );
     res.status(200).json(wallet);
   } catch (error) {
     next(error);
@@ -77,7 +84,7 @@ export async function deleteHandler(
 ): Promise<void> {
   try {
     const user = getUser(req);
-    await remove(req.params.id, user.sub);
+    await remove(idParamSchema.parse(req.params.id), user.sub);
     res.status(204).send();
   } catch (error) {
     next(error);
@@ -92,7 +99,11 @@ export async function adjustHandler(
   try {
     const input = adjustBalanceSchema.parse(req.body);
     const user = getUser(req);
-    const wallet = await adjustBalance(req.params.id, user.sub, input);
+    const wallet = await adjustBalance(
+      idParamSchema.parse(req.params.id),
+      user.sub,
+      input,
+    );
     res.status(200).json(wallet);
   } catch (error) {
     next(error);

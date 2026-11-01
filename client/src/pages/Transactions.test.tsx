@@ -5,6 +5,7 @@ import {
   cleanup,
   waitFor,
   within,
+  act,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -84,6 +85,7 @@ import {
 import { formatMoney } from '../lib/currencies';
 import { getWallets, getWallet, createWallet } from '../api/wallets';
 import { getCategories } from '../api/categories';
+import { ApiError } from '../api/client';
 
 let transactionsFixture: TransactionData[] = [];
 
@@ -631,6 +633,153 @@ describe('Home delete refetch', () => {
       );
     });
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('shows an error alert and keeps the dialog open when delete fails', async () => {
+    const user = userEvent.setup();
+    vi.mocked(deleteTransaction).mockRejectedValue(new Error('network down'));
+    renderHome();
+    await screen.findByText('Salary');
+
+    await user.click(screen.getByText('Salary'));
+    await user.click(await screen.findByText('Delete this transaction'));
+    await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Failed to delete transaction.',
+    );
+    expect(screen.getByText('Delete transaction')).toBeInTheDocument();
+
+    // A subsequent successful delete still closes the dialog.
+    vi.mocked(deleteTransaction).mockResolvedValue({
+      id: 't1',
+      walletId: 'w1',
+      amount: '50.00',
+      description: 'Salary',
+      categoryId: 'c1',
+      categoryName: 'Food',
+      date: '2026-01-15T10:00:00.000Z',
+      createdAt: '2026-01-15T10:00:00Z',
+    });
+    await user.click(await screen.findByRole('button', { name: 'Delete' }));
+    await waitFor(() => {
+      expect(deleteTransaction).toHaveBeenCalledTimes(2);
+    });
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+  });
+
+  it('keeps the delete dialog open when dismissal is attempted mid-flight and surfaces the failure', async () => {
+    const user = userEvent.setup();
+    // Keep the delete in flight so dismissal is attempted while deleting.
+    // Executor form: tsconfig lib is ES2022, which predates
+    // Promise.withResolvers.
+    let rejectDelete: (err: unknown) => void = () => {};
+    vi.mocked(deleteTransaction).mockImplementationOnce(
+      () =>
+        new Promise((_resolve, reject) => {
+          rejectDelete = reject;
+        }),
+    );
+    renderHome();
+    await screen.findByText('Salary');
+
+    await user.click(screen.getByText('Salary'));
+    await user.click(await screen.findByText('Delete this transaction'));
+    await user.click(await screen.findByRole('button', { name: 'Delete' }));
+
+    // Cancel is disabled and the dialog stays open while the request is in
+    // flight — closing it would unmount the FormAlert and swallow the error.
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+
+    // The failure surfaces in the still-open dialog instead of vanishing.
+    await act(async () => {
+      rejectDelete(new Error('network down'));
+    });
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Failed to delete transaction.',
+    );
+  });
+
+  it('completes a cascade delete after a partial failure retry', async () => {
+    const user = userEvent.setup();
+    // Transfer pair: same description, opposite signs, created within 2s.
+    transactionsFixture = [
+      {
+        id: 'p1',
+        walletId: 'w1',
+        amount: '-100.00',
+        description: 'Transfer to Savings',
+        categoryId: null,
+        categoryName: null,
+        createdAt: '2026-01-15T10:00:00Z',
+        date: '2026-01-15T10:00:00.000Z',
+      },
+      {
+        id: 'p2',
+        walletId: 'w2',
+        amount: '100.00',
+        description: 'Transfer to Savings',
+        categoryId: null,
+        categoryName: null,
+        createdAt: '2026-01-15T10:00:01Z',
+        date: '2026-01-15T10:00:01.000Z',
+      },
+    ];
+    const legResult = (id: string): TransactionData => ({
+      id,
+      walletId: id === 'p1' ? 'w1' : 'w2',
+      amount: id === 'p1' ? '-100.00' : '100.00',
+      description: 'Transfer to Savings',
+      categoryId: null,
+      categoryName: null,
+      date: id === 'p1' ? '2026-01-15T10:00:00.000Z' : '2026-01-15T10:00:01.000Z',
+      createdAt: id === 'p1' ? '2026-01-15T10:00:00Z' : '2026-01-15T10:00:01Z',
+    });
+    vi.mocked(deleteTransaction)
+      .mockResolvedValueOnce(legResult('p2')) // first leg deletes...
+      .mockRejectedValueOnce(new Error('network down')) // ...second leg fails
+      // Retry: the first leg is already gone server-side (404)...
+      .mockRejectedValueOnce(
+        new ApiError('Transaction not found', 404, 'NOT_FOUND'),
+      )
+      // ...but the second leg now deletes and the dialog must close.
+      .mockResolvedValueOnce(legResult('p1'));
+
+    renderHome();
+    await screen.findAllByText('Transfer to Savings');
+    const listCallsBefore = vi.mocked(getTransactions).mock.calls.length;
+
+    // Both rows share a description; the newest (p2) renders first.
+    await user.click(screen.getAllByText('Transfer to Savings')[0]);
+    await user.click(await screen.findByText('Delete this transaction'));
+    await user.click(await screen.findByText('Yes, delete both'));
+
+    // Partial failure keeps the dialog open with the error, and the list
+    // still refreshes so the leg that did get deleted disappears.
+    expect(await screen.findByRole('alert')).toHaveTextContent(
+      'Failed to delete transaction.',
+    );
+    expect(screen.getByText('Delete transfer leg')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(vi.mocked(getTransactions).mock.calls.length).toBeGreaterThan(
+        listCallsBefore,
+      );
+    });
+
+    // The retry must survive the 404 on the already-deleted leg.
+    await user.click(await screen.findByText('Yes, delete both'));
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
+    const ids = vi.mocked(deleteTransaction).mock.calls.map((call) => call[0]);
+    expect(ids).toHaveLength(4);
+    expect(ids[0]).not.toBe(ids[1]);
+    expect(ids[2]).toBe(ids[0]);
+    expect(ids[3]).toBe(ids[1]);
   });
 });
 
