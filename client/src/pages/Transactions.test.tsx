@@ -219,7 +219,8 @@ describe('Home transactions list', () => {
     expect(await screen.findByText('Salary')).toBeInTheDocument();
     await userEvent.click(screen.getByLabelText('Date range'));
     await userEvent.click(screen.getByRole('menuitem', { name: 'Month' }));
-    // Month groups span multiple days: rows carry "MMM D, h:mm A".
+    // Switching presets changes the query key; wait for the refetched rows.
+    expect(await screen.findByText(/Jan 15,/)).toBeInTheDocument();
     const cells = screen.getAllByText(
       /^[A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2} (AM|PM)$/,
     );

@@ -79,8 +79,9 @@ function formatDate(iso: string, preset: DatePreset): string {
   if (preset === 'day' || preset === 'custom') {
     return dayjs(iso).format('h:mm A');
   }
-  // week/month/year groups span multiple days: show day-of-month + time,
-  // no year/month (the period header has them).
+  // week/month/year groups span multiple days, so rows must carry the
+  // day-of-month and time. Month/year labels carry the month/year; a week
+  // bucket spans at most 7 days, so 'MMM D' is unambiguous within it.
   return dayjs(iso).format('MMM D, h:mm A');
 }
 
@@ -248,6 +249,14 @@ export function Transactions(): JSX.Element {
     }
     return map;
   }, [categories]);
+
+  const walletMap = useMemo(() => {
+    const map = new Map<string, (typeof wallets)[number]>();
+    for (const w of wallets) {
+      map.set(w.id, w);
+    }
+    return map;
+  }, [wallets]);
 
   const groups = useMemo<PeriodGroup[]>(() => {
     const groupMap = new Map<string, PeriodGroup>();
@@ -544,9 +553,7 @@ export function Transactions(): JSX.Element {
                         const cat = tx.categoryId
                           ? categoryMap.get(tx.categoryId)
                           : null;
-                        const wallet = wallets.find(
-                          (w) => w.id === tx.walletId,
-                        );
+                        const wallet = walletMap.get(tx.walletId);
                         return (
                           <TableRow
                             key={tx.id}
