@@ -72,9 +72,17 @@ function makeLongPressHandlers(onLongPress: () => void): LongPressHandlers {
   };
 }
 
-function formatDate(iso: string): string {
+function formatDate(iso: string, preset: DatePreset): string {
   if (!iso) return '';
-  return dayjs(iso).format('M/D/YYYY h:mm A');
+  // Single-day groups (day/custom presets) carry the date in the sticky
+  // period header; only the time is needed in the row.
+  if (preset === 'day' || preset === 'custom') {
+    return dayjs(iso).format('h:mm A');
+  }
+  // week/month/year groups span multiple days, so rows must carry the
+  // day-of-month and time. Month/year labels carry the month/year; a week
+  // bucket spans at most 7 days, so 'MMM D' is unambiguous within it.
+  return dayjs(iso).format('MMM D, h:mm A');
 }
 
 /**
@@ -234,12 +242,6 @@ export function Transactions(): JSX.Element {
     }
   }, []);
 
-  const walletName = (walletId: string): string =>
-    wallets.find((w) => w.id === walletId)?.name ?? 'Unknown';
-
-  const walletCurrency = (walletId: string): string =>
-    wallets.find((w) => w.id === walletId)?.currency ?? 'USD';
-
   const categoryMap = useMemo(() => {
     const map = new Map<string, CategoryData>();
     for (const c of categories) {
@@ -247,6 +249,14 @@ export function Transactions(): JSX.Element {
     }
     return map;
   }, [categories]);
+
+  const walletMap = useMemo(() => {
+    const map = new Map<string, (typeof wallets)[number]>();
+    for (const w of wallets) {
+      map.set(w.id, w);
+    }
+    return map;
+  }, [wallets]);
 
   const groups = useMemo<PeriodGroup[]>(() => {
     const groupMap = new Map<string, PeriodGroup>();
@@ -434,7 +444,7 @@ export function Transactions(): JSX.Element {
               <TableHeader>
                 <TableRow>
                   <TableHead>Date</TableHead>
-                  <TableHead className="hidden md:table-cell">Wallet</TableHead>
+                  <TableHead>Wallet</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead className="hidden md:table-cell">
                     Description
@@ -448,8 +458,8 @@ export function Transactions(): JSX.Element {
                     <TableCell>
                       <Skeleton className="h-4 w-20" />
                     </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Skeleton className="h-4 w-24" />
+                    <TableCell>
+                      <Skeleton className="h-5 w-24 rounded-full" />
                     </TableCell>
                     <TableCell>
                       <Skeleton className="h-5 w-20 rounded-full" />
@@ -530,9 +540,7 @@ export function Transactions(): JSX.Element {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Date</TableHead>
-                        <TableHead className="hidden md:table-cell">
-                          Wallet
-                        </TableHead>
+                        <TableHead>Wallet</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead className="hidden md:table-cell">
                           Description
@@ -545,22 +553,30 @@ export function Transactions(): JSX.Element {
                         const cat = tx.categoryId
                           ? categoryMap.get(tx.categoryId)
                           : null;
+                        const wallet = walletMap.get(tx.walletId);
                         return (
                           <TableRow
                             key={tx.id}
                             className="cursor-pointer hover:bg-muted/50"
                             onClick={() => setEditTx(tx)}
                           >
-                            <TableCell>{formatDate(tx.date)}</TableCell>
-                            <TableCell className="hidden md:table-cell">
+                            <TableCell>
+                              {formatDate(tx.date, datePreset)}
+                            </TableCell>
+                            <TableCell>
                               <ContextMenu>
                                 <ContextMenuTrigger
-                                  className="cursor-context-menu"
+                                  className="cursor-context-menu inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium"
+                                  style={{
+                                    backgroundColor:
+                                      (wallet?.color ?? '#71717a') + '20',
+                                    color: wallet?.color ?? '#71717a',
+                                  }}
                                   {...makeLongPressHandlers(() =>
                                     setDetailWalletId(tx.walletId),
                                   )}
                                 >
-                                  {walletName(tx.walletId)}
+                                  {wallet?.name ?? 'Unknown'}
                                 </ContextMenuTrigger>
                                 <ContextMenuContent>
                                   <ContextMenuItem
@@ -608,7 +624,7 @@ export function Transactions(): JSX.Element {
                             <TableCell className="text-right">
                               <Money
                                 amount={tx.amount}
-                                currency={walletCurrency(tx.walletId)}
+                                currency={wallet?.currency ?? 'USD'}
                               />
                             </TableCell>
                           </TableRow>

@@ -205,6 +205,45 @@ describe('Home transactions list', () => {
     expect(screen.getByText('Coffee')).toBeInTheDocument();
   });
 
+  it('renders time-only date cells on the day preset', async () => {
+    renderHome();
+    expect(await screen.findByText('Salary')).toBeInTheDocument();
+    // Day groups carry the date in the sticky period header; rows show time.
+    expect(screen.getAllByText(/^\d{1,2}:\d{2} (AM|PM)$/).length).toBe(2);
+    // No year anywhere in the table.
+    expect(screen.queryByText(/2026/)).not.toBeInTheDocument();
+  });
+
+  it('shows day-of-month with time on the month preset', async () => {
+    renderHome();
+    expect(await screen.findByText('Salary')).toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText('Date range'));
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Month' }));
+    // Switching presets changes the query key; wait for the refetched rows.
+    expect(await screen.findByText(/Jan 15,/)).toBeInTheDocument();
+    const cells = screen.getAllByText(
+      /^[A-Z][a-z]{2} \d{1,2}, \d{1,2}:\d{2} (AM|PM)$/,
+    );
+    expect(cells).toHaveLength(2);
+    expect(cells.map((c) => c.textContent)).toEqual(
+      expect.arrayContaining([
+        expect.stringMatching(/Jan 15/),
+        expect.stringMatching(/Jan 14/),
+      ]),
+    );
+  });
+
+  it('renders the wallet as a colored pill on mobile', async () => {
+    renderHome();
+    expect(await screen.findByText('Salary')).toBeInTheDocument();
+    const pill = screen.getByText('Cash');
+    expect(pill).toHaveClass('rounded-full');
+    // Wallet column is not hidden behind md:table-cell anymore.
+    expect(pill.closest('td')).not.toHaveClass('hidden');
+    expect(pill.style.backgroundColor).toMatch(/1f8a4c|31, 138, 76/i);
+    expect(pill.style.color).toMatch(/1f8a4c|31, 138, 76/i);
+  });
+
   it('filters by wallet on the server', async () => {
     renderHome();
     await screen.findByText('Salary');
