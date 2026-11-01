@@ -34,6 +34,21 @@ const categoryLimitSchema = z.object({
     }),
 });
 
+/** Rejects a categories array containing the same categoryId twice. */
+const uniqueCategoryIds = {
+  message: 'Duplicate categoryId in categories',
+  path: ['categories'],
+};
+
+function noDuplicateCategoryIds(data: {
+  categories?: { categoryId: string }[];
+}): boolean {
+  return (
+    new Set(data.categories?.map((c) => c.categoryId) ?? []).size ===
+    (data.categories?.length ?? 0)
+  );
+}
+
 export const createBudgetSchema = z
   .object({
     name: z.string().min(1, 'Name is required'),
@@ -64,12 +79,7 @@ export const createBudgetSchema = z
       path: ['startDate'],
     },
   )
-  .refine(
-    (data) =>
-      new Set(data.categories?.map((c) => c.categoryId) ?? []).size ===
-      (data.categories?.length ?? 0),
-    { message: 'Duplicate categoryId in categories', path: ['categories'] },
-  );
+  .refine(noDuplicateCategoryIds, uniqueCategoryIds);
 
 export const updateBudgetSchema = z
   .object({
@@ -102,12 +112,7 @@ export const updateBudgetSchema = z
       path: ['startDate'],
     },
   )
-  .refine(
-    (data) =>
-      new Set(data.categories?.map((c) => c.categoryId) ?? []).size ===
-      (data.categories?.length ?? 0),
-    { message: 'Duplicate categoryId in categories', path: ['categories'] },
-  );
+  .refine(noDuplicateCategoryIds, uniqueCategoryIds);
 
 export type CreateBudgetInput = z.infer<typeof createBudgetSchema>;
 export type UpdateBudgetInput = z.infer<typeof updateBudgetSchema>;

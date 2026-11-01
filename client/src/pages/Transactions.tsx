@@ -708,7 +708,9 @@ export function Transactions(): JSX.Element {
       <Dialog
         open={deleteConfirm !== null}
         onOpenChange={(open) => {
-          if (!open) {
+          // Keep the dialog open while the delete is in flight: closing it
+          // would unmount the FormAlert and swallow the failure error.
+          if (!open && !deleting) {
             setDeleteConfirm(null);
             setDeleteError(null);
           }
@@ -732,6 +734,7 @@ export function Transactions(): JSX.Element {
           <div className="flex justify-end gap-2">
             <Button
               variant="outline"
+              disabled={deleting}
               onClick={() => {
                 setDeleteConfirm(null);
                 setDeleteError(null);
@@ -773,7 +776,9 @@ export function Transactions(): JSX.Element {
       <Dialog
         open={cascadeTx !== null}
         onOpenChange={(open) => {
-          if (!open) {
+          // Keep the dialog open while a leg delete is in flight: closing it
+          // would unmount the FormAlert and swallow the partial-failure error.
+          if (!open && !deleting) {
             setCascadeTx(null);
             setDeleteError(null);
           }

@@ -670,11 +670,11 @@ describe('Home delete refetch', () => {
     });
   });
 
-  it('does not show a stale error when opening the next delete confirmation', async () => {
+  it('keeps the delete dialog open when dismissal is attempted mid-flight and surfaces the failure', async () => {
     const user = userEvent.setup();
-    // Keep the first delete in flight so its failure lands only after the
-    // next dialog has opened. Executor form: tsconfig lib is ES2022, which
-    // predates Promise.withResolvers.
+    // Keep the delete in flight so dismissal is attempted while deleting.
+    // Executor form: tsconfig lib is ES2022, which predates
+    // Promise.withResolvers.
     let rejectDelete: (err: unknown) => void = () => {};
     vi.mocked(deleteTransaction).mockImplementationOnce(
       () =>
@@ -685,29 +685,23 @@ describe('Home delete refetch', () => {
     renderHome();
     await screen.findByText('Salary');
 
-    // Start a delete for t1, then close the dialog while it is still in
-    // flight (Cancel is not disabled during the request).
     await user.click(screen.getByText('Salary'));
     await user.click(await screen.findByText('Delete this transaction'));
     await user.click(await screen.findByRole('button', { name: 'Delete' }));
-    await user.click(await screen.findByRole('button', { name: 'Cancel' }));
-    await waitFor(() => {
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
-    });
 
-    // The confirmation for a different transaction must open without an
-    // alert.
-    await user.click(screen.getByText('Coffee'));
-    await user.click(await screen.findByText('Delete this transaction'));
-    expect(screen.getByText('Delete transaction')).toBeInTheDocument();
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    // Cancel is disabled and the dialog stays open while the request is in
+    // flight — closing it would unmount the FormAlert and swallow the error.
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeDisabled();
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
 
-    // The stale request now fails: the error is keyed to t1 and must not
-    // surface in t2's dialog.
+    // The failure surfaces in the still-open dialog instead of vanishing.
     await act(async () => {
       rejectDelete(new Error('network down'));
     });
-    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(screen.getByRole('alert')).toHaveTextContent(
+      'Failed to delete transaction.',
+    );
   });
 
   it('completes a cascade delete after a partial failure retry', async () => {

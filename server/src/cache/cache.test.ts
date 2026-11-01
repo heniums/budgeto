@@ -84,7 +84,8 @@ describe('cache', () => {
     };
 
     // Load starts before the mutation and is still in flight when
-    // invalidateUser deletes its key.
+    // invalidateUser bumps the user's key version, orphaning the in-flight
+    // write-back.
     const pending = getOrLoad('user-1', 'race-scope', staleLoader);
     await invalidateUser('user-1');
     release?.();

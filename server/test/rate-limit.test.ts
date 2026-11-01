@@ -5,8 +5,9 @@ import { createApp } from '../src/app';
 import { resetConfig } from '../src/config';
 
 // The auth limiters skip when NODE_ENV === 'test' (evaluated per request), so
-// pretend to be a development server to exercise them. Each test builds a
-// fresh app to get fresh limiter stores.
+// pretend to be a development server to exercise them. Limiter stores are
+// module-level singletons shared across createApp() calls — each test must
+// use its own client IPs to avoid inheriting residual hits.
 beforeAll(() => {
   vi.stubEnv('NODE_ENV', 'development');
 });

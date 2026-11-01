@@ -1,11 +1,12 @@
 import bcrypt from 'bcryptjs';
 
-const SALT_ROUNDS = 10;
+export const SALT_ROUNDS = 10;
 
 /**
- * Pre-computed bcrypt hash of an arbitrary pad value (cost 10, matching
- * SALT_ROUNDS). Compared against on login when the user does not exist so
- * unknown emails cost the same as a real bcrypt comparison.
+ * Pre-computed bcrypt hash of an arbitrary pad value. Compared against on
+ * login when the user does not exist so unknown emails cost the same as a
+ * real bcrypt comparison. server/test/auth.service.test.ts pins its cost
+ * factor to SALT_ROUNDS so the two cannot silently desync.
  */
 export const DUMMY_HASH = '$2a$10$8zQ/71Q4lA/LpDRQseXe2eqUVOXxqgutX2xVevzHp92CZLPjloZsK';
 

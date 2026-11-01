@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { register, login } from '../src/auth/service';
+import { DUMMY_HASH, SALT_ROUNDS } from '../src/auth/password';
 import { deleteAllUsers } from '../src/auth/repository';
 
 describe('register', () => {
@@ -71,5 +72,15 @@ describe('login', () => {
     await expect(
       login({ email: 'grace@example.com', password: 'wrongpass' }),
     ).rejects.toMatchObject({ code: 'UNAUTHORIZED' });
+  });
+});
+
+describe('DUMMY_HASH', () => {
+  // Timing equalization depends on the pad hash costing the same as a real
+  // stored hash; pin it so raising SALT_ROUNDS alone can't silently desync.
+  it('uses the same bcrypt cost factor as SALT_ROUNDS', () => {
+    // $2a$10$... → ['', '2a', '10', salt+checksum]
+    const cost = Number(DUMMY_HASH.split('$')[2]);
+    expect(cost).toBe(SALT_ROUNDS);
   });
 });

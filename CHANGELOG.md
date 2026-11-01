@@ -19,13 +19,15 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 - Return a generic body for unhandled server errors; error details are logged server-side and no longer echoed to clients
 
 ### Fixed
+- A rate-limited token refresh (429) no longer signs the user out; the session is kept for a retry after the window passes
+- Block dismissing the transaction delete dialogs while a delete is in flight so the failure error is never swallowed
 - Dispatch unauthorized event exactly once when a shared token refresh fails
 - Stop infinite 401 refresh retries by marking retried requests with `skipRefresh`
 - Keep an explicit login from being overwritten by a racing mount-time refresh
 - Clear the refresh cookie in the change-password response after token revocation
 - Accept case-insensitive Bearer auth schemes per RFC 7235 in the auth middleware
 - Clear the client query cache on sign out so a re-login never renders the previous session's data
-- Backed the server cache with Keyv over lru-cache via a TTL adapter so entries are no longer silently dropped
+- Backed the server cache with Keyv over lru-cache via a TTL adapter, bounding it to 5,000 entries instead of unbounded in-memory growth
 - Switched cache invalidation to per-user key versions
 - Moved budget and category writes into database transactions so partial writes roll back on failure
 - Surfaced delete failures in the transaction cascade dialog and disabled the action while in flight
