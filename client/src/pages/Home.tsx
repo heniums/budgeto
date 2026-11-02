@@ -30,7 +30,6 @@ import { WIDGET_REGISTRY } from '@/dashboard/registry';
 import { WidgetSettingsDialog } from '@/dashboard/WidgetSettingsDialog';
 import { WidgetCard } from '@/dashboard/components/WidgetCard';
 import { WidgetMenu } from '@/dashboard/components/WidgetMenu';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useGridColumns } from '@/dashboard/hooks/useGridColumns';
 import type { WidgetType, WidgetConfig } from '@/dashboard/types';
 
@@ -43,7 +42,7 @@ export function Home(): JSX.Element {
 }
 
 function HomeContent(): JSX.Element {
-  const { widgets, loading, error, refresh, saveWidgets } =
+  const { widgets, error, refresh, saveWidgets } =
     useDashboardData();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [activeWidget, setActiveWidget] = useState<{
@@ -129,19 +128,7 @@ function HomeContent(): JSX.Element {
           <Settings className="h-4 w-4 mr-2" /> Customize
         </Button>
       </div>
-      {loading ? (
-        <div
-          className="mt-6 grid gap-4"
-          style={{
-            gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))`,
-            gridAutoRows: 'minmax(12rem, auto)',
-          }}
-        >
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-full w-full" />
-          ))}
-        </div>
-      ) : error ? (
+      {error ? (
         <div className="mt-6">
           <FormAlert message={error.message} />
           <Button

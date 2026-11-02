@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { Line } from 'react-chartjs-2';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ChartSkeleton } from '../components/WidgetSkeletons';
 import { CHART_COLORS } from '@/lib/chartTheme';
 import { formatPeriodLabel } from '@/lib/dateRange';
 
-export function MonthlyCashFlowWidget(): JSX.Element | null {
+export function MonthlyCashFlowWidget(): JSX.Element {
   const { data, loading } = useWidgetData('monthly-cash-flow');
 
   const chartData = useMemo(() => {
@@ -42,7 +43,9 @@ export function MonthlyCashFlowWidget(): JSX.Element | null {
   }, [data]);
 
   if (!chartData) {
-    return loading ? null : (
+    return loading ? (
+      <ChartSkeleton />
+    ) : (
       <p className="text-sm text-muted-foreground">
         No cash flow data available
       </p>

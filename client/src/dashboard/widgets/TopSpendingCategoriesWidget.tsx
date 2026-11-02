@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ListSkeleton } from '../components/WidgetSkeletons';
 import { Money } from '@/components/Money';
 import { CHART_COLORS } from '@/lib/chartTheme';
 
-export function TopSpendingCategoriesWidget(): JSX.Element | null {
+export function TopSpendingCategoriesWidget(): JSX.Element {
   const { data, loading } = useWidgetData('top-spending-categories');
 
   const currency = data?.currency ?? 'USD';
@@ -27,7 +28,9 @@ export function TopSpendingCategoriesWidget(): JSX.Element | null {
   }, [data?.categories]);
 
   if (top5.length === 0) {
-    return loading ? null : (
+    return loading ? (
+      <ListSkeleton rows={5} />
+    ) : (
       <p className="text-sm text-muted-foreground">
         No spending data available
       </p>

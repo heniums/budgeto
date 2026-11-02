@@ -42,12 +42,14 @@ const wallets = [
 function renderForm(props?: {
   wallets?: typeof wallets;
   categoriesCount?: number;
+  walletsPending?: boolean;
 }): void {
   render(
     <MemoryRouter>
       <TransactionForm
         wallets={props?.wallets ?? wallets}
         categoriesCount={props?.categoriesCount}
+        walletsPending={props?.walletsPending}
         onSuccess={vi.fn()}
       />
     </MemoryRouter>,
@@ -75,6 +77,12 @@ describe('TransactionForm — prerequisite warnings', () => {
     expect(
       screen.getByRole('button', { name: /add transaction/i }),
     ).toBeDisabled();
+  });
+
+  it('shows wallet skeletons instead of the warning while wallets are pending', () => {
+    renderForm({ wallets: [], walletsPending: true });
+    expect(document.querySelector('.animate-pulse')).toBeTruthy();
+    expect(screen.queryByText(/you need a wallet/i)).not.toBeInTheDocument();
   });
 
   it('shows category warning but keeps submit enabled when no categories', async () => {

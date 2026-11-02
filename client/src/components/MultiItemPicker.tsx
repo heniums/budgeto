@@ -5,6 +5,7 @@ import { Input } from '@/components/memphis/input';
 import { Badge } from '@/components/memphis/badge';
 import { Button } from '@/components/memphis/button';
 import { getIcon } from '@/lib/icons';
+import { Skeleton } from '@/components/ui/skeleton';
 import { X } from 'lucide-react';
 
 interface PickerItem {
@@ -21,6 +22,7 @@ interface MultiItemPickerProps {
   label: string;
   placeholder?: string;
   emptyMessage?: string;
+  loading?: boolean;
 }
 
 export function MultiItemPicker({
@@ -30,6 +32,7 @@ export function MultiItemPicker({
   label,
   placeholder = 'Select items...',
   emptyMessage = 'No items available',
+  loading = false,
 }: MultiItemPickerProps): JSX.Element {
   const [search, setSearch] = useState('');
   const [open, setOpen] = useState(false);
@@ -104,9 +107,23 @@ export function MultiItemPicker({
           </div>
           <div className="h-[200px] overflow-y-auto overflow-x-hidden p-1">
             {filtered.length === 0 ? (
-              <p className="px-2 py-4 text-center text-sm text-muted-foreground">
-                {emptyMessage}
-              </p>
+              loading ? (
+                <div className="space-y-2 p-1">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 px-2 py-1.5"
+                    >
+                      <Skeleton className="h-4 w-4" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="px-2 py-4 text-center text-sm text-muted-foreground">
+                  {emptyMessage}
+                </p>
+              )
             ) : (
               filtered.map((item) => {
                 const ItemIcon = item.icon ? getIcon(item.icon) : undefined;

@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Bar } from 'react-chartjs-2';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ChartSkeleton } from '../components/WidgetSkeletons';
 import { CHART_COLORS } from '@/lib/chartTheme';
 
-export function BalanceByWalletWidget(): JSX.Element | null {
+export function BalanceByWalletWidget(): JSX.Element {
   const { data, loading } = useWidgetData('balance-by-wallet');
 
   const chartData = useMemo(() => {
@@ -24,7 +25,9 @@ export function BalanceByWalletWidget(): JSX.Element | null {
   }, [data?.wallets]);
 
   if (!chartData) {
-    return loading ? null : (
+    return loading ? (
+      <ChartSkeleton />
+    ) : (
       <p className="text-sm text-muted-foreground">No wallets yet</p>
     );
   }

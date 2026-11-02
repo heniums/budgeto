@@ -9,12 +9,19 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invalidateFinancialData } from '@/lib/queryClient';
 import { budgetDetailKey } from '@/lib/queryKeys';
 import { Button } from '@/components/memphis/button';
-import { Dialog, DialogTrigger } from '@/components/memphis/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/memphis/dialog';
 import { BudgetCard } from '../components/BudgetCard';
+import { BudgetCardSkeleton } from '../components/BudgetCardSkeleton';
 import { BudgetForm } from '../components/BudgetForm';
 import { BudgetPeriodNav } from '../components/BudgetPeriodNav';
 import { FormAlert } from '../components/FormAlert';
-import { Skeleton } from '@/components/ui/skeleton';
+import { FormSkeleton } from '../components/FormSkeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function Budgets(): JSX.Element {
@@ -118,7 +125,7 @@ export function Budgets(): JSX.Element {
                 history entries and Back would no longer close the dialog. */}
             <Button data-testid="header-add-button">Add budget</Button>
           </DialogTrigger>
-          {(budgetParam === 'new' || budgetQuery.data) && (
+          {budgetParam === 'new' || budgetQuery.data ? (
             <BudgetForm
               editingBudget={editingBudget}
               categories={categories}
@@ -129,7 +136,14 @@ export function Budgets(): JSX.Element {
                 void invalidateFinancialData(queryClient);
               }}
             />
-          )}
+          ) : budgetQuery.isPending ? (
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Edit budget</DialogTitle>
+              </DialogHeader>
+              <FormSkeleton rows={6} />
+            </DialogContent>
+          ) : null}
         </Dialog>
       </div>
 
@@ -139,8 +153,8 @@ export function Budgets(): JSX.Element {
 
       {loading && budgets.length === 0 ? (
         <div className="space-y-4">
-          <Skeleton className="h-48 w-full rounded-md" />
-          <Skeleton className="h-48 w-full rounded-md" />
+          <BudgetCardSkeleton />
+          <BudgetCardSkeleton />
         </div>
       ) : budgets.length === 0 ? (
         <div className="memphis-card rounded-2xl p-6 text-center">
@@ -155,6 +169,7 @@ export function Budgets(): JSX.Element {
             <BudgetCard
               key={budget.id}
               budget={budget}
+              categoriesPending={categoriesPending}
               onClick={() => handleEdit(budget)}
             />
           ))}

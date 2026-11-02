@@ -1,8 +1,18 @@
 import { useWidgetData } from '../hooks/useWidgetData';
+import { StatSkeleton } from '../components/WidgetSkeletons';
 import { Money } from '@/components/Money';
 
 export function IncomeVsExpenseWidget(): JSX.Element {
-  const { data } = useWidgetData('income-vs-expense');
+  const { data, loading } = useWidgetData('income-vs-expense');
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-2 gap-4">
+        <StatSkeleton />
+        <StatSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-2 gap-4">

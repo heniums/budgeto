@@ -20,7 +20,7 @@ export function WidgetFilterEditor({
   onChange,
   onIntervalMenuOpenChange,
 }: WidgetFilterEditorProps): JSX.Element {
-  const { summary, categories } = useDashboardData();
+  const { summary, categories, loading } = useDashboardData();
   const fields = WIDGET_FILTER_FIELDS[widgetId];
 
   if (fields.length === 0) {
@@ -47,6 +47,7 @@ export function WidgetFilterEditor({
             label="Wallets"
             placeholder="All wallets"
             emptyMessage="No wallets available"
+            loading={loading}
             items={wallets.map((w) => ({
               id: w.id,
               name: w.name,
@@ -63,6 +64,7 @@ export function WidgetFilterEditor({
             label="Categories"
             placeholder="All categories"
             emptyMessage="No categories available"
+            loading={loading}
             items={categories.map((c) => ({
               id: c.id,
               name: c.name,
@@ -80,6 +82,7 @@ export function WidgetFilterEditor({
             label="Budgets"
             placeholder="All budgets"
             emptyMessage="No budgets available"
+            loading={loading}
             items={budgets.map((b) => ({
               id: b.id,
               name: b.name,
