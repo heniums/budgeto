@@ -7,6 +7,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [Unreleased]
+
+### Added
+- Deep-linkable URLs: opening a transaction, transfer, wallet, category, or budget dialog writes its identity into the query string (`?tx=<id|new>`, `?transfer=new`, `?wallet=`, `?category=`, `?budget=`), so any open dialog can be shared, bookmarked, and reopened directly; browser Back closes the dialog, and stale transaction and budget ids close themselves
+
 ## [1.7.1] — 2026-11-01
 
 ### Fixed

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useDialogParam } from '@/hooks/use-dialog-param';
 import { useCategoriesQuery } from '@/hooks/use-categories';
 import { useQueryClient } from '@tanstack/react-query';
 import { invalidateFinancialData } from '@/lib/queryClient';
@@ -23,10 +24,8 @@ export function Categories(): JSX.Element {
   const queryClient = useQueryClient();
   const { data: categories = [], isPending, error } = useCategoriesQuery();
   const [search, setSearch] = useState('');
-  const [modalMode, setModalMode] = useState<'create' | 'edit' | null>(null);
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
-    null,
-  );
+  const categoryDialog = useDialogParam('category');
+  const categoryParam = categoryDialog.value;
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
@@ -50,7 +49,12 @@ export function Categories(): JSX.Element {
       <FormAlert message={error?.message ?? null} />
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Button data-testid="header-add-button" onClick={() => setModalMode('create')}>New Category</Button>
+        <Button
+          data-testid="header-add-button"
+          onClick={() => categoryDialog.open()}
+        >
+          New Category
+        </Button>
         <Input
           type="search"
           placeholder="Search categories…"
@@ -123,19 +127,20 @@ export function Categories(): JSX.Element {
               ) : (
                 filtered.map((category) => {
                   const Icon = getIcon(category.icon);
-                  const isSelected = selectedCategoryId === category.id;
+                  const isSelected = categoryParam === category.id;
                   return (
                     <TableRow
                       key={category.id}
-                      style={isSelected ? { backgroundColor: category.color } : undefined}
+                      style={
+                        isSelected
+                          ? { backgroundColor: category.color }
+                          : undefined
+                      }
                       className={cn(
                         'cursor-pointer',
                         !isSelected && 'hover:bg-muted/50',
                       )}
-                      onClick={() => {
-                        setSelectedCategoryId(category.id);
-                        setModalMode('edit');
-                      }}
+                      onClick={() => categoryDialog.open(category.id)}
                     >
                       <TableCell
                         className={cn(isSelected && 'font-semibold')}
@@ -151,10 +156,7 @@ export function Categories(): JSX.Element {
                           {Icon ? <Icon size={18} aria-hidden /> : null}
                           <button
                             type="button"
-                            onClick={() => {
-                              setSelectedCategoryId(category.id);
-                              setModalMode('edit');
-                            }}
+                            onClick={() => categoryDialog.open(category.id)}
                             style={{
                               background: 'none',
                               border: 'none',
@@ -185,14 +187,18 @@ export function Categories(): JSX.Element {
                               borderRadius: '50%',
                               background: category.color,
                               flexShrink: 0,
-                              boxShadow: isSelected ? '0 0 0 2px #fff' : undefined,
+                              boxShadow: isSelected
+                                ? '0 0 0 2px #fff'
+                                : undefined,
                             }}
                             aria-hidden
                           />
                           <span
                             className={cn(
                               'text-sm',
-                              isSelected ? 'text-white' : 'text-muted-foreground',
+                              isSelected
+                                ? 'text-white'
+                                : 'text-muted-foreground',
                             )}
                           >
                             {category.color}
@@ -212,30 +218,27 @@ export function Categories(): JSX.Element {
       )}
 
       <CategoryModal
-        open={modalMode !== null}
+        open={categoryParam !== null}
         onOpenChange={(open) => {
           if (!open) {
-            setModalMode(null);
-            setSelectedCategoryId(null);
+            categoryDialog.close();
           }
         }}
         categoryId={
-          modalMode === 'create' ? undefined : (selectedCategoryId ?? undefined)
+          categoryParam === 'new' ? undefined : (categoryParam ?? undefined)
         }
         onSuccess={() => {
-          setModalMode(null);
-          setSelectedCategoryId(null);
+          categoryDialog.close();
           void invalidateFinancialData(queryClient);
         }}
         onDelete={() => {
-          setModalMode(null);
-          setSelectedCategoryId(null);
+          categoryDialog.close();
           void invalidateFinancialData(queryClient);
         }}
       />
 
       <FloatingActionButton
-        onClick={() => setModalMode('create')}
+        onClick={() => categoryDialog.open()}
         label="New Category"
       />
     </div>

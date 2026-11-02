@@ -8,6 +8,16 @@ export const CATEGORIES_KEY = ['categories'] as const;
 export const BUDGETS_KEY = ['budgets'] as const;
 export const TRANSACTIONS_KEY = ['transactions'] as const;
 export const TRANSACTIONS_SUMMARY_KEY = ['transactions', 'summary'] as const;
+
+export const transactionDetailKey = (
+  id: string,
+): readonly [string, string, string] =>
+  [...TRANSACTIONS_KEY, 'detail', id] as const;
+
+export const budgetDetailKey = (
+  id: string,
+): readonly [string, string, string] => [...BUDGETS_KEY, 'detail', id] as const;
+
 export const DASHBOARD_KEY = ['dashboard'] as const;
 export const DASHBOARD_SUMMARY_KEY = ['dashboard', 'summary'] as const;
 export const DASHBOARD_WIDGETS_KEY = ['dashboard', 'widgets'] as const;

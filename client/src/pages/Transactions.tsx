@@ -1,6 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dayjs from 'dayjs';
-import { type TransactionData, deleteTransaction } from '../api/transactions';
+import {
+  type TransactionData,
+  deleteTransaction,
+  getTransaction,
+} from '../api/transactions';
 import type { CategoryData } from '../api/categories';
 import { ApiError } from '../api/client';
 import { useWalletsQuery } from '@/hooks/use-wallets';
@@ -10,7 +14,9 @@ import {
   useTransactionsSummaryQuery,
   type TransactionsFilterState,
 } from '@/hooks/use-transactions';
-import { useQueryClient } from '@tanstack/react-query';
+import { useDialogParam } from '@/hooks/use-dialog-param';
+import { transactionDetailKey } from '@/lib/queryKeys';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invalidateFinancialData } from '@/lib/queryClient';
 import { Button } from '@/components/memphis/button';
 import { Input } from '@/components/memphis/input';
@@ -169,9 +175,33 @@ export function Transactions(): JSX.Element {
     return map;
   }, [summary]);
 
-  const [txOpen, setTxOpen] = useState(false);
-  const [transferOpen, setTransferOpen] = useState(false);
-  const [editTx, setEditTx] = useState<TransactionData | null>(null);
+  const txDialog = useDialogParam('tx');
+  const transferDialog = useDialogParam('transfer');
+  const walletDialog = useDialogParam('wallet');
+  const categoryDialog = useDialogParam('category');
+  const txParam = txDialog.value;
+  const transferParam = transferDialog.value;
+  const walletParam = walletDialog.value;
+  const categoryParam = categoryDialog.value;
+  // A deep-linked id ('?tx=<uuid>') fetches the transaction directly; 'new'
+  // opens the add dialog without a fetch.
+  const editTxId = txParam !== null && txParam !== 'new' ? txParam : null;
+  const editTxQuery = useQuery({
+    queryKey: transactionDetailKey(editTxId ?? 'new'),
+    queryFn: () => {
+      if (editTxId === null) {
+        throw new Error('editTxId missing');
+      }
+      return getTransaction(editTxId);
+    },
+    enabled: editTxId !== null,
+    retry: false,
+    // Never background-refetch while the edit dialog is open: a refetch
+    // would swap the form's initialValues identity and wipe in-progress
+    // edits. Cache invalidation after mutations still refreshes it.
+    staleTime: Infinity,
+  });
+  const editTx = editTxQuery.data ?? null;
   const [deleteConfirm, setDeleteConfirm] = useState<TransactionData | null>(
     null,
   );
@@ -181,8 +211,6 @@ export function Transactions(): JSX.Element {
     pair: TransactionData;
   } | null>(null);
   const [wizardOpen, setWizardOpen] = useState(false);
-  const [detailWalletId, setDetailWalletId] = useState<string | null>(null);
-  const [detailCategoryId, setDetailCategoryId] = useState<string | null>(null);
   const [createWalletOpen, setCreateWalletOpen] = useState(false);
   const [createCategoryOpen, setCreateCategoryOpen] = useState(false);
   const [pendingWalletId, setPendingWalletId] = useState<string | null>(null);
@@ -200,6 +228,16 @@ export function Transactions(): JSX.Element {
     const handle = setTimeout(() => setDebouncedSearch(search.trim()), 250);
     return () => clearTimeout(handle);
   }, [search]);
+
+  // A deep-linked transaction that no longer exists (deleted, or another
+  // user's) must not wedge the edit dialog open. Replace (not push): a push
+  // would let Back land on the stale link again, whose cached error closes
+  // it once more — a trap the user cannot navigate past.
+  useEffect(() => {
+    if (editTxQuery.isError) {
+      txDialog.close({ replace: true });
+    }
+  }, [editTxQuery.isError, txDialog.close]);
 
   const loadMore = useCallback(() => {
     void listQuery.fetchNextPage();
@@ -291,7 +329,16 @@ export function Transactions(): JSX.Element {
         <h1 className="text-2xl font-semibold text-foreground">Transactions</h1>
         <div className="flex gap-2">
           {wallets.length > 0 && categories.length > 0 ? (
-            <Dialog open={txOpen} onOpenChange={setTxOpen}>
+            <Dialog
+              open={txParam === 'new'}
+              onOpenChange={(open) => {
+                if (open) {
+                  txDialog.open('new');
+                } else {
+                  txDialog.close();
+                }
+              }}
+            >
               <DialogTrigger asChild>
                 <Button data-testid="header-add-button">Add transaction</Button>
               </DialogTrigger>
@@ -315,7 +362,7 @@ export function Transactions(): JSX.Element {
                     pendingCategoryId ?? categories[0]?.id ?? undefined
                   }
                   onSuccess={() => {
-                    setTxOpen(false);
+                    txDialog.close();
                     setPendingWalletId(null);
                     setPendingCategoryId(null);
                     void invalidateFinancialData(queryClient);
@@ -326,7 +373,7 @@ export function Transactions(): JSX.Element {
                   onRefreshCategories={() =>
                     void invalidateFinancialData(queryClient)
                   }
-                  onClose={() => setTxOpen(false)}
+                  onClose={() => txDialog.close()}
                   onCreateWallet={() => {
                     setCreateWalletOpen(true);
                   }}
@@ -334,13 +381,13 @@ export function Transactions(): JSX.Element {
                     setCreateCategoryOpen(true);
                   }}
                   onViewWallet={(id) => {
-                    setDetailWalletId(id);
+                    walletDialog.open(id);
                   }}
                   onEditWallet={(wallet) => {
-                    setDetailWalletId(wallet.id);
+                    walletDialog.open(wallet.id);
                   }}
                   onEditCategory={(category) => {
-                    setDetailCategoryId(category.id);
+                    categoryDialog.open(category.id);
                   }}
                 />
               </DialogContent>
@@ -354,7 +401,16 @@ export function Transactions(): JSX.Element {
               Add transaction
             </Button>
           )}
-          <Dialog open={transferOpen} onOpenChange={setTransferOpen}>
+          <Dialog
+            open={transferParam === 'new' && txParam === null}
+            onOpenChange={(open) => {
+              if (open) {
+                transferDialog.open('new');
+              } else {
+                transferDialog.close();
+              }
+            }}
+          >
             <DialogTrigger asChild>
               <Button variant="outline">Transfer</Button>
             </DialogTrigger>
@@ -365,7 +421,7 @@ export function Transactions(): JSX.Element {
               <TransferForm
                 wallets={wallets}
                 onSuccess={() => {
-                  setTransferOpen(false);
+                  transferDialog.close();
                   void invalidateFinancialData(queryClient);
                 }}
               />
@@ -499,7 +555,7 @@ export function Transactions(): JSX.Element {
       ) : transactions.length === 0 ? (
         <div className="memphis-card rounded-2xl p-8 text-center">
           <p className="text-muted-foreground">No transactions found.</p>
-          <Button className="mt-4" onClick={() => setTxOpen(true)}>
+          <Button className="mt-4" onClick={() => txDialog.open()}>
             Add your first transaction
           </Button>
         </div>
@@ -558,7 +614,7 @@ export function Transactions(): JSX.Element {
                           <TableRow
                             key={tx.id}
                             className="cursor-pointer hover:bg-muted/50"
-                            onClick={() => setEditTx(tx)}
+                            onClick={() => txDialog.open(tx.id)}
                           >
                             <TableCell>
                               {formatDate(tx.date, datePreset)}
@@ -573,7 +629,7 @@ export function Transactions(): JSX.Element {
                                     color: wallet?.color ?? '#71717a',
                                   }}
                                   {...makeLongPressHandlers(() =>
-                                    setDetailWalletId(tx.walletId),
+                                    walletDialog.open(tx.walletId),
                                   )}
                                 >
                                   {wallet?.name ?? 'Unknown'}
@@ -581,7 +637,7 @@ export function Transactions(): JSX.Element {
                                 <ContextMenuContent>
                                   <ContextMenuItem
                                     onClick={() =>
-                                      setDetailWalletId(tx.walletId)
+                                      walletDialog.open(tx.walletId)
                                     }
                                   >
                                     View wallet details
@@ -599,7 +655,7 @@ export function Transactions(): JSX.Element {
                                       color: cat.color,
                                     }}
                                     {...makeLongPressHandlers(() =>
-                                      setDetailCategoryId(cat.id),
+                                      categoryDialog.open(cat.id),
                                     )}
                                   >
                                     {cat.name}
@@ -607,7 +663,7 @@ export function Transactions(): JSX.Element {
                                   <ContextMenuContent>
                                     <ContextMenuItem
                                       onClick={() =>
-                                        setDetailCategoryId(cat.id)
+                                        categoryDialog.open(cat.id)
                                       }
                                     >
                                       View category details
@@ -655,9 +711,9 @@ export function Transactions(): JSX.Element {
       )}
 
       <Dialog
-        open={editTx !== null}
+        open={editTxId !== null}
         onOpenChange={(open) => {
-          if (!open) setEditTx(null);
+          if (!open) txDialog.close();
         }}
       >
         <DialogContent>
@@ -674,7 +730,7 @@ export function Transactions(): JSX.Element {
                 icon: c.icon,
               }))}
               onSuccess={() => {
-                setEditTx(null);
+                txDialog.close();
                 void invalidateFinancialData(queryClient);
               }}
               onRefreshWallets={() => void invalidateFinancialData(queryClient)}
@@ -682,13 +738,13 @@ export function Transactions(): JSX.Element {
                 void invalidateFinancialData(queryClient)
               }
               onViewWallet={(id) => {
-                setDetailWalletId(id);
+                walletDialog.open(id);
               }}
               onEditWallet={(wallet) => {
-                setDetailWalletId(wallet.id);
+                walletDialog.open(wallet.id);
               }}
               onEditCategory={(category) => {
-                setDetailCategoryId(category.id);
+                categoryDialog.open(category.id);
               }}
               onCreateWallet={() => {
                 setCreateWalletOpen(true);
@@ -697,7 +753,7 @@ export function Transactions(): JSX.Element {
                 setCreateCategoryOpen(true);
               }}
               onDelete={() => {
-                setEditTx(null);
+                txDialog.close();
                 setDeleteError(null);
                 const pair = findTransferPair(editTx, transactions);
                 if (pair) {
@@ -706,7 +762,7 @@ export function Transactions(): JSX.Element {
                   setDeleteConfirm(editTx);
                 }
               }}
-              onClose={() => setEditTx(null)}
+              onClose={() => txDialog.close()}
               editMode
               editTxId={editTx.id}
               initialValues={{
@@ -892,17 +948,19 @@ export function Transactions(): JSX.Element {
       </Dialog>
 
       <WalletModal
-        walletId={detailWalletId ?? undefined}
-        open={detailWalletId !== null}
+        walletId={
+          walletParam === 'new' ? undefined : (walletParam ?? undefined)
+        }
+        open={walletParam !== null}
         onOpenChange={(open) => {
-          if (!open) setDetailWalletId(null);
+          if (!open) walletDialog.close();
         }}
         onSuccess={() => {
-          setDetailWalletId(null);
+          walletDialog.close();
           void invalidateFinancialData(queryClient);
         }}
         onDelete={() => {
-          setDetailWalletId(null);
+          walletDialog.close();
           void invalidateFinancialData(queryClient);
         }}
       />
@@ -920,17 +978,19 @@ export function Transactions(): JSX.Element {
       />
 
       <CategoryModal
-        categoryId={detailCategoryId ?? undefined}
-        open={detailCategoryId !== null}
+        categoryId={
+          categoryParam === 'new' ? undefined : (categoryParam ?? undefined)
+        }
+        open={categoryParam !== null}
         onOpenChange={(open) => {
-          if (!open) setDetailCategoryId(null);
+          if (!open) categoryDialog.close();
         }}
         onSuccess={() => {
-          setDetailCategoryId(null);
+          categoryDialog.close();
           void invalidateFinancialData(queryClient);
         }}
         onDelete={() => {
-          setDetailCategoryId(null);
+          categoryDialog.close();
           void invalidateFinancialData(queryClient);
         }}
       />
@@ -949,7 +1009,7 @@ export function Transactions(): JSX.Element {
 
       {wallets.length > 0 && categories.length > 0 && (
         <FloatingActionButton
-          onClick={() => setTxOpen(true)}
+          onClick={() => txDialog.open()}
           label="Add transaction"
         />
       )}

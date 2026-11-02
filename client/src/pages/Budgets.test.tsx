@@ -28,6 +28,7 @@ vi.mock('../api/budgets', async (importOriginal) => {
   return {
     ...actual,
     getBudgets: vi.fn(),
+    getBudget: vi.fn(),
     createBudget: vi.fn(),
     updateBudget: vi.fn(),
     deleteBudget: vi.fn(),
@@ -43,8 +44,9 @@ vi.mock('../api/categories', async (importOriginal) => {
 });
 
 import { refreshSession } from '../api/auth';
-import { getBudgets, deleteBudget } from '../api/budgets';
+import { getBudgets, getBudget, deleteBudget } from '../api/budgets';
 import { getCategories } from '../api/categories';
+import { ApiError } from '../api/client';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
@@ -101,10 +103,10 @@ const mockBudgets = [
   },
 ];
 
-function renderPage(): void {
+function renderPage(initialEntry = '/budgets'): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/budgets']}>
+      <MemoryRouter initialEntries={[initialEntry]}>
         <QueryClientProvider client={createTestQueryClient()}>
           <Budgets />
         </QueryClientProvider>
@@ -112,6 +114,15 @@ function renderPage(): void {
     </AuthProvider>,
   );
 }
+
+// BudgetForm fetches the opened budget by id (card clicks deep-link).
+vi.mocked(getBudget).mockImplementation(async (id) => {
+  const budget = mockBudgets.find((b) => b.id === id);
+  if (!budget) {
+    throw new Error(`Budget ${id} not found`);
+  }
+  return budget;
+});
 
 describe('Budgets page', () => {
   beforeEach(() => {
@@ -214,5 +225,43 @@ describe('Budgets page', () => {
     expect(
       within(dialog).getByRole('heading', { name: /add budget/i }),
     ).toBeInTheDocument();
+  });
+
+  it('opens the edit dialog for a deep-linked budget', async () => {
+    renderPage('/budgets?budget=b1');
+
+    await waitFor(() => {
+      expect(vi.mocked(getBudget)).toHaveBeenCalledWith('b1');
+    });
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      await within(dialog).findByRole('heading', { name: /edit budget/i }),
+    ).toBeInTheDocument();
+    // The form loads the deep-linked budget's data.
+    expect(
+      await within(dialog).findByDisplayValue('Monthly Spending'),
+    ).toBeInTheDocument();
+  });
+
+  it('opens the create dialog for ?budget=new', async () => {
+    renderPage('/budgets?budget=new');
+
+    const dialog = await screen.findByRole('dialog');
+    expect(
+      await within(dialog).findByRole('heading', { name: /add budget/i }),
+    ).toBeInTheDocument();
+    expect(vi.mocked(getBudget)).not.toHaveBeenCalled();
+  });
+
+  it('closes the dialog when a deep-linked budget does not exist', async () => {
+    vi.mocked(getBudget).mockRejectedValue(
+      new ApiError('Budget not found', 404, 'NOT_FOUND'),
+    );
+    renderPage('/budgets?budget=missing');
+
+    // The stale link must not wedge the dialog open.
+    await waitFor(() => {
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+    });
   });
 });

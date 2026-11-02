@@ -20,11 +20,12 @@ vi.mock('../api/wallets', async (importOriginal) => {
   return {
     ...actual,
     getWallets: vi.fn(),
+    getWallet: vi.fn(),
   };
 });
 
 import { refreshSession } from '../api/auth';
-import { getWallets } from '../api/wallets';
+import { getWallets, getWallet } from '../api/wallets';
 
 const mockUser = { id: 'u1', email: 'a@b.co', name: 'Ada' };
 
@@ -51,10 +52,19 @@ const mockWallets = [
   },
 ];
 
-function renderList(): void {
+// WalletModal fetches the opened wallet by id (row clicks deep-link).
+vi.mocked(getWallet).mockImplementation(async (id) => {
+  const wallet = mockWallets.find((w) => w.id === id);
+  if (!wallet) {
+    throw new Error(`Wallet ${id} not found`);
+  }
+  return wallet;
+});
+
+function renderList(initialEntry = '/wallets'): void {
   render(
     <AuthProvider>
-      <MemoryRouter initialEntries={['/wallets']}>
+      <MemoryRouter initialEntries={[initialEntry]}>
         <QueryClientProvider client={createTestQueryClient()}>
           <WalletList />
         </QueryClientProvider>
@@ -189,5 +199,29 @@ describe('WalletList page', () => {
       const titles = screen.getAllByText('New Wallet');
       expect(titles.length).toBeGreaterThanOrEqual(2);
     });
+  });
+
+  it('opens the edit modal for a deep-linked wallet', async () => {
+    renderList('/wallets?wallet=w1');
+
+    await waitFor(() => {
+      expect(vi.mocked(getWallet)).toHaveBeenCalledWith('w1');
+    });
+    await waitFor(() => {
+      const titles = screen.getAllByText('Edit Wallet');
+      expect(titles.length).toBeGreaterThanOrEqual(1);
+    });
+    // The form loads the deep-linked wallet's data.
+    expect(await screen.findByDisplayValue('Cash')).toBeInTheDocument();
+  });
+
+  it('opens the create modal for ?wallet=new', async () => {
+    renderList('/wallets?wallet=new');
+
+    await waitFor(() => {
+      const titles = screen.getAllByText('New Wallet');
+      expect(titles.length).toBeGreaterThanOrEqual(2);
+    });
+    expect(vi.mocked(getWallet)).not.toHaveBeenCalled();
   });
 });

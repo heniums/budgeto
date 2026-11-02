@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import dayjs from 'dayjs';
-import { type BudgetData } from '../api/budgets';
+import { type BudgetData, getBudget } from '../api/budgets';
 import { ApiError } from '../api/client';
 import { useBudgetsQuery } from '@/hooks/use-budgets';
 import { useCategoriesQuery } from '@/hooks/use-categories';
-import { useQueryClient } from '@tanstack/react-query';
+import { useDialogParam } from '@/hooks/use-dialog-param';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { invalidateFinancialData } from '@/lib/queryClient';
+import { budgetDetailKey } from '@/lib/queryKeys';
 import { Button } from '@/components/memphis/button';
 import { Dialog, DialogTrigger } from '@/components/memphis/dialog';
 import { BudgetCard } from '../components/BudgetCard';
@@ -17,17 +19,43 @@ import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 export function Budgets(): JSX.Element {
   const queryClient = useQueryClient();
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingBudget, setEditingBudget] = useState<BudgetData | null>(null);
+  const budgetDialog = useDialogParam('budget');
+  const budgetParam = budgetDialog.value;
   const [period, setPeriod] = useState(() => dayjs().format('YYYY-MM'));
+  // A deep-linked id ('?budget=<uuid>') fetches the budget directly; 'new'
+  // opens the create form without a fetch.
+  const editBudgetId =
+    budgetParam !== null && budgetParam !== 'new' ? budgetParam : null;
+  const budgetQuery = useQuery({
+    queryKey: budgetDetailKey(editBudgetId ?? 'new'),
+    queryFn: () => {
+      if (editBudgetId === null) {
+        throw new Error('editBudgetId missing');
+      }
+      return getBudget(editBudgetId);
+    },
+    enabled: editBudgetId !== null,
+    retry: false,
+    // Never background-refetch while the edit dialog is open: BudgetForm
+    // repopulates whenever editingBudget's identity changes, so a refetch
+    // would wipe in-progress edits. Cache invalidation after mutations
+    // still refreshes it.
+    staleTime: Infinity,
+  });
+  const editingBudget =
+    budgetParam === 'new' ? null : (budgetQuery.data ?? null);
+  const dialogOpen = budgetParam !== null;
 
   const {
     data: budgets = [],
     isPending: budgetsPending,
     error: budgetsError,
   } = useBudgetsQuery(period);
-  const { data: categories = [], isPending: categoriesPending, error: categoriesError } =
-    useCategoriesQuery();
+  const {
+    data: categories = [],
+    isPending: categoriesPending,
+    error: categoriesError,
+  } = useCategoriesQuery();
   const loading = budgetsPending || categoriesPending;
   const loadError = budgetsError ?? categoriesError;
   const errorMessage = loadError
@@ -37,33 +65,42 @@ export function Budgets(): JSX.Element {
     : null;
 
   const handleEdit = (budget: BudgetData): void => {
-    setEditingBudget(budget);
-    setDialogOpen(true);
+    // Seed the cache so the dialog renders the form without a fetch round-trip.
+    queryClient.setQueryData(budgetDetailKey(budget.id), budget);
+    budgetDialog.open(budget.id);
   };
   const handleFormSuccess = (): void => {
-    setEditingBudget(null);
-    setDialogOpen(false);
+    budgetDialog.close();
     // Budget create/update/delete can affect any cached period and the
     // dashboard's budget section.
     void invalidateFinancialData(queryClient);
   };
 
   const handleFormCancel = (): void => {
-    setEditingBudget(null);
-    setDialogOpen(false);
+    budgetDialog.close();
   };
 
   const handleOpenChange = (open: boolean): void => {
-    setDialogOpen(open);
-    if (!open) {
-      setEditingBudget(null);
+    if (open) {
+      budgetDialog.open('new');
+    } else {
+      budgetDialog.close();
     }
   };
 
   const handleAddClick = (): void => {
-    setEditingBudget(null);
-    setDialogOpen(true);
+    budgetDialog.open();
   };
+
+  // A deep-linked budget that no longer exists (deleted, or another user's)
+  // must not wedge the edit dialog open. Replace (not push): a push would
+  // let Back land on the stale link again, whose cached error closes it once
+  // more — a trap the user cannot navigate past.
+  useEffect(() => {
+    if (budgetQuery.isError) {
+      budgetDialog.close({ replace: true });
+    }
+  }, [budgetQuery.isError, budgetDialog.close]);
 
   return (
     <div className="p-4 space-y-4 pb-24">
@@ -76,17 +113,19 @@ export function Budgets(): JSX.Element {
         </div>
         <Dialog open={dialogOpen} onOpenChange={handleOpenChange}>
           <DialogTrigger asChild>
-            <Button data-testid="header-add-button" onClick={handleAddClick}>Add budget</Button>
+            {/* No onClick here: the trigger's own toggle calls
+                handleOpenChange(true); adding one would push two identical
+                history entries and Back would no longer close the dialog. */}
+            <Button data-testid="header-add-button">Add budget</Button>
           </DialogTrigger>
-          {dialogOpen && (
+          {(budgetParam === 'new' || budgetQuery.data) && (
             <BudgetForm
               editingBudget={editingBudget}
               categories={categories}
               onSuccess={handleFormSuccess}
               onCancel={handleFormCancel}
               onDelete={() => {
-                setEditingBudget(null);
-                setDialogOpen(false);
+                budgetDialog.close();
                 void invalidateFinancialData(queryClient);
               }}
             />
