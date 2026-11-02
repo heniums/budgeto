@@ -142,7 +142,7 @@ describe('WalletModal — edit mode (walletId provided)', () => {
       />,
     );
 
-    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    expect(screen.getByTestId('form-skeleton')).toBeInTheDocument();
   });
 
   it('fetches wallet and prefills form fields', async () => {

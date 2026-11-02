@@ -9,6 +9,7 @@ import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
 import { Label } from '@/components/memphis/label';
 import { Button } from '@/components/memphis/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { MoneyInput } from './MoneyInput';
 
 const transferSchema = z
@@ -32,11 +33,13 @@ type TransferValues = z.infer<typeof transferSchema>;
 
 interface TransferFormProps {
   wallets: WalletData[];
+  walletsPending?: boolean;
   onSuccess: () => void;
 }
 
 export function TransferForm({
   wallets,
+  walletsPending,
   onSuccess,
 }: TransferFormProps): JSX.Element {
   const [formError, setFormError] = useState<string | null>(null);
@@ -86,35 +89,43 @@ export function TransferForm({
 
       <div className="space-y-2">
         <Label htmlFor="transfer-from">From</Label>
-        <select
-          id="transfer-from"
-          {...register('sourceId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="">Select source…</option>
-          {wallets.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.name}
-            </option>
-          ))}
-        </select>
+        {walletsPending ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <select
+            id="transfer-from"
+            {...register('sourceId')}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">Select source…</option>
+            {wallets.map((w) => (
+              <option key={w.id} value={w.id}>
+                {w.name}
+              </option>
+            ))}
+          </select>
+        )}
         <FormError message={errors.sourceId?.message} />
       </div>
 
       <div className="space-y-2">
         <Label htmlFor="transfer-to">To</Label>
-        <select
-          id="transfer-to"
-          {...register('targetId')}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        >
-          <option value="">Select target…</option>
-          {wallets.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.name}
-            </option>
-          ))}
-        </select>
+        {walletsPending ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <select
+            id="transfer-to"
+            {...register('targetId')}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          >
+            <option value="">Select target…</option>
+            {wallets.map((w) => (
+              <option key={w.id} value={w.id}>
+                {w.name}
+              </option>
+            ))}
+          </select>
+        )}
         <FormError message={errors.targetId?.message} />
       </div>
 

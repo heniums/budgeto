@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { Progress } from '@/components/memphis/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Money } from './Money';
 import type { BudgetData, BudgetCategoryData } from '../api/budgets';
 
@@ -20,10 +21,15 @@ function budgetPercentage(budget: BudgetData): number {
 
 interface BudgetCardProps {
   budget: BudgetData;
+  categoriesPending?: boolean;
   onClick: () => void;
 }
 
-export function BudgetCard({ budget, onClick }: BudgetCardProps): JSX.Element {
+export function BudgetCard({
+  budget,
+  categoriesPending,
+  onClick,
+}: BudgetCardProps): JSX.Element {
   return (
     <div
       key={budget.id}
@@ -72,7 +78,15 @@ export function BudgetCard({ budget, onClick }: BudgetCardProps): JSX.Element {
         {budget.categories.map((cat) => (
           <div key={cat.categoryId} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span>{cat.category?.name ?? 'Unknown'}</span>
+              <span>
+                {cat.category
+                  ? cat.category.name
+                  : categoriesPending
+                    ? (
+                      <Skeleton className="inline-block h-4 w-20 align-middle" />
+                    )
+                    : 'Unknown'}
+              </span>
               <span className="text-xs text-muted-foreground">
                 {catPercentage(cat)}%
               </span>

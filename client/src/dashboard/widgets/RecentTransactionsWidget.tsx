@@ -1,15 +1,18 @@
 import dayjs from 'dayjs';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ListSkeleton } from '../components/WidgetSkeletons';
 import { Money } from '@/components/Money';
 
-export function RecentTransactionsWidget(): JSX.Element | null {
+export function RecentTransactionsWidget(): JSX.Element {
   const { data, loading } = useWidgetData('recent-transactions');
 
   const transactions = data?.transactions ?? [];
   const currency = data?.currency ?? 'USD';
 
   if (transactions.length === 0) {
-    return loading ? null : (
+    return loading ? (
+      <ListSkeleton rows={4} />
+    ) : (
       <p className="text-sm text-muted-foreground">No recent transactions</p>
     );
   }

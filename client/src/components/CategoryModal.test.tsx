@@ -96,7 +96,7 @@ describe('CategoryModal — edit mode (categoryId provided)', () => {
       />,
     );
 
-    expect(screen.getByText('Loading…')).toBeInTheDocument();
+    expect(screen.getByTestId('form-skeleton')).toBeInTheDocument();
   });
 
   it('fetches category and prefills form fields', async () => {

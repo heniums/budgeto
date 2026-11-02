@@ -23,6 +23,7 @@ import { ICONS } from '../lib/icons';
 import { cn } from '@/lib/utils';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
+import { FormSkeleton } from './FormSkeleton';
 import {
   DEFAULT_COLOR,
   DEFAULT_ICON_NAME,
@@ -177,9 +178,9 @@ export function CategoryModal({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        {loading && <p className="text-muted-foreground mt-4">Loading…</p>}
-
-        {!loading && (
+        {loading ? (
+          <FormSkeleton rows={3} />
+        ) : (
           <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate

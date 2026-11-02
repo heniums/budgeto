@@ -22,6 +22,7 @@ import {
 import { ApiError } from '../api/client';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
+import { FormSkeleton } from './FormSkeleton';
 import {
   DEFAULT_COLOR,
   MAX_DESCRIPTION_LENGTH,
@@ -200,9 +201,9 @@ export function WalletModal({
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
 
-        {loading && <p className="text-muted-foreground mt-4">Loading…</p>}
-
-        {!loading && (
+        {loading ? (
+          <FormSkeleton rows={4} />
+        ) : (
           <form
             onSubmit={handleSubmit(onSubmit)}
             noValidate

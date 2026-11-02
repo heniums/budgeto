@@ -14,6 +14,7 @@ import { CategorySelectList } from './CategorySelectList';
 import { Money } from './Money';
 import { FormError } from './FormError';
 import { FormAlert } from './FormAlert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 import { MoneyInput } from './MoneyInput';
 const transactionSchema = z.object({
@@ -41,6 +42,8 @@ interface TransactionFormProps {
     icon: string;
   }[];
   categoriesCount?: number;
+  walletsPending?: boolean;
+  categoriesPending?: boolean;
   onSuccess: (tx?: TransactionData) => void;
   onCreateWallet?: () => void;
   onCreateCategory?: () => void;
@@ -92,6 +95,8 @@ export function TransactionForm({
   wallets,
   categories,
   categoriesCount,
+  walletsPending,
+  categoriesPending,
   onSuccess,
   onCreateWallet,
   onCreateCategory,
@@ -331,7 +336,14 @@ export function TransactionForm({
       noValidate
       className="space-y-4 min-w-0"
     >
-      {wallets.length === 0 && (
+      {wallets.length === 0 && walletsPending && (
+        <div className="flex flex-wrap gap-2 py-2">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-9 w-20 rounded-full" />
+          ))}
+        </div>
+      )}
+      {wallets.length === 0 && !walletsPending && (
         <div
           role="alert"
           className="rounded-md border border-destructive bg-destructive/10 p-3 text-sm text-destructive"
@@ -353,7 +365,17 @@ export function TransactionForm({
         </div>
       )}
       {wallets.length > 0 &&
-        (categoriesCount ?? categories?.length ?? 0) === 0 && (
+        (categoriesCount ?? categories?.length ?? 0) === 0 &&
+        categoriesPending && (
+          <div className="flex flex-wrap gap-2 py-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Skeleton key={i} className="h-9 w-20 rounded-full" />
+            ))}
+          </div>
+        )}
+      {wallets.length > 0 &&
+        (categoriesCount ?? categories?.length ?? 0) === 0 &&
+        !categoriesPending && (
           <div
             role="alert"
             className="rounded-md border border-amber-500 bg-amber-50 p-3 text-sm text-amber-700"
@@ -378,18 +400,22 @@ export function TransactionForm({
 
       <div className="space-y-2">
         <Label>Wallet</Label>
-        <WalletSelectList
-          wallets={wallets}
-          selectedId={selectedWalletId || null}
-          onSelect={(id) =>
-            setValue('walletId', id, {
-              shouldValidate: true,
-              shouldDirty: true,
-            })
-          }
-          onRefresh={onRefreshWallets}
-          onEdit={onEditWallet}
-        />
+        {wallets.length === 0 && walletsPending ? (
+          <Skeleton className="h-10 w-full" />
+        ) : (
+          <WalletSelectList
+            wallets={wallets}
+            selectedId={selectedWalletId || null}
+            onSelect={(id) =>
+              setValue('walletId', id, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+            onRefresh={onRefreshWallets}
+            onEdit={onEditWallet}
+          />
+        )}
         <FormError message={errors.walletId?.message} />
         {onCreateWallet && (
           <span

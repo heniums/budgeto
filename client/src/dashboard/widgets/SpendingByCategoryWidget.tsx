@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ChartSkeleton } from '../components/WidgetSkeletons';
 import { CHART_COLORS, OTHER_COLOR } from '@/lib/chartTheme';
 
-export function SpendingByCategoryWidget(): JSX.Element | null {
+export function SpendingByCategoryWidget(): JSX.Element {
   const { data, loading } = useWidgetData('spending-by-category');
 
   const chartData = useMemo(() => {
@@ -46,7 +47,9 @@ export function SpendingByCategoryWidget(): JSX.Element | null {
   }, [data?.categories]);
 
   if (!chartData) {
-    return loading ? null : (
+    return loading ? (
+      <ChartSkeleton />
+    ) : (
       <p className="text-sm text-muted-foreground">No spending data available</p>
     );
   }

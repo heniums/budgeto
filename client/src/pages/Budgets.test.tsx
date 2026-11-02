@@ -165,6 +165,12 @@ describe('Budgets page', () => {
     expect(await screen.findByText('No budgets yet.')).toBeInTheDocument();
   });
 
+  it('renders card-shaped skeletons while budgets load', () => {
+    vi.mocked(getBudgets).mockImplementation(() => new Promise(() => {}));
+    renderPage();
+    expect(screen.getAllByTestId('budget-card-skeleton')).toHaveLength(2);
+  });
+
   it('renders period navigation with current period label', async () => {
     renderPage();
     await screen.findByText('Monthly Spending');
@@ -233,13 +239,16 @@ describe('Budgets page', () => {
     await waitFor(() => {
       expect(vi.mocked(getBudget)).toHaveBeenCalledWith('b1');
     });
-    const dialog = await screen.findByRole('dialog');
+    // The dialog body swaps from the loading skeleton to the real form, so
+    // wait for content only the real form renders, then assert against a
+    // fresh query — an element captured before the swap gets detached.
     expect(
-      await within(dialog).findByRole('heading', { name: /edit budget/i }),
+      await screen.findByDisplayValue('Monthly Spending'),
     ).toBeInTheDocument();
-    // The form loads the deep-linked budget's data.
     expect(
-      await within(dialog).findByDisplayValue('Monthly Spending'),
+      within(screen.getByRole('dialog')).getByRole('heading', {
+        name: /edit budget/i,
+      }),
     ).toBeInTheDocument();
   });
 

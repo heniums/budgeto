@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { Doughnut } from 'react-chartjs-2';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ChartSkeleton } from '../components/WidgetSkeletons';
 import { CHART_COLORS } from '@/lib/chartTheme';
 
-export function WalletBalanceBreakdownWidget(): JSX.Element | null {
+export function WalletBalanceBreakdownWidget(): JSX.Element {
   const { data, loading } = useWidgetData('wallet-balance-breakdown');
 
   const chartData = useMemo(() => {
@@ -24,7 +25,9 @@ export function WalletBalanceBreakdownWidget(): JSX.Element | null {
   }, [data?.wallets]);
 
   if (!chartData) {
-    return loading ? null : (
+    return loading ? (
+      <ChartSkeleton />
+    ) : (
       <p className="text-sm text-muted-foreground">No wallets yet</p>
     );
   }

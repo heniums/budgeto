@@ -1,8 +1,13 @@
 import { useWidgetData } from '../hooks/useWidgetData';
+import { StatSkeleton } from '../components/WidgetSkeletons';
 import { Money } from '@/components/Money';
 
 export function DailySpendingRateWidget(): JSX.Element {
-  const { data } = useWidgetData('daily-spending-rate');
+  const { data, loading } = useWidgetData('daily-spending-rate');
+
+  if (loading) {
+    return <StatSkeleton valueClassName="h-10 w-32" />;
+  }
 
   const rate = data?.rate;
   const currency = data?.currency ?? 'USD';

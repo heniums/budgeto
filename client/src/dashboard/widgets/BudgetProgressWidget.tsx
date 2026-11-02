@@ -1,15 +1,18 @@
 import { useWidgetData } from '../hooks/useWidgetData';
+import { ProgressListSkeleton } from '../components/WidgetSkeletons';
 import { Money } from '@/components/Money';
 import { Progress } from '@/components/ui/progress';
 
-export function BudgetProgressWidget(): JSX.Element | null {
+export function BudgetProgressWidget(): JSX.Element {
   const { data, loading } = useWidgetData('budget-progress');
 
   const budgets = data?.budgets ?? [];
   const currency = data?.currency ?? 'USD';
 
   if (budgets.length === 0) {
-    return loading ? null : (
+    return loading ? (
+      <ProgressListSkeleton rows={3} />
+    ) : (
       <p className="text-sm text-muted-foreground">No budgets yet</p>
     );
   }

@@ -53,6 +53,7 @@ import {
   ContextMenuItem,
 } from '@/components/memphis/context-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { FormSkeleton } from '../components/FormSkeleton';
 import { FloatingActionButton } from '@/components/FloatingActionButton';
 
 interface LongPressHandlers {
@@ -109,6 +110,29 @@ interface PeriodGroup {
   key: string;
   label: string;
   items: TransactionData[];
+}
+
+/** One pulsing placeholder row mirroring the 5-column list layout. */
+function SkeletonRow(): JSX.Element {
+  return (
+    <TableRow>
+      <TableCell>
+        <Skeleton className="h-4 w-20" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-5 w-24 rounded-full" />
+      </TableCell>
+      <TableCell>
+        <Skeleton className="h-5 w-20 rounded-full" />
+      </TableCell>
+      <TableCell className="hidden md:table-cell">
+        <Skeleton className="h-4 w-36" />
+      </TableCell>
+      <TableCell className="text-right">
+        <Skeleton className="ml-auto h-4 w-16" />
+      </TableCell>
+    </TableRow>
+  );
 }
 
 export function Transactions(): JSX.Element {
@@ -355,6 +379,8 @@ export function Transactions(): JSX.Element {
                     icon: c.icon,
                   }))}
                   categoriesCount={categories.length}
+                  walletsPending={walletsQuery.isPending}
+                  categoriesPending={categoriesQuery.isPending}
                   autoSelectWalletId={
                     pendingWalletId ?? wallets[0]?.id ?? undefined
                   }
@@ -420,6 +446,7 @@ export function Transactions(): JSX.Element {
               </DialogHeader>
               <TransferForm
                 wallets={wallets}
+                walletsPending={walletsQuery.isPending}
                 onSuccess={() => {
                   transferDialog.close();
                   void invalidateFinancialData(queryClient);
@@ -495,42 +522,40 @@ export function Transactions(): JSX.Element {
 
       {initialLoading ? (
         <div className="space-y-6">
-          <div className="memphis-card rounded-2xl overflow-hidden">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Wallet</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead className="hidden md:table-cell">
-                    Description
-                  </TableHead>
-                  <TableHead className="text-right">Amount</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i}>
-                    <TableCell>
-                      <Skeleton className="h-4 w-20" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-5 w-24 rounded-full" />
-                    </TableCell>
-                    <TableCell>
-                      <Skeleton className="h-5 w-20 rounded-full" />
-                    </TableCell>
-                    <TableCell className="hidden md:table-cell">
-                      <Skeleton className="h-4 w-36" />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Skeleton className="ml-auto h-4 w-16" />
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          {[6, 3].map((rowCount, groupIndex) => (
+            <div key={groupIndex} className="mb-4">
+              <div
+                data-testid="period-header-skeleton"
+                className="sticky top-[70px] z-10 mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-lg border-2 border-border bg-card px-3 py-2 shadow-md md:top-8 md:flex-nowrap md:gap-3"
+              >
+                <Skeleton className="h-4 w-28" />
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-4 w-16" />
+                  <Skeleton className="h-4 w-16" />
+                </div>
+              </div>
+              <div className="memphis-card overflow-hidden rounded-2xl">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Date</TableHead>
+                      <TableHead>Wallet</TableHead>
+                      <TableHead>Category</TableHead>
+                      <TableHead className="hidden md:table-cell">
+                        Description
+                      </TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {Array.from({ length: rowCount }).map((_, i) => (
+                      <SkeletonRow key={i} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          ))}
         </div>
       ) : !loadingMore && wallets.length === 0 ? (
         <div className="memphis-card rounded-2xl p-8 text-center">
@@ -562,7 +587,7 @@ export function Transactions(): JSX.Element {
       ) : (
         <>
           <div className="space-y-6">
-            {groups.map((group) => (
+            {groups.map((group, groupIndex) => (
               <div key={group.key} className="mb-4">
                 <div className="sticky top-[70px] z-10 mb-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-2 border-border bg-card rounded-lg px-3 py-2 md:top-8 md:flex-nowrap md:gap-3 shadow-md transition-shadow duration-200 hover:shadow-lg">
                   <h2
@@ -571,24 +596,31 @@ export function Transactions(): JSX.Element {
                   >
                     {group.label}
                   </h2>
-                  {summaryMap.get(group.key) && (
-                    <div className="flex flex-wrap items-baseline gap-3">
-                      {summaryMap.get(group.key)?.map((item) => (
-                        <div
-                          key={item.currency}
-                          className="flex items-baseline gap-1"
-                        >
-                          <Money
-                            amount={item.amount}
-                            currency={item.currency}
-                            className="font-semibold"
-                          />
-                          <span className="text-xs text-muted-foreground uppercase">
-                            {item.currency}
-                          </span>
-                        </div>
-                      ))}
+                  {summaryQuery.isPending ? (
+                    <div className="flex items-center gap-3">
+                      <Skeleton className="h-4 w-16" />
+                      <Skeleton className="h-4 w-16" />
                     </div>
+                  ) : (
+                    summaryMap.get(group.key) && (
+                      <div className="flex flex-wrap items-baseline gap-3">
+                        {summaryMap.get(group.key)?.map((item) => (
+                          <div
+                            key={item.currency}
+                            className="flex items-baseline gap-1"
+                          >
+                            <Money
+                              amount={item.amount}
+                              currency={item.currency}
+                              className="font-semibold"
+                            />
+                            <span className="text-xs text-muted-foreground uppercase">
+                              {item.currency}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    )
                   )}
                 </div>
                 <div className="memphis-card rounded-2xl overflow-hidden">
@@ -686,6 +718,11 @@ export function Transactions(): JSX.Element {
                           </TableRow>
                         );
                       })}
+                      {loadingMore &&
+                        groupIndex === groups.length - 1 &&
+                        Array.from({ length: 3 }).map((_, i) => (
+                          <SkeletonRow key={`loading-more-${i}`} />
+                        ))}
                     </TableBody>
                   </Table>
                 </div>
@@ -702,7 +739,6 @@ export function Transactions(): JSX.Element {
             <span>
               {transactions.length} of {total} transactions
             </span>
-            {loadingMore && <span>Loading more…</span>}
             {!hasMore && transactions.length > 0 && (
               <span>You&apos;re all caught up.</span>
             )}
@@ -720,7 +756,7 @@ export function Transactions(): JSX.Element {
           <DialogHeader>
             <DialogTitle>Edit transaction</DialogTitle>
           </DialogHeader>
-          {editTx && (
+          {editTx ? (
             <TransactionForm
               wallets={wallets}
               categories={categories.map((c) => ({
@@ -729,6 +765,8 @@ export function Transactions(): JSX.Element {
                 color: c.color,
                 icon: c.icon,
               }))}
+              walletsPending={walletsQuery.isPending}
+              categoriesPending={categoriesQuery.isPending}
               onSuccess={() => {
                 txDialog.close();
                 void invalidateFinancialData(queryClient);
@@ -773,6 +811,8 @@ export function Transactions(): JSX.Element {
                 date: editTx.date,
               }}
             />
+          ) : (
+            <FormSkeleton rows={6} />
           )}
         </DialogContent>
       </Dialog>

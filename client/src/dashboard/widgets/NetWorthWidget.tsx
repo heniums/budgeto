@@ -1,9 +1,10 @@
 import { useMemo } from 'react';
 import { useWidgetData } from '../hooks/useWidgetData';
+import { StatSkeleton } from '../components/WidgetSkeletons';
 import { Money } from '@/components/Money';
 
 export function NetWorthWidget(): JSX.Element {
-  const { data } = useWidgetData('net-worth');
+  const { data, loading } = useWidgetData('net-worth');
 
   const byCurrency = useMemo(() => {
     const wallets = data?.wallets ?? [];
@@ -16,7 +17,11 @@ export function NetWorthWidget(): JSX.Element {
   }, [data?.wallets]);
 
   if (byCurrency.size === 0) {
-    return <p className="text-sm text-muted-foreground">No wallets yet</p>;
+    return loading ? (
+      <StatSkeleton valueClassName="h-9 w-36" />
+    ) : (
+      <p className="text-sm text-muted-foreground">No wallets yet</p>
+    );
   }
 
   return (

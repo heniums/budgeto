@@ -210,6 +210,23 @@ describe('Home transactions list', () => {
     cleanup();
   });
 
+  it('renders grouped period skeletons while the list loads', () => {
+    vi.mocked(getTransactions).mockImplementationOnce(
+      () => new Promise(() => {}),
+    );
+    renderHome();
+    expect(screen.getAllByTestId('period-header-skeleton')).toHaveLength(2);
+    for (const header of [
+      'Date',
+      'Wallet',
+      'Category',
+      'Description',
+      'Amount',
+    ]) {
+      expect(screen.getAllByText(header).length).toBeGreaterThan(0);
+    }
+  });
+
   it('lists all user transactions newest first', async () => {
     renderHome();
     expect(await screen.findByText('Salary')).toBeInTheDocument();
