@@ -7,6 +7,11 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [1.9.0] — 2026-11-03
+
+### Added
+- Shape-matched loading skeletons across the client: dashboard widgets (stat/list/progress/chart), transaction list with grouped period skeletons and summary-chip placeholders, budget cards, wallet/category modals, and filter pickers; infinite scroll appends skeleton rows instead of a "Loading more…" span, and deep-linked edit dialogs (`?tx=`, `?budget=`) show skeletons while fetching
+
 ## [1.8.0] — 2026-11-02
 
 ### Added
