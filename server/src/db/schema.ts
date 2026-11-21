@@ -113,7 +113,6 @@ export const budgets = pgTable(
     period: text('period').notNull().default('monthly'),
     startDate: date('start_date').notNull(),
     endDate: date('end_date').notNull(),
-    totalAmount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
     createdAt: timestamp('created_at', { withTimezone: true })
       .notNull()
       .defaultNow(),

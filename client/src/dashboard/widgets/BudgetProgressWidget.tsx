@@ -23,17 +23,29 @@ export function BudgetProgressWidget(): JSX.Element {
         const total = Number(b.totalAmount) || 0;
         const spent = Number(b.spent) || 0;
         const pct = total > 0 ? Math.min(100, (spent / total) * 100) : 0;
+        const over = spent > total;
         return (
           <li key={b.id} className="space-y-1">
             <div className="flex items-center justify-between">
               <span className="text-sm font-medium">{b.name}</span>
               <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Money amount={b.spent} currency={currency} />
+                <Money
+                  amount={b.spent}
+                  currency={currency}
+                  className={over ? 'text-destructive' : undefined}
+                />
                 <span>/</span>
-                <Money amount={b.totalAmount} currency={currency} />
+                <Money
+                  amount={b.totalAmount}
+                  currency={currency}
+                  className={over ? 'text-destructive' : undefined}
+                />
               </div>
             </div>
-            <Progress value={pct} />
+            <Progress
+              value={pct}
+              indicatorClassName={over ? 'bg-destructive' : undefined}
+            />
           </li>
         );
       })}

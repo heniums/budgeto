@@ -53,7 +53,6 @@ const budgetData = {
   },
   totalAmount: '1000.00',
   spent: '50.00',
-  remaining: '950.00',
   categories: [
     {
       categoryId: 'c1',
@@ -68,7 +67,6 @@ const budgetData = {
       },
       limitAmount: '500.00',
       spent: '50.00',
-      remaining: '450.00',
     },
   ],
   createdAt: '2024-01-01T00:00:00Z',
@@ -112,10 +110,12 @@ describe('budgets API client', () => {
     mockPost.mockResolvedValue({ data: budgetData });
     const budget = await createBudget({
       name: 'Monthly Budget',
-      totalAmount: '1000.00',
       categories: [{ categoryId: 'c1', limitAmount: '500.00' }],
     });
-    expect(mockPost).toHaveBeenCalledWith('/budgets', expect.any(Object));
+    expect(mockPost).toHaveBeenCalledWith('/budgets', {
+      name: 'Monthly Budget',
+      categories: [{ categoryId: 'c1', limitAmount: '500.00' }],
+    });
     expect(budget.name).toBe('Monthly Budget');
   });
 

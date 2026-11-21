@@ -80,7 +80,6 @@ const mockBudgets = [
     },
     totalAmount: '500.00',
     spent: '50.00',
-    remaining: '450.00',
     categories: [
       {
         categoryId: 'c1',
@@ -95,7 +94,42 @@ const mockBudgets = [
         },
         limitAmount: '200.00',
         spent: '50.00',
-        remaining: '150.00',
+      },
+    ],
+    createdAt: '2025-01-01T00:00:00Z',
+    updatedAt: '2025-01-01T00:00:00Z',
+  },
+  {
+    id: 'b2',
+    userId: 'u1',
+    name: 'Over Spending',
+    icon: 'Wallet',
+    color: '#b3261e',
+    type: 'spending' as const,
+    period: {
+      type: 'monthly' as const,
+      window: {
+        type: 'monthly' as const,
+        startDate: '2025-01-01',
+        endDate: '2025-01-31',
+      },
+    },
+    totalAmount: '500.00',
+    spent: '600.00',
+    categories: [
+      {
+        categoryId: 'c1',
+        category: {
+          id: 'c1',
+          userId: 'u1',
+          name: 'Groceries',
+          color: '#ff5733',
+          icon: 'ShoppingCart',
+          createdAt: '2025-01-15T10:00:00Z',
+          updatedAt: '',
+        },
+        limitAmount: '500.00',
+        spent: '600.00',
       },
     ],
     createdAt: '2025-01-01T00:00:00Z',
@@ -150,13 +184,19 @@ describe('Budgets page', () => {
   it('shows budget amounts and category progress', async () => {
     renderPage();
     await screen.findByText('Monthly Spending');
-    expect(screen.getByText('$500.00')).toBeInTheDocument();
+    expect(screen.getAllByText('$500.00')).toHaveLength(3);
     expect(screen.getAllByText('$50.00')).toHaveLength(2);
-    expect(screen.getByText('$450.00')).toBeInTheDocument();
-    expect(screen.getByText(/\b10%/)).toBeInTheDocument();
     expect(screen.getByText('$200.00')).toBeInTheDocument();
-    expect(screen.getByText('$150.00')).toBeInTheDocument();
     expect(screen.getByText(/\b25%/)).toBeInTheDocument();
+  });
+
+  it('shows overspent budgets as spent/limit pairs with no left text', async () => {
+    renderPage();
+    await screen.findByText('Over Spending');
+    expect(screen.getAllByText('$600.00')).toHaveLength(2);
+    expect(screen.getAllByText('$500.00')).toHaveLength(3);
+    expect(screen.getByText(/\b120%/)).toBeInTheDocument();
+    expect(screen.queryByText(/left/i)).not.toBeInTheDocument();
   });
 
   it('shows empty state when no budgets exist', async () => {

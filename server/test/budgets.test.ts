@@ -80,7 +80,6 @@ describe('POST /budgets', () => {
         color: '#1f8a4c',
         type: 'spending',
         period: 'monthly',
-        totalAmount: '1000.00',
         categories: [
           { categoryId: groceries.id, limitAmount: '500.00' },
           { categoryId: dining.id, limitAmount: '300.00' },
@@ -88,10 +87,9 @@ describe('POST /budgets', () => {
       });
     expect(response.status).toBe(201);
     expect(response.body.name).toBe('Monthly Spending');
-    expect(response.body.totalAmount).toBe('1000.00');
+    expect(response.body.totalAmount).toBe('800.00');
     expect(response.body.categories).toHaveLength(2);
     expect(response.body.spent).toBe('0.00');
-    expect(response.body.remaining).toBe('1000.00');
     expect(response.body.id).toBeDefined();
     expect(response.body.period.window.startDate).toBe(currentMonthStart);
     expect(response.body.period.window.endDate).toBe(currentMonthEnd);
@@ -110,7 +108,6 @@ describe('POST /budgets', () => {
         period: 'custom',
         startDate: '2024-01-01',
         endDate: '2024-01-31',
-        totalAmount: '500.00',
         categories: [{ categoryId: groceries.id, limitAmount: '300.00' }],
       });
     expect(response.status).toBe(201);
@@ -126,29 +123,28 @@ describe('POST /budgets', () => {
       .send({
         name: 'Missing Dates',
         period: 'custom',
-        totalAmount: '500.00',
         categories: [{ categoryId: groceries.id, limitAmount: '300.00' }],
       });
     expect(response.status).toBe(400);
   });
 
-  it('rejects budgets that exceed the total (400)', async () => {
+  it('derives total from category limits (201)', async () => {
     const groceries = await createCategory(token, 'Groceries');
     const dining = await createCategory(token, 'Dining');
     const response = await request(app)
       .post('/budgets')
       .set('Authorization', `Bearer ${token}`)
       .send({
-        name: 'Over Budget',
+        name: 'Sum Derived Total',
         period: 'monthly',
-        totalAmount: '100.00',
         categories: [
           { categoryId: groceries.id, limitAmount: '80.00' },
           { categoryId: dining.id, limitAmount: '80.00' },
         ],
       });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe('VALIDATION_ERROR');
+    expect(response.status).toBe(201);
+    expect(response.body.totalAmount).toBe('160.00');
+    expect(response.body.categories).toHaveLength(2);
   });
 
   it('rejects duplicate categoryId in categories (400)', async () => {
@@ -159,7 +155,6 @@ describe('POST /budgets', () => {
       .send({
         name: 'Duplicate Categories',
         period: 'monthly',
-        totalAmount: '1000.00',
         categories: [
           { categoryId: groceries.id, limitAmount: '50.00' },
           { categoryId: groceries.id, limitAmount: '60.00' },
@@ -184,7 +179,6 @@ describe('POST /budgets', () => {
       .send({
         name: 'Budget With Income Category',
         period: 'monthly',
-        totalAmount: '100.00',
         categories: [{ categoryId: salary.id, limitAmount: '50.00' }],
       });
     expect(response.status).toBe(201);
@@ -198,7 +192,6 @@ describe('POST /budgets', () => {
       .send({
         name: 'Bad Budget',
         period: 'monthly',
-        totalAmount: '100.00',
         categories: [
           {
             categoryId: '00000000-0000-0000-0000-000000000000',
@@ -216,7 +209,6 @@ describe('POST /budgets', () => {
       .send({
         name: 'No Auth',
         period: 'monthly',
-        totalAmount: '100.00',
         categories: [{ categoryId: groceries.id, limitAmount: '50.00' }],
       });
     expect(response.status).toBe(401);
@@ -264,7 +256,6 @@ describe('GET /budgets', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '200.00' }],
       });
 
@@ -274,15 +265,46 @@ describe('GET /budgets', () => {
     expect(response.status).toBe(200);
     expect(response.body.budgets).toHaveLength(1);
     expect(response.body.budgets[0].spent).toBe('50.00');
-    expect(response.body.budgets[0].remaining).toBe('450.00');
+    expect(response.body.budgets[0].totalAmount).toBe('200.00');
     expect(response.body.budgets[0].categories[0].spent).toBe('50.00');
-    expect(response.body.budgets[0].categories[0].remaining).toBe('150.00');
     expect(response.body.budgets[0].period.window.startDate).toBe(
       currentMonthStart,
     );
     expect(response.body.budgets[0].period.window.endDate).toBe(
       currentMonthEnd,
     );
+  });
+
+  it('reports overspend without clamping (200)', async () => {
+    const category = await createCategory(token, 'Groceries');
+    const wallet = await createWallet(token, 'Cash');
+
+    await request(app)
+      .post(`/wallets/${wallet.id}/transactions`)
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        amount: '-250.00',
+        description: 'Big shop',
+        categoryId: category.id,
+        date: dayjs().toISOString(),
+      });
+
+    await request(app)
+      .post('/budgets')
+      .set('Authorization', `Bearer ${token}`)
+      .send({
+        name: 'Tight Budget',
+        period: 'monthly',
+        categories: [{ categoryId: category.id, limitAmount: '200.00' }],
+      });
+
+    const response = await request(app)
+      .get('/budgets')
+      .set('Authorization', `Bearer ${token}`);
+    expect(response.status).toBe(200);
+    expect(response.body.budgets[0].spent).toBe('250.00');
+    expect(response.body.budgets[0].totalAmount).toBe('200.00');
+    expect(response.body.budgets[0].categories[0].spent).toBe('250.00');
   });
 
   it('ignores a transaction outside the current period (200)', async () => {
@@ -307,7 +329,6 @@ describe('GET /budgets', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '200.00' }],
       });
 
@@ -316,7 +337,6 @@ describe('GET /budgets', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(response.status).toBe(200);
     expect(response.body.budgets[0].spent).toBe('0.00');
-    expect(response.body.budgets[0].remaining).toBe('500.00');
   });
 
   it('returns budgets with period window for the requested period (200)', async () => {
@@ -328,7 +348,6 @@ describe('GET /budgets', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '200.00' }],
       });
 
@@ -363,7 +382,6 @@ describe('GET /budgets/:id', () => {
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
-        totalAmount: '1000.00',
         categories: [{ categoryId: category.id, limitAmount: '500.00' }],
       });
 
@@ -409,7 +427,6 @@ describe('GET /budgets/:id', () => {
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
-        totalAmount: '1000.00',
         categories: [{ categoryId: category.id, limitAmount: '500.00' }],
       });
 
@@ -419,7 +436,7 @@ describe('GET /budgets/:id', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(marResponse.status).toBe(200);
     expect(marResponse.body.spent).toBe('75.00');
-    expect(marResponse.body.remaining).toBe('925.00');
+    expect(marResponse.body.totalAmount).toBe('500.00');
     expect(marResponse.body.categories[0].spent).toBe('75.00');
 
     // Get budget for January 2024 — should only include the $50 transaction
@@ -428,7 +445,6 @@ describe('GET /budgets/:id', () => {
       .set('Authorization', `Bearer ${token}`);
     expect(janResponse.status).toBe(200);
     expect(janResponse.body.spent).toBe('50.00');
-    expect(janResponse.body.remaining).toBe('950.00');
     expect(janResponse.body.categories[0].spent).toBe('50.00');
   });
 
@@ -440,7 +456,6 @@ describe('GET /budgets/:id', () => {
       .send({
         name: 'Yearly Budget',
         period: 'yearly',
-        totalAmount: '12000.00',
         categories: [{ categoryId: category.id, limitAmount: '6000.00' }],
       });
 
@@ -462,7 +477,6 @@ describe('GET /budgets/:id', () => {
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
-        totalAmount: '1000.00',
         categories: [{ categoryId: category.id, limitAmount: '500.00' }],
       });
 
@@ -483,7 +497,6 @@ describe('GET /budgets/:id', () => {
       .send({
         name: 'Monthly Budget',
         period: 'monthly',
-        totalAmount: '1000.00',
         categories: [{ categoryId: category.id, limitAmount: '500.00' }],
       });
 
@@ -507,7 +520,7 @@ describe('PUT /budgets/:id', () => {
     token = await createTestUser();
   });
 
-  it('updates the budget total (200)', async () => {
+  it('updates category limits and recomputes total (200)', async () => {
     const category = await createCategory(token, 'Groceries');
     const created = await request(app)
       .post('/budgets')
@@ -515,38 +528,20 @@ describe('PUT /budgets/:id', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '200.00' }],
       });
 
     const response = await request(app)
       .put(`/budgets/${created.body.id}`)
       .set('Authorization', `Bearer ${token}`)
-      .send({ totalAmount: '750.00' });
+      .send({
+        categories: [{ categoryId: category.id, limitAmount: '300.00' }],
+      });
     expect(response.status).toBe(200);
-    expect(response.body.totalAmount).toBe('750.00');
+    expect(response.body.totalAmount).toBe('300.00');
+    expect(response.body.categories[0].limitAmount).toBe('300.00');
     expect(response.body.period.window.startDate).toBe(currentMonthStart);
     expect(response.body.period.window.endDate).toBe(currentMonthEnd);
-  });
-
-  it('rejects a lower total than category limits (400)', async () => {
-    const category = await createCategory(token, 'Groceries');
-    const created = await request(app)
-      .post('/budgets')
-      .set('Authorization', `Bearer ${token}`)
-      .send({
-        name: 'Monthly',
-        period: 'monthly',
-        totalAmount: '500.00',
-        categories: [{ categoryId: category.id, limitAmount: '200.00' }],
-      });
-
-    const response = await request(app)
-      .put(`/budgets/${created.body.id}`)
-      .set('Authorization', `Bearer ${token}`)
-      .send({ totalAmount: '100.00' });
-    expect(response.status).toBe(400);
-    expect(response.body.code).toBe('VALIDATION_ERROR');
   });
 
   it('rejects duplicate categoryId and keeps saved limits (400)', async () => {
@@ -557,7 +552,6 @@ describe('PUT /budgets/:id', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '200.00' }],
       });
 
@@ -567,7 +561,6 @@ describe('PUT /budgets/:id', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [
           { categoryId: category.id, limitAmount: '50.00' },
           { categoryId: category.id, limitAmount: '60.00' },
@@ -610,7 +603,6 @@ describe('DELETE /budgets/:id', () => {
       .send({
         name: 'Monthly',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '200.00' }],
       });
 

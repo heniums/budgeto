@@ -10,7 +10,7 @@ import {
   deleteBudget,
 } from './repository';
 import { findCategoryById } from '../categories/repository';
-import { notFoundError, validationError } from '../errors';
+import { notFoundError } from '../errors';
 import {
   resolveStoredDates,
   resolveUpdateDates,
@@ -60,11 +60,6 @@ export const createBudgetSchema = z
       .default('monthly'),
     startDate: z.string().date('Invalid start date').optional(),
     endDate: z.string().date('Invalid end date').optional(),
-    totalAmount: z
-      .string()
-      .refine((val) => isNumericString(val) && Number(val) > 0, {
-        message: 'Total amount must be a positive number',
-      }),
     categories: z
       .array(categoryLimitSchema)
       .min(1, 'At least one category is required'),
@@ -92,12 +87,6 @@ export const updateBudgetSchema = z
       .optional(),
     startDate: z.string().date().optional(),
     endDate: z.string().date().optional(),
-    totalAmount: z
-      .string()
-      .refine((val) => isNumericString(val) && Number(val) > 0, {
-        message: 'Total amount must be a positive number',
-      })
-      .optional(),
     categories: z.array(categoryLimitSchema).min(1).optional(),
   })
   .refine(
@@ -127,20 +116,12 @@ export interface PeriodWindowResponse {
 async function validateCategories(
   userId: string,
   categories: { categoryId: string; limitAmount: string }[],
-  totalAmount: string,
 ): Promise<void> {
-  let sum = 0;
   for (const cat of categories) {
     const category = await findCategoryById(cat.categoryId);
     if (!category || category.userId !== userId) {
       throw notFoundError(`Category ${cat.categoryId} not found`);
     }
-    sum += Number(cat.limitAmount);
-  }
-  if (sum > Number(totalAmount)) {
-    throw validationError(
-      'Sum of category limits cannot exceed the budget total',
-    );
   }
 }
 
@@ -148,7 +129,7 @@ export async function create(
   userId: string,
   input: CreateBudgetInput,
 ): Promise<BudgetResponse> {
-  await validateCategories(userId, input.categories, input.totalAmount);
+  await validateCategories(userId, input.categories);
 
   const storedDates = resolveStoredDates(
     input.period,
@@ -166,7 +147,6 @@ export async function create(
       period: input.period,
       startDate: storedDates.startDate,
       endDate: storedDates.endDate,
-      totalAmount: input.totalAmount,
     });
 
     for (const cat of input.categories) {
@@ -262,23 +242,8 @@ export async function update(
     throw notFoundError('Budget not found');
   }
 
-  const totalAmount = input.totalAmount ?? existing.totalAmount;
-  const categories =
-    input.categories ??
-    (await findBudgetCategories(existing.id)).map((c) => ({
-      categoryId: c.categoryId,
-      limitAmount: c.limitAmount,
-    }));
-
   if (input.categories) {
-    await validateCategories(userId, categories, totalAmount);
-  } else if (
-    Number(totalAmount) <
-    categories.reduce((a, c) => a + Number(c.limitAmount), 0)
-  ) {
-    throw validationError(
-      'Budget total cannot be lower than the sum of category limits',
-    );
+    await validateCategories(userId, input.categories);
   }
 
   const storedDates = resolveUpdateDates(
@@ -300,7 +265,6 @@ export async function update(
       startDate:
         input.period || input.startDate ? storedDates.startDate : undefined,
       endDate: input.period || input.endDate ? storedDates.endDate : undefined,
-      totalAmount: input.totalAmount,
     });
     if (!row) {
       throw notFoundError('Budget not found');

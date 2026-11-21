@@ -120,7 +120,6 @@ export async function updateBudgetInTx(
       | 'period'
       | 'startDate'
       | 'endDate'
-      | 'totalAmount'
     >
   >,
 ): Promise<Budget | undefined> {

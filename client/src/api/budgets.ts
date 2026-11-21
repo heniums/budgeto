@@ -8,7 +8,6 @@ export interface BudgetCategoryData {
   category: CategoryData | null;
   limitAmount: string;
   spent: string;
-  remaining: string;
 }
 
 export interface PeriodWindow {
@@ -30,7 +29,6 @@ export interface BudgetData {
   };
   totalAmount: string;
   spent: string;
-  remaining: string;
   categories: BudgetCategoryData[];
   createdAt: string;
   updatedAt: string;
@@ -49,7 +47,6 @@ export interface CreateBudgetInput {
   period?: PeriodType;
   startDate?: string;
   endDate?: string;
-  totalAmount: string;
   categories: CreateBudgetCategoryInput[];
 }
 
@@ -61,7 +58,6 @@ export interface UpdateBudgetInput {
   period?: PeriodType;
   startDate?: string;
   endDate?: string;
-  totalAmount?: string;
   categories?: CreateBudgetCategoryInput[];
 }
 

@@ -337,7 +337,6 @@ describe('GET /dashboard/summary', () => {
         color: '#ff0000',
         type: 'spending',
         period: 'monthly',
-        totalAmount: '500.00',
         categories: [{ categoryId: category.id, limitAmount: '500.00' }],
       });
     expect(budgetResponse.status).toBe(201);

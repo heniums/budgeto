@@ -2,21 +2,19 @@ import dayjs from 'dayjs';
 import { Progress } from '@/components/memphis/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Money } from './Money';
+import { cn } from '@/lib/utils';
 import type { BudgetData, BudgetCategoryData } from '../api/budgets';
 
 function catPercentage(cat: BudgetCategoryData): number {
   const limit = Number(cat.limitAmount);
   if (!limit) return 0;
-  return Math.min(100, Math.round((Number(cat.spent) / limit) * 10000) / 100);
+  return Math.round((Number(cat.spent) / limit) * 10000) / 100;
 }
 
 function budgetPercentage(budget: BudgetData): number {
   const total = Number(budget.totalAmount);
   if (!total) return 0;
-  return Math.min(
-    100,
-    Math.round((Number(budget.spent) / total) * 10000) / 100,
-  );
+  return Math.round((Number(budget.spent) / total) * 10000) / 100;
 }
 
 interface BudgetCardProps {
@@ -30,6 +28,7 @@ export function BudgetCard({
   categoriesPending,
   onClick,
 }: BudgetCardProps): JSX.Element {
+  const overBudget = Number(budget.spent) > Number(budget.totalAmount);
   return (
     <div
       key={budget.id}
@@ -61,48 +60,73 @@ export function BudgetCard({
       </div>
 
       <div className="space-y-1">
-        <Progress value={budgetPercentage(budget)} />
-        <div className="flex justify-between text-xs text-muted-foreground">
+        <Progress
+          value={budgetPercentage(budget)}
+          indicatorClassName={overBudget ? 'bg-destructive' : undefined}
+        />
+        <div className="text-xs text-muted-foreground">
           <span>
-            <Money amount={budget.spent} currency="USD" /> /{' '}
-            <Money amount={budget.totalAmount} currency="USD" />
-          </span>
-          <span>
-            <Money amount={budget.remaining} currency="USD" /> left (
-            {budgetPercentage(budget)}%)
+            <Money
+              amount={budget.spent}
+              currency="USD"
+              className={overBudget ? 'text-destructive' : undefined}
+            />{' '}
+            /{' '}
+            <Money
+              amount={budget.totalAmount}
+              currency="USD"
+              className={overBudget ? 'text-destructive' : undefined}
+            />
           </span>
         </div>
       </div>
 
       <div className="space-y-2">
-        {budget.categories.map((cat) => (
-          <div key={cat.categoryId} className="space-y-1">
-            <div className="flex items-center justify-between text-sm">
-              <span>
-                {cat.category
-                  ? cat.category.name
-                  : categoriesPending
-                    ? (
-                      <Skeleton className="inline-block h-4 w-20 align-middle" />
-                    )
-                    : 'Unknown'}
-              </span>
-              <span className="text-xs text-muted-foreground">
-                {catPercentage(cat)}%
-              </span>
+        {budget.categories.map((cat) => {
+          const catOver = Number(cat.spent) > Number(cat.limitAmount);
+          return (
+            <div key={cat.categoryId} className="space-y-1">
+              <div className="flex items-center justify-between text-sm">
+                <span>
+                  {cat.category
+                    ? cat.category.name
+                    : categoriesPending
+                      ? (
+                        <Skeleton className="inline-block h-4 w-20 align-middle" />
+                      )
+                      : 'Unknown'}
+                </span>
+                <span
+                  className={cn(
+                    'text-xs',
+                    catOver ? 'text-destructive' : 'text-muted-foreground',
+                  )}
+                >
+                  {catPercentage(cat)}%
+                </span>
+              </div>
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">
+                  <Money
+                    amount={cat.spent}
+                    currency="USD"
+                    className={catOver ? 'text-destructive' : undefined}
+                  />{' '}
+                  /{' '}
+                  <Money
+                    amount={cat.limitAmount}
+                    currency="USD"
+                    className={catOver ? 'text-destructive' : undefined}
+                  />
+                </span>
+              </div>
+              <Progress
+                value={catPercentage(cat)}
+                indicatorClassName={catOver ? 'bg-destructive' : undefined}
+              />
             </div>
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">
-                <Money amount={cat.spent} currency="USD" /> /{' '}
-                <Money amount={cat.limitAmount} currency="USD" />
-              </span>
-              <span className="text-xs text-muted-foreground">
-                <Money amount={cat.remaining} currency="USD" /> left
-              </span>
-            </div>
-            <Progress value={catPercentage(cat)} />
-          </div>
-        ))}
+          );
+        })}
       </div>
     </div>
   );

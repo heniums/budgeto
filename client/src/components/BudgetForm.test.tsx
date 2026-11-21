@@ -59,14 +59,12 @@ const mockBudget: BudgetData = {
   },
   totalAmount: '500',
   spent: '100',
-  remaining: '400',
   categories: [
     {
       categoryId: testCategories[0].id,
       category: testCategories[0],
       limitAmount: '500',
       spent: '100',
-      remaining: '400',
     },
   ],
   createdAt: '2024-01-01',
@@ -160,7 +158,6 @@ describe('BudgetForm', () => {
       },
       totalAmount: '500',
       spent: '0',
-      remaining: '500',
       categories: [],
       createdAt: '',
       updatedAt: '',
@@ -175,14 +172,6 @@ describe('BudgetForm', () => {
     await user.clear(nameInput);
     await user.type(nameInput, 'My Budget');
 
-    // Fill total amount
-    const totalInput = screen.getByLabelText(
-      'Total amount',
-    ) as HTMLInputElement;
-    await user.click(totalInput);
-    await user.clear(totalInput);
-    await user.type(totalInput, '500');
-
     // Add a category
     await user.click(screen.getByRole('button', { name: /add category/i }));
     const categorySelect = screen.getByLabelText(
@@ -195,6 +184,11 @@ describe('BudgetForm', () => {
     await user.clear(limitInput);
     await user.type(limitInput, '500');
 
+    // Live computed total summary
+    expect(screen.getByTestId('budget-total-summary')).toHaveTextContent(
+      '$500.00',
+    );
+
     // Submit
     await user.click(screen.getByRole('button', { name: /add budget/i }));
 
@@ -202,7 +196,6 @@ describe('BudgetForm', () => {
       expect(mockedCreateBudget).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'My Budget',
-          totalAmount: '500',
           categories: [
             expect.objectContaining({
               categoryId: testCategories[0].id,
@@ -230,12 +223,10 @@ describe('BudgetForm', () => {
     const nameInput = screen.getByLabelText('Name') as HTMLInputElement;
     expect(nameInput.value).toBe('Monthly Groceries');
 
-    // Total amount shows formatted when not focused; focus to see raw
-    const totalInput = screen.getByLabelText(
-      'Total amount',
-    ) as HTMLInputElement;
-    await user.click(totalInput);
-    expect(totalInput.value).toBe('500');
+    // Limit input shows formatted when not focused; focus to see raw
+    const limitInput = screen.getByLabelText('Limit 1') as HTMLInputElement;
+    await user.click(limitInput);
+    expect(limitInput.value).toBe('500');
 
     // Dialog title should say "Edit budget"
     expect(screen.getByText('Edit budget')).toBeInTheDocument();
@@ -272,14 +263,7 @@ describe('BudgetForm', () => {
     await user.clear(nameInput);
     await user.type(nameInput, 'Test Budget');
 
-    const totalInput = screen.getByLabelText(
-      'Total amount',
-    ) as HTMLInputElement;
-    await user.click(totalInput);
-    await user.clear(totalInput);
-    await user.type(totalInput, '100');
-
-    // Add category with matching limit
+    // Add category
     await user.click(screen.getByRole('button', { name: /add category/i }));
     const categorySelect = screen.getByLabelText(
       'Category 1',
@@ -298,5 +282,35 @@ describe('BudgetForm', () => {
     await waitFor(() => {
       expect(screen.getByText('Failed to create budget')).toBeInTheDocument();
     });
+  });
+
+  it('shows live computed total as limits change', async () => {
+    renderForm();
+    const user = userEvent.setup();
+
+    const summary = screen.getByTestId('budget-total-summary');
+    expect(summary).toHaveTextContent('$0.00');
+
+    await user.click(screen.getByRole('button', { name: /add category/i }));
+    const categorySelect = screen.getByLabelText(
+      'Category 1',
+    ) as HTMLSelectElement;
+    await user.selectOptions(categorySelect, testCategories[0].id);
+    const limit1 = screen.getByLabelText('Limit 1') as HTMLInputElement;
+    await user.type(limit1, '500');
+
+    await user.click(screen.getByRole('button', { name: /add category/i }));
+    const categorySelect2 = screen.getByLabelText(
+      'Category 2',
+    ) as HTMLSelectElement;
+    await user.selectOptions(categorySelect2, testCategories[1].id);
+    const limit2 = screen.getByLabelText('Limit 2') as HTMLInputElement;
+    await user.type(limit2, '400');
+
+    expect(summary).toHaveTextContent('$900.00');
+
+    await user.clear(limit2);
+    await user.type(limit2, '250');
+    expect(summary).toHaveTextContent('$750.00');
   });
 });
