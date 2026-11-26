@@ -120,6 +120,13 @@
       "when": 1786081143108,
       "tag": "0016_fine_mantis",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793935528569,
+      "tag": "0017_mysterious_hercules",
+      "breakpoints": true
     }
   ]
 }

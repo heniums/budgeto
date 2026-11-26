@@ -21,10 +21,6 @@ async function buildCategoryResponse(
     window.endDate,
   );
   const spentAbs = Math.abs(Number(spentRaw)).toFixed(2);
-  const remaining = Math.max(
-    0,
-    Number(category.limitAmount) - Number(spentAbs),
-  ).toFixed(2);
   return {
     categoryId: category.categoryId,
     category: categoryRow
@@ -46,7 +42,6 @@ async function buildCategoryResponse(
       : null,
     limitAmount: category.limitAmount,
     spent: spentAbs,
-    remaining,
   };
 }
 
@@ -55,14 +50,13 @@ async function buildBudgetResponseData(
   period: string,
   startDate: string,
   endDate: string,
-  totalAmount: string,
   categories: { categoryId: string; limitAmount: string }[],
   referenceDate?: Date,
 ): Promise<{
   periodWindow: { startDate: string; endDate: string };
   categoryResponses: BudgetCategoryResponse[];
   totalSpent: string;
-  totalRemaining: string;
+  totalAmount: string;
 }> {
   const periodWindow = resolveStoredDates(
     period,
@@ -76,11 +70,10 @@ async function buildBudgetResponseData(
   const totalSpent = categoryResponses
     .reduce((acc, c) => acc + Number(c.spent), 0)
     .toFixed(2);
-  const totalRemaining = Math.max(
-    0,
-    Number(totalAmount) - Number(totalSpent),
-  ).toFixed(2);
-  return { periodWindow, categoryResponses, totalSpent, totalRemaining };
+  const totalAmount = categories
+    .reduce((acc, c) => acc + Number(c.limitAmount), 0)
+    .toFixed(2);
+  return { periodWindow, categoryResponses, totalSpent, totalAmount };
 }
 
 export async function applyCategoryChanges(
@@ -108,7 +101,6 @@ interface BudgetResponseInput {
   period: string;
   startDate: string;
   endDate: string;
-  totalAmount: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -126,7 +118,6 @@ export interface BudgetCategoryResponse {
   } | null;
   limitAmount: string;
   spent: string;
-  remaining: string;
 }
 
 export interface BudgetResponse {
@@ -146,7 +137,6 @@ export interface BudgetResponse {
   };
   totalAmount: string;
   spent: string;
-  remaining: string;
   categories: BudgetCategoryResponse[];
   createdAt: Date;
   updatedAt: Date;
@@ -157,13 +147,12 @@ export async function formatBudgetResponse(
   categories: { categoryId: string; limitAmount: string }[],
   referenceDate?: Date,
 ): Promise<BudgetResponse> {
-  const { periodWindow, categoryResponses, totalSpent, totalRemaining } =
+  const { periodWindow, categoryResponses, totalSpent, totalAmount } =
     await buildBudgetResponseData(
       budget.userId,
       budget.period,
       budget.startDate,
       budget.endDate,
-      budget.totalAmount,
       categories,
       referenceDate,
     );
@@ -183,9 +172,8 @@ export async function formatBudgetResponse(
         endDate: periodWindow.endDate,
       },
     },
-    totalAmount: budget.totalAmount,
+    totalAmount,
     spent: totalSpent,
-    remaining: totalRemaining,
     categories: categoryResponses,
     createdAt: budget.createdAt,
     updatedAt: budget.updatedAt,

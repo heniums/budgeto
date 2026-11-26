@@ -16,8 +16,8 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/memphis/button';
 import { Input } from '@/components/memphis/input';
 import { Label } from '@/components/memphis/label';
-import { MoneyInput } from './MoneyInput';
 import { ColorInput } from './ColorInput';
+import { Money } from './Money';
 import {
   DialogContent,
   DialogHeader,
@@ -37,12 +37,6 @@ const budgetSchema = z
     period: z.enum(['daily', 'weekly', 'monthly', 'yearly', 'custom']),
     startDate: z.string().optional(),
     endDate: z.string().optional(),
-    totalAmount: z
-      .string()
-      .min(1, 'Total is required.')
-      .refine((v) => !isNaN(Number(v)) && Number(v) > 0, {
-        message: 'Total must be a positive number.',
-      }),
     categories: z
       .array(
         z.object({
@@ -70,21 +64,6 @@ const budgetSchema = z
     {
       message: 'Start and end dates are required for custom periods.',
       path: ['startDate'],
-    },
-  )
-  .refine(
-    (data) => {
-      const total = Number(data.totalAmount);
-      if (isNaN(total)) return true;
-      const sum = data.categories.reduce((acc, c) => {
-        const limit = Number(c.limitAmount);
-        return acc + (isNaN(limit) ? 0 : limit);
-      }, 0);
-      if (sum === 0) return true;
-      return Math.abs(total - sum) < 0.01;
-    },
-    {
-      message: 'Sum of category limits must equal the budget total.',
     },
   );
 
@@ -124,7 +103,6 @@ export function BudgetForm({
       startDate: '',
       endDate: '',
       type: 'spending',
-      totalAmount: '',
       categories: [],
     },
   });
@@ -137,6 +115,9 @@ export function BudgetForm({
   const selectedPeriod = watch('period');
   const selectedIcon = watch('icon');
   const selectedColor = watch('color');
+  const computedTotal = (watch('categories') ?? [])
+    .reduce((acc, c) => acc + (Number(c?.limitAmount) || 0), 0)
+    .toFixed(2);
 
   const usedCategoryIds = useMemo(
     () => new Set(fields.map((f) => f.categoryId).filter(Boolean)),
@@ -153,7 +134,6 @@ export function BudgetForm({
         period: editingBudget.period.type,
         startDate: editingBudget.period.window.startDate,
         endDate: editingBudget.period.window.endDate,
-        totalAmount: editingBudget.totalAmount,
         categories: editingBudget.categories.map((c) => ({
           categoryId: c.categoryId,
           limitAmount: c.limitAmount,
@@ -168,7 +148,6 @@ export function BudgetForm({
         period: 'monthly',
         startDate: '',
         endDate: '',
-        totalAmount: '',
         categories: [],
       });
     }
@@ -187,7 +166,6 @@ export function BudgetForm({
           period: values.period as PeriodType,
           startDate: values.period === 'custom' ? values.startDate : undefined,
           endDate: values.period === 'custom' ? values.endDate : undefined,
-          totalAmount: values.totalAmount,
           categories: values.categories,
         });
         onSuccess(updated);
@@ -200,7 +178,6 @@ export function BudgetForm({
           period: values.period as PeriodType,
           startDate: values.period === 'custom' ? values.startDate : undefined,
           endDate: values.period === 'custom' ? values.endDate : undefined,
-          totalAmount: values.totalAmount,
           categories: values.categories,
         });
         onSuccess(created);
@@ -334,25 +311,6 @@ export function BudgetForm({
         )}
 
         <div className="space-y-2">
-          <Label htmlFor="budget-total">Total amount</Label>
-          <Controller
-            name="totalAmount"
-            control={control}
-            render={({ field }) => (
-              <MoneyInput
-                id="budget-total"
-                placeholder="1000.00"
-                value={field.value}
-                onChange={field.onChange}
-                onBlur={field.onBlur}
-                currency="USD"
-              />
-            )}
-          />
-          <FormError message={errors.totalAmount?.message} />
-        </div>
-
-        <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label>Categories</Label>
             <Button
@@ -393,6 +351,13 @@ export function BudgetForm({
           <FormError
             message={errors.categories?.message as string | undefined}
           />
+        </div>
+
+        <div className="space-y-2">
+          <Label>Total</Label>
+          <p className="text-sm font-medium" data-testid="budget-total-summary">
+            <Money amount={computedTotal} currency="USD" />
+          </p>
         </div>
 
         <div
