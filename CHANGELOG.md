@@ -7,6 +7,17 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
+## [2.0.0] — 2026-11-26
+
+### ⚠ Breaking Changes
+- Budget totals are no longer stored: `totalAmount` is derived on the fly as the sum of the budget's category limits. API consumers must stop sending `totalAmount` on budget create/update; responses no longer include `totalAmount` (stored) or `remaining`/`totalRemaining` fields (clients derive remaining from `totalAmount - spent`)
+- Migration 0017 drops the `budget.total_amount` column
+
+### Changed
+- Budget form no longer asks for a total amount; per-category limits define the budget
+- Budget cards and dashboard progress widget compute remaining locally, with per-category progress bars coloring over/under budget via a new `indicatorClassName` prop on `Progress`
+- Dropped the "sum of category limits cannot exceed total" validation (no longer meaningful)
+
 ## [1.9.0] — 2026-11-03
 
 ### Added
@@ -242,7 +253,10 @@ Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
 
-[Unreleased]: https://github.com/heniums/budgeto/compare/v1.7.0...HEAD
+[Unreleased]: https://github.com/heniums/budgeto/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/heniums/budgeto/compare/v1.9.0...v2.0.0
+[1.9.0]: https://github.com/heniums/budgeto/compare/v1.8.0...v1.9.0
+[1.8.0]: https://github.com/heniums/budgeto/compare/v1.7.0...v1.8.0
 [1.7.0]: https://github.com/heniums/budgeto/compare/v1.6.0...v1.7.0
 [1.6.0]: https://github.com/heniums/budgeto/releases/tag/v1.6.0
 [1.5.0]: https://github.com/heniums/budgeto/releases/tag/v1.5.0
